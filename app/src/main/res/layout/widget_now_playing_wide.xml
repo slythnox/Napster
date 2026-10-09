@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Apple Music style "Now Playing" widget, wide (4x2).
+  The rounded tinted background is supplied at runtime as a bitmap on
+  widget_np_wide_bg: RemoteViews can't tint a shape drawable below API 31, and
+  the tint is the album's dominant colour, so it has to be generated anyway.
+  The android:src is only what the widget picker shows, since the picker never
+  runs our code — see widget_card_preview.
+
+  Sizes here are the floor of what this form covers; the manager scales the
+  artwork to the tile's real height from API 31.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:theme="@style/Theme.Widget.Napster">
+
+    <ImageView
+        android:id="@+id/widget_np_wide_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_card_preview"
+        android:contentDescription="@null" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="14dp">
+
+        <ImageView
+            android:id="@+id/widget_np_wide_album_art"
+            android:layout_width="82dp"
+            android:layout_height="82dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/album_art" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="14dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/widget_np_wide_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/widget_now_playing_label"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:alpha="0.7"
+                android:textColor="@color/widget_on_card"
+                android:maxLines="1" />
+
+            <TextView
+                android:id="@+id/widget_np_wide_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="@string/not_playing"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:textColor="@color/widget_on_card"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/widget_np_wide_artist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/tap_to_play"
+                android:textSize="14sp"
+                android:alpha="0.75"
+                android:textColor="@color/widget_on_card"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <LinearLayout
+                android:id="@+id/widget_np_wide_pill"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="16dp"
+                android:paddingEnd="20dp"
+                android:background="@drawable/widget_pill_scrim_light">
+
+                <ImageView
+                    android:id="@+id/widget_np_wide_play_pause"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:src="@drawable/ic_widget_play"
+                    android:contentDescription="@string/play_pause" />
+
+                <TextView
+                    android:id="@+id/widget_np_wide_pill_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/widget_play"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/widget_on_card" />
+            </LinearLayout>
+
+            <!-- Progress. Only ticks while playing with the screen on; see
+                 MusicService's widget progress ticker. -->
+            <FrameLayout
+                android:id="@+id/widget_np_wide_progress"
+                android:layout_width="match_parent"
+                android:layout_height="3dp"
+                android:layout_marginTop="10dp">
+
+                <ImageView
+                    android:id="@+id/widget_np_wide_progress_track"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:alpha="0.3"
+                    android:src="@drawable/widget_progress_track"
+                    android:scaleType="fitXY"
+                    android:contentDescription="@null" />
+
+                <ImageView
+                    android:id="@+id/widget_np_wide_progress_fill"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/widget_progress_clip"
+                    android:scaleType="fitXY"
+                    android:contentDescription="@null" />
+            </FrameLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/widget_np_wide_glyph"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="14dp"
+        android:alpha="0.9"
+        android:src="@drawable/ic_widget_music_note"
+        android:contentDescription="@null" />
+</FrameLayout>

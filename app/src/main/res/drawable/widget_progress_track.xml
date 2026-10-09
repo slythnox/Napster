@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Drawn white and tinted at runtime to the card's ink colour, since the card
+     can be an album tint, near-black, near-white or a photo. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#FFFFFFFF" />
+    <corners android:radius="999dp" />
+</shape>

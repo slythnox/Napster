@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Play/pause pill on a dark card: a translucent white capsule, as in the
+     reference widget. Paired with widget_pill_scrim_dark for light cards. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#3DFFFFFF" />
+    <corners android:radius="999dp" />
+</shape>

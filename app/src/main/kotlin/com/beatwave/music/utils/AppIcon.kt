@@ -1,0 +1,77 @@
+/**
+ * Napster (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
+
+package com.beatwave.music.utils
+
+import android.content.ComponentName
+import android.content.Context
+import android.content.pm.PackageManager
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
+import com.beatwave.music.R
+import com.beatwave.music.app.WelcomeActivity
+
+/**
+ * The launcher icon variants shipped with the app.
+ *
+ * Each one is an `<activity-alias>` in the manifest aliasing `WelcomeActivity`; exactly one
+ * alias is enabled at a time, and the enabled one is what the launcher draws. Component
+ * enablement is stored by the system, so it survives reinstall-free updates on its own — the
+ * DataStore copy exists only so the picker can show a checkmark without querying PackageManager
+ * thirteen times per frame.
+ *
+ * [previewRes] is the adaptive icon's *foreground* layer; the picker composes it over
+ * [R.color.ic_launcher_tile] to reproduce what the launcher shows.
+ */
+enum class AppIcon(
+    val id: String,
+    val alias: String,
+    @DrawableRes val previewRes: Int,
+    @StringRes val labelRes: Int,
+) {
+    GLASS("glass", ".LauncherGlass", R.drawable.napster_logo, R.string.app_icon_glass),
+    ;
+
+    companion object {
+        val DEFAULT = GLASS
+
+        fun fromId(id: String?): AppIcon = entries.firstOrNull { it.id == id } ?: DEFAULT
+
+        /**
+         * Enables [icon]'s alias and disables every other one.
+         *
+         * The new alias is enabled *first* so there is never an instant with no enabled
+         * LAUNCHER component — a gap there makes the app vanish from the launcher until the
+         * next package scan. [PackageManager.DONT_KILL_APP] keeps playback alive; the launcher
+         * usually redraws within a second or two on its own.
+         */
+        fun apply(context: Context, icon: AppIcon) {
+            val pm = context.packageManager
+            pm.setComponentEnabledSetting(
+                componentFor(context, icon),
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP,
+            )
+            entries.filter { it != icon }.forEach {
+                pm.setComponentEnabledSetting(
+                    componentFor(context, it),
+                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                    PackageManager.DONT_KILL_APP,
+                )
+            }
+        }
+
+        /**
+         * The manifest's relative alias names resolve against the module's *namespace*, not the
+         * applicationId — and debug builds carry an `applicationIdSuffix`, so the two differ.
+         * Deriving the prefix from a real class keeps both variants pointing at the right
+         * component instead of silently no-op'ing on debug.
+         */
+        private fun componentFor(context: Context, icon: AppIcon): ComponentName {
+            val namespace = "com.beatwave.music"
+            return ComponentName(context.packageName, namespace + icon.alias)
+        }
+    }
+}

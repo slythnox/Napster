@@ -1,0 +1,111 @@
+package com.beatwave.music.feature.spotifyimport
+
+import android.content.Context
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.beatwave.music.db.MusicDatabase
+import com.beatwave.music.utils.reportException
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+data class SpotifyImportUiState(
+    val isAuthenticated: Boolean = false,
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
+)
+
+data class SpotifyImportProgress(
+    val playlistName: String,
+    val currentSongIndex: Int,
+    val totalSongs: Int,
+    val percent: Float,
+    val isFinished: Boolean = false,
+)
+
+@HiltViewModel
+class SpotifyImportViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val database: MusicDatabase,
+) : ViewModel() {
+
+    private val playlistImporter = SpotifyPlaylistImporter(database)
+
+    private val _uiState = MutableStateFlow(SpotifyImportUiState(isLoading = false))
+    val uiState: StateFlow<SpotifyImportUiState> = _uiState.asStateFlow()
+
+    private val _importProgress = MutableStateFlow<SpotifyImportProgress?>(null)
+    val importProgress: StateFlow<SpotifyImportProgress?> = _importProgress.asStateFlow()
+
+    private var importJob: Job? = null
+
+    fun cancelImport() {
+        importJob?.cancel()
+        importJob = null
+        _importProgress.update { null }
+    }
+
+    fun dismissImportProgress() {
+        _importProgress.update { null }
+    }
+
+    fun dismissError() {
+        _uiState.update { it.copy(errorMessage = null) }
+    }
+
+    fun importPlaylistByLink(link: String) {
+        importJob?.cancel()
+        importJob = viewModelScope.launch(Dispatchers.IO) {
+            _importProgress.update { null }
+            _uiState.update { it.copy(isLoading = true) }
+
+            try {
+                playlistImporter.importPlaylistByLink(link) { playlistName, currentSongIndex, totalSongs ->
+                    if (currentSongIndex == 0) {
+                        _uiState.update { it.copy(isLoading = false) }
+                    }
+                    _importProgress.update {
+                        SpotifyImportProgress(
+                            playlistName = playlistName,
+                            currentSongIndex = currentSongIndex,
+                            totalSongs = totalSongs,
+                            percent = if (totalSongs > 0) currentSongIndex.toFloat() / totalSongs else 0f,
+                        )
+                    }
+                }
+
+                _importProgress.update { old ->
+                    old?.copy(isFinished = true) ?: SpotifyImportProgress(
+                        playlistName = "",
+                        currentSongIndex = 0,
+                        totalSongs = 0,
+                        percent = 1.0f,
+                        isFinished = true,
+                    )
+                }
+            } catch (error: Exception) {
+                if (error !is kotlinx.coroutines.CancellationException) {
+                    reportException(error)
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = error.message ?: "Failed to import playlist",
+                        )
+                    }
+                }
+            } finally {
+                _uiState.update { it.copy(isLoading = false) }
+                if (_importProgress.value?.isFinished != true) {
+                    _importProgress.update { null }
+                }
+            }
+        }
+    }
+}

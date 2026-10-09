@@ -1,0 +1,156 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0b0e"/>
+      <stop offset="50%" stop-color="#101218"/>
+      <stop offset="100%" stop-color="#060709"/>
+    </linearGradient>
+
+    <!-- Red Accent Gradient -->
+    <linearGradient id="red-accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FF3B30" stop-opacity="0.95"/>
+      <stop offset="50%" stop-color="#E50914" stop-opacity="1.0"/>
+      <stop offset="100%" stop-color="#B71C1C" stop-opacity="0.85"/>
+    </linearGradient>
+
+    <!-- Cyan Ambient Sub-glow -->
+    <linearGradient id="glow-ambient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#E50914" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#E50914" stop-opacity="0.0"/>
+    </linearGradient>
+
+    <!-- Grid Pattern -->
+    <pattern id="tech-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.03"/>
+    </pattern>
+
+    <!-- Radial Vignette -->
+    <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
+      <stop offset="60%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.8"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Deep Dark Canvas Base -->
+  <rect width="1200" height="420" fill="url(#bg-grad)"/>
+  <rect width="1200" height="420" fill="url(#tech-grid)"/>
+
+  <!-- Subtle Horizon Beam -->
+  <line x1="80" y1="260" x2="1120" y2="260" stroke="#FF3B30" stroke-width="1" stroke-opacity="0.25" stroke-dasharray="4 8"/>
+  <circle cx="600" cy="260" r="180" fill="url(#glow-ambient)"/>
+
+  <!-- Left Technical Annotation Block -->
+  <g opacity="0.45" transform="translate(90, 48)">
+    <text font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="9" font-weight="700" fill="#E50914" letter-spacing="3">SIGNAL ARCHITECTURE // PIPELINE MATRIX</text>
+    <line x1="0" y1="12" x2="260" y2="12" stroke="#444854" stroke-width="0.75"/>
+    <text y="26" font-family="'SF Mono', 'Roboto Mono', Consolas, monospace" font-size="8.5" fill="#8E92A0" letter-spacing="1">AUDIO_SINK: ANDROIDX.MEDIA3 [EXOPLAYER 1.5+]</text>
+    <text y="39" font-family="'SF Mono', 'Roboto Mono', Consolas, monospace" font-size="8.5" fill="#8E92A0" letter-spacing="1">RESOLVER: INNERTUBE CASCADE (WEB_REMIX / ANDROID_MUSIC)</text>
+    <text y="52" font-family="'SF Mono', 'Roboto Mono', Consolas, monospace" font-size="8.5" fill="#8E92A0" letter-spacing="1">BUFFER: EXPONENTIAL RECONNECT + BOUNDED RETRIES</text>
+  </g>
+
+  <!-- Right Technical Coordinate Block -->
+  <g opacity="0.45" transform="translate(870, 48)">
+    <text font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="9" font-weight="700" fill="#E50914" letter-spacing="3" text-anchor="end" x="240">DSP MATRIX &amp; METRICS</text>
+    <line x1="-20" y1="12" x2="240" y2="12" stroke="#444854" stroke-width="0.75"/>
+    <text y="26" font-family="'SF Mono', 'Roboto Mono', Consolas, monospace" font-size="8.5" fill="#8E92A0" letter-spacing="1" text-anchor="end" x="240">ROOM_SCHEMA: V37 (STABLE RELATIONAL CACHE)</text>
+    <text y="39" font-family="'SF Mono', 'Roboto Mono', Consolas, monospace" font-size="8.5" fill="#8E92A0" letter-spacing="1" text-anchor="end" x="240">DATASTORE: PROTO_PREFERENCES_RELAXED</text>
+    <text y="52" font-family="'SF Mono', 'Roboto Mono', Consolas, monospace" font-size="8.5" fill="#8E92A0" letter-spacing="1" text-anchor="end" x="240">TELEMETRY: STRICT ZERO-TRACKING [FOSS]</text>
+  </g>
+
+  <!-- Equaliser Waveform Vectors (Symmetric Audio Spectrum) -->
+  <g transform="translate(100, 260)">
+    <!-- Low Frequencies / Sub-bass -->
+    <rect x="20" y="-35" width="6" height="70" rx="3" fill="#3A1C20" opacity="0.7"/>
+    <rect x="36" y="-55" width="6" height="110" rx="3" fill="#4D1F24" opacity="0.75"/>
+    <rect x="52" y="-75" width="6" height="150" rx="3" fill="#751A21" opacity="0.8"/>
+    <rect x="68" y="-95" width="6" height="190" rx="3" fill="#991D26" opacity="0.85"/>
+    <rect x="84" y="-120" width="6" height="240" rx="3" fill="#BD1C26" opacity="0.9"/>
+    <rect x="100" y="-85" width="6" height="170" rx="3" fill="#991D26" opacity="0.85"/>
+    <rect x="116" y="-110" width="6" height="220" rx="3" fill="#BD1C26" opacity="0.9"/>
+    <rect x="132" y="-140" width="6" height="280" rx="3" fill="#DC2626" opacity="0.92"/>
+    <rect x="148" y="-90" width="6" height="180" rx="3" fill="#BD1C26" opacity="0.9"/>
+    <rect x="164" y="-60" width="6" height="120" rx="3" fill="#8B1D25" opacity="0.8"/>
+
+    <!-- Mid Frequencies -->
+    <rect x="180" y="-105" width="6" height="210" rx="3" fill="#DC2626" opacity="0.92"/>
+    <rect x="196" y="-130" width="6" height="260" rx="3" fill="#EF4444" opacity="0.95"/>
+    <rect x="212" y="-80" width="6" height="160" rx="3" fill="#B91C1C" opacity="0.9"/>
+    <rect x="228" y="-115" width="6" height="230" rx="3" fill="#EF4444" opacity="0.95"/>
+    <rect x="244" y="-150" width="6" height="300" rx="3" fill="#FF3B30" opacity="1.0"/>
+    <rect x="260" y="-125" width="6" height="250" rx="3" fill="#EF4444" opacity="0.95"/>
+    <rect x="276" y="-95" width="6" height="190" rx="3" fill="#DC2626" opacity="0.92"/>
+    <rect x="292" y="-70" width="6" height="140" rx="3" fill="#B91C1C" opacity="0.88"/>
+    <rect x="308" y="-135" width="6" height="270" rx="3" fill="#FF3B30" opacity="1.0"/>
+    <rect x="324" y="-160" width="6" height="320" rx="3" fill="#FF3B30" opacity="1.0"/>
+
+    <!-- Center High-Energy Peak Spectrum -->
+    <rect x="340" y="-110" width="6" height="220" rx="3" fill="#EF4444" opacity="0.95"/>
+    <rect x="356" y="-85" width="6" height="170" rx="3" fill="#DC2626" opacity="0.9"/>
+    <rect x="372" y="-140" width="6" height="280" rx="3" fill="#FF3B30" opacity="1.0"/>
+    <rect x="388" y="-165" width="6" height="330" rx="3" fill="#FF5252" opacity="1.0"/>
+    <rect x="404" y="-130" width="6" height="260" rx="3" fill="#EF4444" opacity="0.95"/>
+    <rect x="420" y="-95" width="6" height="190" rx="3" fill="#DC2626" opacity="0.9"/>
+    <rect x="436" y="-145" width="6" height="290" rx="3" fill="#FF3B30" opacity="1.0"/>
+    <rect x="452" y="-170" width="6" height="340" rx="3" fill="#FF5252" opacity="1.0"/>
+    <rect x="468" y="-125" width="6" height="250" rx="3" fill="#EF4444" opacity="0.95"/>
+    <rect x="484" y="-80" width="6" height="160" rx="3" fill="#DC2626" opacity="0.9"/>
+
+    <!-- Center Focal Bridge -->
+    <rect x="500" y="-155" width="6" height="310" rx="3" fill="#FF3B30" opacity="1.0"/>
+    <rect x="516" y="-175" width="6" height="350" rx="3" fill="#FF5252" opacity="1.0"/>
+    <rect x="532" y="-135" width="6" height="270" rx="3" fill="#FF3B30" opacity="1.0"/>
+    <rect x="548" y="-105" width="6" height="210" rx="3" fill="#EF4444" opacity="0.95"/>
+    <rect x="564" y="-160" width="6" height="320" rx="3" fill="#FF5252" opacity="1.0"/>
+    <rect x="580" y="-180" width="6" height="360" rx="3" fill="#FF6B6B" opacity="1.0"/>
+    <rect x="596" y="-145" width="6" height="290" rx="3" fill="#FF3B30" opacity="1.0"/>
+    <rect x="612" y="-115" width="6" height="230" rx="3" fill="#EF4444" opacity="0.95"/>
+    <rect x="628" y="-150" width="6" height="300" rx="3" fill="#FF3B30" opacity="1.0"/>
+    <rect x="644" y="-170" width="6" height="340" rx="3" fill="#FF5252" opacity="1.0"/>
+
+    <!-- High Frequencies / Harmonic Air -->
+    <rect x="660" y="-120" width="6" height="240" rx="3" fill="#EF4444" opacity="0.95"/>
+    <rect x="676" y="-90" width="6" height="180" rx="3" fill="#DC2626" opacity="0.9"/>
+    <rect x="692" y="-135" width="6" height="270" rx="3" fill="#FF3B30" opacity="1.0"/>
+    <rect x="708" y="-155" width="6" height="310" rx="3" fill="#FF5252" opacity="1.0"/>
+    <rect x="724" y="-110" width="6" height="220" rx="3" fill="#EF4444" opacity="0.95"/>
+    <rect x="740" y="-85" width="6" height="170" rx="3" fill="#DC2626" opacity="0.9"/>
+    <rect x="756" y="-125" width="6" height="250" rx="3" fill="#EF4444" opacity="0.95"/>
+    <rect x="772" y="-145" width="6" height="290" rx="3" fill="#FF3B30" opacity="1.0"/>
+    <rect x="788" y="-105" width="6" height="210" rx="3" fill="#DC2626" opacity="0.9"/>
+    <rect x="804" y="-75" width="6" height="150" rx="3" fill="#B91C1C" opacity="0.85"/>
+
+    <!-- Treble Falloff / Rolloff -->
+    <rect x="820" y="-115" width="6" height="230" rx="3" fill="#DC2626" opacity="0.9"/>
+    <rect x="836" y="-135" width="6" height="270" rx="3" fill="#EF4444" opacity="0.95"/>
+    <rect x="852" y="-95" width="6" height="190" rx="3" fill="#B91C1C" opacity="0.85"/>
+    <rect x="868" y="-70" width="6" height="140" rx="3" fill="#991D26" opacity="0.8"/>
+    <rect x="884" y="-105" width="6" height="210" rx="3" fill="#BD1C26" opacity="0.85"/>
+    <rect x="900" y="-120" width="6" height="240" rx="3" fill="#DC2626" opacity="0.9"/>
+    <rect x="916" y="-80" width="6" height="160" rx="3" fill="#991D26" opacity="0.8"/>
+    <rect x="932" y="-60" width="6" height="120" rx="3" fill="#751A21" opacity="0.75"/>
+    <rect x="948" y="-45" width="6" height="90" rx="3" fill="#4D1F24" opacity="0.7"/>
+    <rect x="964" y="-25" width="6" height="50" rx="3" fill="#3A1C20" opacity="0.65"/>
+  </g>
+
+  <!-- Continuous Audio Wave Overlay Curve -->
+  <path d="M 80 260 Q 220 180 340 260 T 600 260 T 860 260 T 1120 260" fill="none" stroke="#FF5252" stroke-width="2.5" opacity="0.85"/>
+  <path d="M 80 260 Q 200 320 360 260 T 620 260 T 880 260 T 1120 260" fill="none" stroke="#E50914" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.45"/>
+
+  <!-- Minimal Calibration Markers -->
+  <g opacity="0.35" transform="translate(100, 390)">
+    <line x1="20" y1="0" x2="20" y2="6" stroke="#ffffff" stroke-width="1"/>
+    <text x="20" y="16" font-family="'SF Mono', Consolas, monospace" font-size="7" fill="#ffffff" text-anchor="middle">20 Hz</text>
+    <line x1="260" y1="0" x2="260" y2="6" stroke="#ffffff" stroke-width="1"/>
+    <text x="260" y="16" font-family="'SF Mono', Consolas, monospace" font-size="7" fill="#ffffff" text-anchor="middle">250 Hz</text>
+    <line x1="500" y1="0" x2="500" y2="6" stroke="#ffffff" stroke-width="1"/>
+    <text x="500" y="16" font-family="'SF Mono', Consolas, monospace" font-size="7" fill="#ffffff" text-anchor="middle">1.0 kHz</text>
+    <line x1="740" y1="0" x2="740" y2="6" stroke="#ffffff" stroke-width="1"/>
+    <text x="740" y="16" font-family="'SF Mono', Consolas, monospace" font-size="7" fill="#ffffff" text-anchor="middle">4.0 kHz</text>
+    <line x1="970" y1="0" x2="970" y2="6" stroke="#ffffff" stroke-width="1"/>
+    <text x="970" y="16" font-family="'SF Mono', Consolas, monospace" font-size="7" fill="#ffffff" text-anchor="middle">20 kHz</text>
+  </g>
+
+  <!-- Vignette Soft Edges -->
+  <rect width="1200" height="420" fill="url(#vignette)"/>
+</svg>

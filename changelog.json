@@ -1,0 +1,40 @@
+{
+  "description": "Napster 1.0.0 — major release: Performance & reliability improvements, UI polish, and repository cleanup.",
+  "image": "",
+  "changelog": [
+    {
+      "title": "Performance & Reliability (Phase 9)",
+      "items": [
+        "Removed blocking DataStore reads from ExoPlayer main-thread callbacks. Preferences are now cached reactively.",
+        "Search suggestion debounce (300 ms) reduces InnerTube requests during rapid typing.",
+        "Room play-count writes are now fully atomic using @Transaction; removed all blocking runBlocking calls.",
+        "YouTube fallback latency reduced: terminal errors abort early without exhausting all 12 clients.",
+        "Home feed and Android Auto search queries are now bounded, eliminating full-table memory dumps."
+      ]
+    },
+    {
+      "title": "Smart Discovery & Spotify Integration",
+      "items": [
+        "Public Spotify playlist import: paste a Spotify playlist link to resolve tracks via YouTube.",
+        "Dynamic Spotify recommendations seeded by recently played tracks.",
+        "Smooth fallback to related artist and album mixes when primary recommendations are unavailable."
+      ]
+    },
+    {
+      "title": "Theme Presets",
+      "items": [
+        "One-tap theme presets: Deep Midnight OLED, Cyberpunk Neon, Emerald Frosted Glass, Rose Gold, Sunset Amber, and Dynamic Material You.",
+        "Live gradient preview tiles with instant whole-app theme adaptation.",
+        "Presets export and import as .napsterpreset archives."
+      ]
+    },
+    {
+      "title": "Audio & Playback Polish",
+      "items": [
+        "One-tap playback presets: Normal, Sped Up, Nightcore, Slowed, Daycore, and Vaporwave.",
+        "DJ mode with beat-matched transitions and energy profiling.",
+        "Accessible from both the Player Menu and Song Options."
+      ]
+    }
+  ]
+}
