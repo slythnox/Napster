@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Widget Theme for Android 12+ with Dynamic Colors -->
+    <style name="Theme.Widget.Napster" parent="@android:style/Theme.DeviceDefault.DayNight" />
+    <style name="Theme.Widget.BeatWave" parent="Theme.Widget.Napster" />
+</resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pushed from MusicService, never polled — see now_playing_widget_info.xml. -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="180dp"
+    android:minHeight="180dp"
+    android:minResizeWidth="110dp"
+    android:minResizeHeight="110dp"
+    android:maxResizeWidth="400dp"
+    android:maxResizeHeight="400dp"
+    android:targetCellWidth="3"
+    android:targetCellHeight="3"
+    android:updatePeriodMillis="0"
+    android:configure="com.beatwave.music.widget.WidgetConfigActivity"
+    android:widgetFeatures="reconfigurable|configuration_optional"
+    android:previewLayout="@layout/widget_lyrics"
+    android:initialLayout="@layout/widget_lyrics"
+    android:description="@string/widget_lyrics_description"
+    android:widgetCategory="home_screen"
+    android:resizeMode="horizontal|vertical" />

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Full music player widget. Same card as the Now Playing family — bitmap painted
+  at runtime on widget_player_bg, with a static src so the widget picker has
+  something to draw. See widget_now_playing_wide.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:theme="@style/Theme.Widget.Napster">
+
+    <ImageView
+        android:id="@+id/widget_player_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_card_preview"
+        android:contentDescription="@null" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:padding="14dp"
+        android:gravity="center_vertical">
+
+        <!-- Album Art Section (Left) -->
+        <ImageView
+            android:id="@+id/widget_album_art"
+            android:layout_width="82dp"
+            android:layout_height="82dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/napster_logo"
+            android:contentDescription="@string/album_art" />
+
+        <!-- Right Content Column -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="14dp"
+            android:orientation="vertical">
+
+            <!-- Top Row: Song Info -->
+            <TextView
+                android:id="@+id/widget_song_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/not_playing"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:textColor="@color/widget_on_card"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/widget_artist_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/tap_to_play"
+                android:textSize="14sp"
+                android:alpha="0.75"
+                android:textColor="@color/widget_on_card"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:layout_marginTop="2dp" />
+
+            <!-- Middle Row: Interactive Elements -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical">
+
+                <!-- Play/Pause pill, matching the Now Playing forms -->
+                <LinearLayout
+                    android:id="@+id/widget_play_pause_container"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="20dp"
+                    android:background="@drawable/widget_pill_scrim_light">
+
+                    <ImageView
+                        android:id="@+id/widget_play_pause"
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:src="@drawable/ic_widget_play"
+                        android:contentDescription="@string/play_pause" />
+
+                    <TextView
+                        android:id="@+id/widget_play_pause_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/widget_play"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/widget_on_card" />
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/widget_like_button"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_marginStart="16dp"
+                    android:alpha="0.9"
+                    android:src="@drawable/ic_widget_heart_outline_nav"
+                    android:contentDescription="@string/like" />
+            </LinearLayout>
+
+            <!-- Bottom Row: Progress Bar -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="3dp"
+                android:layout_marginTop="10dp">
+
+                <ImageView
+                    android:id="@+id/widget_progress_track"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:alpha="0.3"
+                    android:src="@drawable/widget_progress_track"
+                    android:scaleType="fitXY"
+                    android:contentDescription="@null" />
+
+                <ImageView
+                    android:id="@+id/widget_progress_fill"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/widget_progress_clip"
+                    android:scaleType="fitXY"
+                    android:contentDescription="@null" />
+            </FrameLayout>
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

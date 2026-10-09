@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Compact 2x2 Widget - Album art with play button overlay. Card is painted at
+     runtime on widget_compact_bg; see widget_now_playing_wide. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:theme="@style/Theme.Widget.Napster">
+
+    <ImageView
+        android:id="@+id/widget_compact_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_card_preview"
+        android:contentDescription="@null" />
+
+    <!-- Album Art Container -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="14dp">
+
+        <ImageView
+            android:id="@+id/widget_compact_album_art"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/napster_logo"
+            android:contentDescription="@string/album_art" />
+
+        <!-- Play Button Overlay - Bottom Center -->
+        <LinearLayout
+            android:id="@+id/widget_compact_play_container"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="10dp"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:background="@drawable/widget_pill_scrim_light">
+
+            <ImageView
+                android:id="@+id/widget_compact_play_pause"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:src="@drawable/ic_widget_play"
+                android:contentDescription="@string/play_pause" />
+        </LinearLayout>
+    </FrameLayout>
+</FrameLayout>

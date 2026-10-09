@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Static stand-in for the card that the widget manager paints at runtime.
+
+  The real card is a bitmap generated from the current artwork, so in the widget
+  picker — which inflates previewLayout without ever running our code — the card
+  view is empty and the widget shows up as floating white text on the launcher's
+  wallpaper. This gives the picker something to draw.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="315"
+        android:startColor="#8C4A3F"
+        android:endColor="#43211C"
+        android:type="linear" />
+    <corners android:radius="20dp" />
+</shape>
