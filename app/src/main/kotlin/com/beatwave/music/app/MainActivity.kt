@@ -1132,7 +1132,7 @@ class MainActivity : ComponentActivity() {
                         // one back-tap to root (where the bar reappears) or the back
                         // arrow's long-press (backToMain()) shortcut.
                         currentRoute?.startsWith("settings/") == true -> false
-                        currentRoute in setOf("login", "channel_picker", "equalizer", "wrapped", "update", "listen_together/chat") -> false
+                        currentRoute in setOf("login", "channel_picker", "equalizer", "wrapped", "update", "listen_together/chat", "ambient_mode", "standby") -> false
                         else -> true
                     }
                 }
@@ -1761,7 +1761,7 @@ class MainActivity : ComponentActivity() {
                             // Pre-calculate values for graphicsLayer to avoid reading state during composition
                             val navBarTotalHeight = bottomInset + NavigationBarHeight
 
-                            if (!showRail && !showSettingDialoge && currentRoute?.startsWith("settings/") != true && currentRoute !in setOf("wrapped", "update", "listen_together/chat", "login", "equalizer", "ambient_mode")) {
+                            if (!showRail && !showSettingDialoge && currentRoute?.startsWith("settings/") != true && currentRoute !in setOf("wrapped", "update", "listen_together/chat", "login", "equalizer", "ambient_mode", "standby")) {
                                 Box {
                                     // Apple Music-style progressive scrim: content fades out under
                                     // the floating glass bar instead of hard-clipping, so the bar
@@ -1872,7 +1872,7 @@ class MainActivity : ComponentActivity() {
 
                                 }
                             } else {
-                                if (currentRoute != "wrapped" && currentRoute != "update" && currentRoute != "listen_together/chat" && currentRoute != "ambient_mode") {
+                                if (currentRoute != "wrapped" && currentRoute != "update" && currentRoute != "listen_together/chat" && currentRoute != "ambient_mode" && currentRoute != "standby") {
                                     BottomSheetPlayer(
                                         state = playerBottomSheetState,
                                         navController = navController,
@@ -2149,7 +2149,7 @@ class MainActivity : ComponentActivity() {
                             // the same way ambient_mode is already excluded from the bottom/
                             // floating nav bar above, or the rail floats over its full-screen
                             // visualizer with no route-based reason to.
-                            if (showRail && currentRoute != "ambient_mode" && currentRoute != "settings/appearance/diy") {
+                            if (showRail && currentRoute != "ambient_mode" && currentRoute != "settings/appearance/diy" && currentRoute != "standby") {
                                 // No global floating Back here anymore: each screen's own
                                 // back button (TopAppBar nav icon or floating chrome row)
                                 // now insets clear of the side panel, so a second global

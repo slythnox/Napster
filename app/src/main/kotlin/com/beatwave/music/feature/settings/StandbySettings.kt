@@ -36,7 +36,6 @@ import com.beatwave.music.R
 import com.beatwave.music.constants.AodDimLevelKey
 import com.beatwave.music.constants.AodModeEnabledKey
 import com.beatwave.music.constants.AodPixelShiftEnabledKey
-import com.beatwave.music.feature.player.AodScreen
 import com.beatwave.music.ui.component.IconButton
 import com.beatwave.music.ui.component.Material3SettingsGroup
 import com.beatwave.music.ui.component.Material3SettingsItem
@@ -62,7 +61,6 @@ fun StandbySettings(
         AodDimLevelKey,
         defaultValue = 0.75f
     )
-    var showAodScreen by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -82,7 +80,7 @@ fun StandbySettings(
                     icon = painterResource(R.drawable.play),
                     title = { Text(stringResource(R.string.launch_standby)) },
                     description = { Text(stringResource(R.string.launch_standby_desc)) },
-                    onClick = { showAodScreen = true }
+                    onClick = { navController.navigate("standby") }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.bedtime),
@@ -130,12 +128,6 @@ fun StandbySettings(
         )
 
         Spacer(modifier = Modifier.height(24.dp))
-    }
-
-    if (showAodScreen) {
-        AodScreen(
-            onDismiss = { showAodScreen = false }
-        )
     }
 
     TopAppBar(

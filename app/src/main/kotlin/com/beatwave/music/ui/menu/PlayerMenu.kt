@@ -51,7 +51,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import com.beatwave.music.feature.player.AodScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -225,15 +224,7 @@ fun PlayerMenu(
     }
 
 
-    var showAodScreen by rememberSaveable {
-        mutableStateOf(false)
-    }
 
-    if (showAodScreen) {
-        AodScreen(
-            onDismiss = { showAodScreen = false },
-        )
-    }
 
     if (isQueueTrigger != true) {
         Column(
@@ -735,7 +726,9 @@ fun PlayerMenu(
                                 )
                             },
                             onClick = {
-                                showAodScreen = true
+                                navController.navigate("standby")
+                                playerBottomSheetState.collapseSoft()
+                                onDismiss()
                             }
                         )
                     )

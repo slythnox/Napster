@@ -48,6 +48,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.beatwave.music.constants.DarkModeKey
 import com.beatwave.music.constants.PureBlackKey
 import com.beatwave.music.ui.overlays.ambient.AmbientModeScreen
+import com.beatwave.music.feature.player.AodScreen
 import com.beatwave.music.feature.album.AlbumScreen
 import com.beatwave.music.feature.artist.ArtistAlbumsScreen
 import com.beatwave.music.feature.artist.ArtistItemsScreen
@@ -424,6 +425,12 @@ fun NavGraphBuilder.navigationBuilder(
 
     sharedComposable("settings/standby") {
         StandbySettings(navController, scrollBehavior)
+    }
+
+    sharedComposable("standby") {
+        AodScreen(
+            onDismiss = { navController.navigateUp() }
+        )
     }
 
     sharedComposable("settings/player/jio") {
