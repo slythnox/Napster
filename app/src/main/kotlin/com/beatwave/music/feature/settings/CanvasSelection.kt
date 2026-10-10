@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Napster (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
@@ -94,8 +94,6 @@ import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.constants.CanvasSourceKey
 import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.constants.CanvasThumbnailAnimationKey
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
-import com.beatwave.music.ui.component.ExpressiveIconButton
 import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.ui.component.IconButton
 import com.beatwave.music.ui.utils.appTopBarWindowInsets

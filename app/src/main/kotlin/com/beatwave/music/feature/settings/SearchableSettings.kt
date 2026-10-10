@@ -15,7 +15,6 @@ data class SearchableSetting(
 fun getAllSearchableSettings(): List<SearchableSetting> {
     return listOf(
         SearchableSetting(stringResource(R.string.about), null, "About", "settings/about"),
-        SearchableSetting(stringResource(R.string.system_update), null, "General", "settings/update"),
         SearchableSetting(stringResource(R.string.appearance), null, "General", "settings/appearance"),
         SearchableSetting(stringResource(R.string.player_and_audio), null, "General", "settings/player"),
         SearchableSetting(stringResource(R.string.standby), stringResource(R.string.standby_description), "General", "settings/standby"),

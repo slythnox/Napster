@@ -627,4 +627,12 @@
     <string name="eight_d_preset_classic">Classic</string>
     <string name="eight_d_preset_intense">Intense</string>
     <string name="eight_d_width">Width: %1$d%%</string>
+
+    <!-- General / About / Download UI strings -->
+    <string name="community_section">COMMUNITY</string>
+    <string name="github_repository">GitHub Repository</string>
+    <string name="view_source_code">View source code</string>
+    <string name="app_info_section">APP INFO</string>
+    <string name="installed_date_title">Installed Date</string>
+    <string name="download_failed">Download Failed</string>
 </resources>

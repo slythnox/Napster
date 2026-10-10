@@ -317,11 +317,6 @@ import com.beatwave.music.utils.reportException
 import com.beatwave.music.utils.setAppLocale
 import com.beatwave.music.feature.history.HistoryViewModel
 import com.beatwave.music.feature.home.HomeViewModel
-import com.beatwave.music.integration.updater.UpdateNotificationHelper
-import com.beatwave.music.integration.updater.checkForUpdate
-import com.beatwave.music.integration.updater.getAutoUpdateCheckSetting
-import com.beatwave.music.integration.updater.getUpdateNotificationsSetting
-import com.beatwave.music.integration.updater.saveUpdateAvailableState
 import com.valentinilk.shimmer.LocalShimmerTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -589,30 +584,6 @@ class MainActivity : ComponentActivity() {
         val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
         val enableHighRefreshRate by rememberPreference(EnableHighRefreshRateKey, defaultValue = true)
         val context = LocalContext.current
-
-        LaunchedEffect(Unit) {
-            if (getAutoUpdateCheckSetting(context)) {
-                // Delay to not block app startup
-                delay(2000L.milliseconds)
-                checkForUpdate(
-                    context = context,
-                    onSuccess = { latestVersion, isAvailable, _, _, _, _, _, _ ->
-                        val currentVersion = BuildConfig.VERSION_NAME
-                        Timber.tag("UpdateCheck").d("Startup check success. Latest: $latestVersion, Current: $currentVersion, isAvailable: $isAvailable")
-                        saveUpdateAvailableState(context, isAvailable)
-                        
-                        if (isAvailable && getUpdateNotificationsSetting(context)) {
-                            Timber.tag("UpdateCheck").d("Posting update notification for $latestVersion")
-                            UpdateNotificationHelper.showUpdateNotification(context, latestVersion)
-                        }
-                    },
-                    onError = {
-                        Timber.tag("UpdateCheck").e("Startup check failed")
-                        // Do not clear the state on error, in case of offline launch
-                    }
-                )
-            }
-        }
 
         LaunchedEffect(enableHighRefreshRate) {
             val window = this@MainActivity.window

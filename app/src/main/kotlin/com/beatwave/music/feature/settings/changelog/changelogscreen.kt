@@ -81,7 +81,6 @@ import coil3.compose.AsyncImage
 import com.beatwave.music.BuildConfig
 import com.beatwave.music.LocalPlayerAwareWindowInsets
 import com.beatwave.music.R
-import com.beatwave.music.integration.updater.extractUrls
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -419,7 +418,8 @@ fun ChangelogScreen(
                                         }
                                         
                                         section.items.forEach { item ->
-                                            val urls = item.extractUrls()
+                                            val urlRegex = Regex("https?://[^\\s]+")
+                                            val urls = urlRegex.findAll(item).map { it.range to it.value }.toList()
                                             val annotatedText = buildAnnotatedString {
                                                 append(item.trim())
                                                 urls.forEach { (range, url) ->

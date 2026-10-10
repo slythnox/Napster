@@ -59,17 +59,12 @@ import com.beatwave.music.ui.component.Material3SettingsItem
 import com.beatwave.music.ui.navigation.Screens
 import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.ui.utils.backToMain
-import com.beatwave.music.integration.updater.getUpdateAvailableState
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val isUpdateAvailable = getUpdateAvailableState(context) &&
-        com.beatwave.music.integration.updater.getAutoUpdateCheckSetting(context)
     var searchQuery by rememberSaveable { mutableStateOf("") }
     val searchLower = searchQuery.trim().lowercase()
 
@@ -121,17 +116,10 @@ fun SettingsScreen(
         item(key = "general_section") {
             SettingsSection {
                 SettingsNavItem(
-                    icon = painterResource(if (isUpdateAvailable) R.drawable.napster_logo else R.drawable.network_update),
-                    iconTint = if (isUpdateAvailable) MaterialTheme.colorScheme.error else Color(0xFF007AFF),
-                    title = stringResource(R.string.system_update),
-                    badge = if (isUpdateAvailable) stringResource(R.string.update_available) else null,
-                    onClick = { navController.navigate("settings/update") },
-                )
-                SettingsDivider()
-                SettingsNavItem(
                     icon = painterResource(R.drawable.palette),
                     iconTint = Color(0xFFAF52DE),
                     title = stringResource(R.string.appearance),
+                    subtitle = "Themes, fonts, icons, and visual style",
                     onClick = { navController.navigate("settings/appearance") },
                 )
                 SettingsDivider()
@@ -139,6 +127,7 @@ fun SettingsScreen(
                     icon = painterResource(R.drawable.play),
                     iconTint = Color(0xFFFF375F),
                     title = stringResource(R.string.player_and_audio),
+                    subtitle = "Equaliser, crossfade, quality, and playback",
                     onClick = { navController.navigate("settings/player") },
                 )
                 SettingsDivider()
@@ -163,6 +152,7 @@ fun SettingsScreen(
                     icon = painterResource(R.drawable.music_history),
                     iconTint = Color(0xFF32ADE6),
                     title = stringResource(R.string.history),
+                    subtitle = "Your recently played tracks",
                     onClick = { navController.navigate("history") },
                 )
                 SettingsDivider()
@@ -170,6 +160,7 @@ fun SettingsScreen(
                     icon = painterResource(R.drawable.stats),
                     iconTint = Color(0xFFFFCC00),
                     title = stringResource(R.string.stats),
+                    subtitle = "Listening insights and trends",
                     onClick = { navController.navigate("stats") },
                 )
             }
@@ -185,6 +176,7 @@ fun SettingsScreen(
                     icon = painterResource(R.drawable.language),
                     iconTint = Color(0xFF007AFF),
                     title = stringResource(R.string.content),
+                    subtitle = "Language, sources, and search filters",
                     onClick = { navController.navigate("settings/content") },
                 )
                 SettingsDivider()
@@ -192,6 +184,7 @@ fun SettingsScreen(
                     icon = painterResource(R.drawable.link),
                     iconTint = Color(0xFF5856D6),
                     title = stringResource(R.string.modules),
+                    subtitle = "Third-party integrations and extensions",
                     onClick = { navController.navigate("settings/modules") },
                 )
             }
@@ -207,6 +200,7 @@ fun SettingsScreen(
                     icon = painterResource(R.drawable.security),
                     iconTint = Color(0xFF007AFF),
                     title = stringResource(R.string.privacy),
+                    subtitle = "Data handling and permissions",
                     onClick = { navController.navigate("settings/privacy") },
                 )
                 SettingsDivider()
@@ -214,6 +208,7 @@ fun SettingsScreen(
                     icon = painterResource(R.drawable.storage),
                     iconTint = Color(0xFF8E8E93),
                     title = stringResource(R.string.storage),
+                    subtitle = "Cache, downloads, and local files",
                     onClick = { navController.navigate("settings/storage") },
                 )
                 SettingsDivider()
@@ -221,6 +216,7 @@ fun SettingsScreen(
                     icon = painterResource(R.drawable.restore),
                     iconTint = Color(0xFF34C759),
                     title = stringResource(R.string.backup_restore),
+                    subtitle = "Export or import your library",
                     onClick = { navController.navigate("settings/backup_restore") },
                 )
             }
@@ -236,6 +232,7 @@ fun SettingsScreen(
                     icon = painterResource(R.drawable.info),
                     iconTint = Color(0xFF007AFF),
                     title = stringResource(R.string.about),
+                    subtitle = "Version, licences, and credits",
                     onClick = { navController.navigate("settings/about") },
                 )
             }

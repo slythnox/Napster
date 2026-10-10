@@ -91,7 +91,6 @@ import com.beatwave.music.feature.settings.StandbySettings
 import com.beatwave.music.feature.spotifyimport.SpotifyScreen
 import com.beatwave.music.feature.settings.StorageSettings
 import com.beatwave.music.feature.settings.ThemeScreen
-import com.beatwave.music.feature.settings.UpdateSettings
 import com.beatwave.music.feature.settings.diy.DiyEditorScreen
 import com.beatwave.music.feature.settings.diy.PlayerIconsScreen
 import com.beatwave.music.feature.settings.diy.PresetsScreen
@@ -107,7 +106,6 @@ import com.beatwave.music.utils.rememberPreference
 import com.beatwave.music.feature.spotifyimport.SpotifyImportViewModel
 import com.beatwave.music.feature.settings.changelog.ChangelogScreen
 import com.beatwave.music.feature.settings.commits.CommitScreen
-import com.beatwave.music.integration.updater.UpdateScreen
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 fun NavGraphBuilder.navigationBuilder(
@@ -367,10 +365,6 @@ fun NavGraphBuilder.navigationBuilder(
         YouTubeBrowseScreen(navController)
     }
 
-    sharedComposable("settings/update") {
-       UpdateSettings(navController, scrollBehavior)
-    }
-
     sharedComposable("settings/appearance") {
         AppearanceSettings(navController, scrollBehavior, activity, snackbarHostState)
     }
@@ -492,10 +486,6 @@ fun NavGraphBuilder.navigationBuilder(
 
     sharedComposable("settings/about") {
         AboutScreen(navController, scrollBehavior)
-    }
-
-    sharedComposable("update") {
-        UpdateScreen(navController)
     }
 
     sharedComposable("wrapped") {
