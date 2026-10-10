@@ -318,7 +318,7 @@ cd Napster
 ## 11. Repository Structure
 
 ```
-BeatWave-main/
+Napster/
 ├── app/                         # Primary Android application module
 │   ├── src/main/kotlin/com/beatwave/music/
 │   │   ├── app/                 # Application class & Activity lifecycle
