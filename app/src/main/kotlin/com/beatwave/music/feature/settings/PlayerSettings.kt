@@ -72,10 +72,6 @@ import com.beatwave.music.LocalPlayerAwareWindowInsets
 import com.beatwave.music.R
 import com.beatwave.music.constants.AmbientEdgeGlowEnabledKey
 import com.beatwave.music.constants.AmbientEdgeGlowIntensityKey
-import com.beatwave.music.constants.AodDimLevelKey
-import com.beatwave.music.constants.AodModeEnabledKey
-import com.beatwave.music.constants.AodPixelShiftEnabledKey
-import com.beatwave.music.feature.player.AodScreen
 import com.beatwave.music.constants.AudioNormalizationKey
 import com.beatwave.music.constants.AudioOffload
 import com.beatwave.music.constants.AudioQuality
@@ -283,19 +279,6 @@ fun PlayerSettings(
         AmbientEdgeGlowIntensityKey,
         defaultValue = 0.85f
     )
-    val (aodModeEnabled, onAodModeEnabledChange) = rememberPreference(
-        AodModeEnabledKey,
-        defaultValue = false
-    )
-    val (aodPixelShiftEnabled, onAodPixelShiftEnabledChange) = rememberPreference(
-        AodPixelShiftEnabledKey,
-        defaultValue = true
-    )
-    val (aodDimLevel, onAodDimLevelChange) = rememberPreference(
-        AodDimLevelKey,
-        defaultValue = 0.75f
-    )
-    var showAodScreen by remember { mutableStateOf(false) }
 
     var showAudioQualityDialog by remember {
         mutableStateOf(false)
@@ -1186,68 +1169,9 @@ fun PlayerSettings(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        Material3SettingsGroup(
-            title = "Always-On Display (AOD Mode)",
-            items = listOf(
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.bedtime),
-                    title = { Text("AOD Standby Clock & Music") },
-                    description = { Text("Pure black AMOLED standby screen with minimal clock, glowing art, and gesture controls") },
-                    trailingContent = {
-                        Switch(
-                            checked = aodModeEnabled,
-                            onCheckedChange = onAodModeEnabledChange,
-                            thumbContent = {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (aodModeEnabled) R.drawable.check else R.drawable.close
-                                    ),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize)
-                                )
-                            }
-                        )
-                    },
-                    onClick = { onAodModeEnabledChange(!aodModeEnabled) }
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.sync),
-                    title = { Text("AMOLED Pixel Shift") },
-                    description = { Text("Periodically drifts content position to prevent display burn-in") },
-                    trailingContent = {
-                        Switch(
-                            checked = aodPixelShiftEnabled,
-                            onCheckedChange = onAodPixelShiftEnabledChange,
-                            thumbContent = {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (aodPixelShiftEnabled) R.drawable.check else R.drawable.close
-                                    ),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize)
-                                )
-                            }
-                        )
-                    },
-                    onClick = { onAodPixelShiftEnabledChange(!aodPixelShiftEnabled) }
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.play),
-                    title = { Text("Launch Standby / AOD Screen") },
-                    description = { Text("Preview and enter AOD mode immediately") },
-                    onClick = { showAodScreen = true }
-                )
-            )
-        )
         Spacer(modifier = Modifier.height(24.dp))
             }
         }
-    }
-
-    if (showAodScreen) {
-        AodScreen(
-            onDismiss = { showAodScreen = false }
-        )
     }
 
     TopAppBar(

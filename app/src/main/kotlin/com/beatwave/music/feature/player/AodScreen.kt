@@ -6,28 +6,18 @@
 package com.beatwave.music.feature.player
 
 import android.app.Activity
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.os.BatteryManager
+import android.content.pm.ActivityInfo
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,33 +32,31 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BatteryChargingFull
-import androidx.compose.material.icons.filled.BatteryFull
-import androidx.compose.material.icons.filled.Brightness6
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -87,25 +75,27 @@ import com.beatwave.music.R
 import com.beatwave.music.constants.AodDimLevelKey
 import com.beatwave.music.constants.AodPixelShiftEnabledKey
 import com.beatwave.music.core.extensions.togglePlayPause
-import com.beatwave.music.models.MediaMetadata
-import com.beatwave.music.ui.component.AmbientEdgeGlow
-import com.beatwave.music.utils.makeTimeString
 import com.beatwave.music.utils.rememberPreference
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.roundToInt
+import kotlin.math.sin
 
 /**
- * AOD Mode (Always-On Display & Standby Clock)
+ * Minimal Standby Landscape Music Display.
  *
- * Provides a pure black, power-efficient AMOLED standby player featuring:
- * - Dynamic digital clock, date, and live battery status
- * - Glowing breathing album art with halo
- * - Anti-burn-in periodic pixel shifting (every 60s)
- * - Intuitive gestures: tap to wake controls, double-tap to play/pause, swipe to skip tracks
+ * Designed around restrained editorial minimalism:
+ * - Pure black AMOLED background
+ * - Top-left small digital clock (respects 12/24h setting, isolated recomposition)
+ * - Prominent square album artwork with circular record-inspired graphics
+ * - Centred track title & artist
+ * - Minimal monochrome playback controls (previous, play/pause, next)
+ * - Deliberate horizontal swipe (left/right) or system Back exits Standby
+ * - Auto-locks into landscape orientation while displayed
  */
 @Composable
 fun AodScreen(
@@ -118,22 +108,20 @@ fun AodScreen(
     val isPlaying by playerConnection.isPlaying.collectAsStateWithLifecycle()
 
     val pixelShiftEnabled by rememberPreference(AodPixelShiftEnabledKey, true)
-    val (dimLevel, onDimLevelChange) = rememberPreference(AodDimLevelKey, 0.75f)
+    val (dimLevel, _) = rememberPreference(AodDimLevelKey, 0.75f)
 
-    // Current time and date
-    var currentTimeText by remember { mutableStateOf("") }
-    var currentDateText by remember { mutableStateOf("") }
-    var batteryPercentage by remember { mutableIntStateOf(100) }
-    var isCharging by remember { mutableStateOf(false) }
+    // Dedicated Landscape Orientation Lifecycle
+    DisposableEffect(Unit) {
+        val activity = context as? Activity
+        val previousOrientation = activity?.requestedOrientation ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
 
-    // Pixel shift offsets (AMOLED anti burn-in)
-    var shiftX by remember { mutableFloatStateOf(0f) }
-    var shiftY by remember { mutableFloatStateOf(0f) }
+        onDispose {
+            activity?.requestedOrientation = previousOrientation
+        }
+    }
 
-    // Overlay controls visibility timer (auto-hide after 5 seconds)
-    var showControls by remember { mutableStateOf(false) }
-
-    // Fullscreen and Wake Lock
+    // Keep screen on and hide system bars while Standby is active
     DisposableEffect(Unit) {
         val window = (context as? Activity)?.window
         if (window != null) {
@@ -152,570 +140,223 @@ fun AodScreen(
         }
     }
 
-    // Battery Broadcast Receiver
-    DisposableEffect(context) {
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(c: Context?, intent: Intent?) {
-                if (intent != null) {
-                    val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
-                    val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
-                    if (level >= 0 && scale > 0) {
-                        batteryPercentage = ((level / scale.toFloat()) * 100).toInt()
-                    }
-                    val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
-                    isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                            status == BatteryManager.BATTERY_STATUS_FULL
-                }
-            }
-        }
-        val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-        val registered = context.registerReceiver(receiver, filter)
-        if (registered != null) {
-            val level = registered.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
-            val scale = registered.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
-            if (level >= 0 && scale > 0) {
-                batteryPercentage = ((level / scale.toFloat()) * 100).toInt()
-            }
-            val status = registered.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
-            isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                    status == BatteryManager.BATTERY_STATUS_FULL
-        }
-
-        onDispose {
-            context.unregisterReceiver(receiver)
-        }
-    }
-
-    // Clock & Pixel Shift Periodic Update
+    // Anti-burn-in pixel shifting (updates every 60 seconds)
+    var shiftX by remember { mutableFloatStateOf(0f) }
+    var shiftY by remember { mutableFloatStateOf(0f) }
     LaunchedEffect(pixelShiftEnabled) {
-        val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-        val dateFormatter = DateTimeFormatter.ofPattern("EEE, d MMM")
-        var shiftStep = 0
-
+        var step = 0
         while (isActive) {
-            val nowTime = LocalTime.now()
-            val nowDate = LocalDate.now()
-            currentTimeText = nowTime.format(timeFormatter)
-            currentDateText = nowDate.format(dateFormatter)
-
             if (pixelShiftEnabled) {
-                // Circular drift every step
-                shiftStep = (shiftStep + 1) % 8
-                val angle = shiftStep * (Math.PI / 4.0)
-                shiftX = (kotlin.math.cos(angle) * 14f).toFloat()
-                shiftY = (kotlin.math.sin(angle) * 14f).toFloat()
+                step = (step + 1) % 8
+                val angle = step * (Math.PI / 4.0)
+                shiftX = (cos(angle) * 8.0).toFloat()
+                shiftY = (sin(angle) * 8.0).toFloat()
             } else {
                 shiftX = 0f
                 shiftY = 0f
             }
+            delay(60_000L)
+        }
+    }
 
+    // Playback progress sampling (1s interval when playing)
+    var positionMs by remember { mutableLongStateOf(0L) }
+    var durationMs by remember { mutableLongStateOf(1L) }
+    LaunchedEffect(isPlaying, mediaMetadata) {
+        while (isActive) {
+            val dur = playerConnection.player.duration
+            val pos = playerConnection.player.currentPosition
+            if (dur > 0) durationMs = dur
+            if (pos >= 0) positionMs = pos
+            if (!isPlaying) break
             delay(1000L)
         }
     }
+    val progressRatio = if (durationMs > 0) {
+        (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f)
+    } else 0f
 
-    // Controls Auto-Hide timer
-    LaunchedEffect(showControls) {
-        if (showControls) {
-            delay(5000L)
-            showControls = false
-        }
-    }
-
+    // System Back exits Standby
     BackHandler {
         onDismiss()
     }
 
-    val infiniteTransition = rememberInfiniteTransition(label = "AodArtHalo")
-    val haloAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.2f,
-        targetValue = 0.55f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 2400, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "haloAlpha"
-    )
+    // Horizontal swipe threshold calculation
+    val density = LocalDensity.current
+    val swipeThresholdPx = with(density) { 120.dp.toPx() }
 
-    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
-    val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+    val configuration = LocalConfiguration.current
+    val screenHeightDp = configuration.screenHeightDp.dp
+    val artworkSize = (screenHeightDp * 0.38f).coerceIn(120.dp, 160.dp)
+    val turntableDiameter = artworkSize * 1.7f
+
+    val title = mediaMetadata?.title?.takeIf { it.isNotBlank() } ?: "No track playing"
+    val artist = mediaMetadata?.artists?.joinToString { it.name }?.takeIf { it.isNotBlank() } ?: "Napster"
+    val displayTrackInfo = if (title == "No track playing") title else "$title $artist"
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(Color.Black)
             .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = {
-                        showControls = !showControls
-                    },
-                    onDoubleTap = {
-                        playerConnection.player.togglePlayPause()
-                    }
-                )
-            }
-            .pointerInput(Unit) {
                 var totalDragX = 0f
+                var totalDragY = 0f
                 detectDragGestures(
-                    onDragStart = { totalDragX = 0f },
+                    onDragStart = {
+                        totalDragX = 0f
+                        totalDragY = 0f
+                    },
                     onDragEnd = {
-                        if (totalDragX < -120f) {
-                            playerConnection.player.seekToNextMediaItem()
-                        } else if (totalDragX > 120f) {
-                            playerConnection.player.seekToPreviousMediaItem()
+                        // Deliberate horizontal swipe (either left or right) exits Standby
+                        if (abs(totalDragX) > swipeThresholdPx && abs(totalDragX) > abs(totalDragY) * 1.3f) {
+                            onDismiss()
                         }
+                    },
+                    onDragCancel = {
+                        totalDragX = 0f
+                        totalDragY = 0f
                     },
                     onDrag = { change, dragAmount ->
                         change.consume()
                         totalDragX += dragAmount.x
+                        totalDragY += dragAmount.y
                     }
                 )
             }
     ) {
-        if (isLandscape) {
-            // Dedicated Landscape Standby Display
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .offset { IntOffset(shiftX.roundToInt(), shiftY.roundToInt()) }
-                    .padding(horizontal = 48.dp, vertical = 24.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Left Pane: Big Clock, Date, Battery & Playback Controls
-                Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = currentTimeText,
-                        fontSize = 68.sp,
-                        fontWeight = FontWeight.Light,
-                        fontFamily = FontFamily.SansSerif,
-                        color = Color.White.copy(alpha = (dimLevel * 0.95f).coerceIn(0.2f, 1f)),
-                        letterSpacing = 2.sp
-                    )
+        // Top-left digital clock (visually secondary, isolated recomposition)
+        StandbyClock(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(start = 28.dp, top = 20.dp)
+                .alpha(dimLevel.coerceIn(0.2f, 1f))
+        )
 
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = currentDateText,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.White.copy(alpha = (dimLevel * 0.6f).coerceIn(0.15f, 0.8f))
-                        )
-
-                        Text(
-                            text = "•",
-                            fontSize = 15.sp,
-                            color = Color.White.copy(alpha = 0.3f)
-                        )
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(
-                                imageVector = if (isCharging) Icons.Default.BatteryChargingFull else Icons.Default.BatteryFull,
-                                contentDescription = null,
-                                tint = Color.White.copy(alpha = (dimLevel * 0.6f).coerceIn(0.15f, 0.8f)),
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(
-                                text = "$batteryPercentage%",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = Color.White.copy(alpha = (dimLevel * 0.6f).coerceIn(0.15f, 0.8f))
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(28.dp))
-
-                    // Minimal landscape controls
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(20.dp)
-                    ) {
-                        IconButton(
-                            onClick = { playerConnection.player.seekToPreviousMediaItem() },
-                            modifier = Modifier.size(44.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.skip_previous),
-                                contentDescription = "Previous",
-                                tint = Color.White.copy(alpha = (dimLevel * 0.75f).coerceIn(0.25f, 0.9f)),
-                                modifier = Modifier.size(26.dp)
-                            )
-                        }
-
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .size(52.dp)
-                                .clip(CircleShape)
-                                .background(Color.White.copy(alpha = 0.12f))
-                                .clickable { playerConnection.player.togglePlayPause() }
-                        ) {
-                            Icon(
-                                painter = painterResource(
-                                    if (isPlaying) R.drawable.pause else R.drawable.play
-                                ),
-                                contentDescription = "Play/Pause",
-                                tint = Color.White.copy(alpha = (dimLevel * 0.95f).coerceIn(0.4f, 1f)),
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-
-                        IconButton(
-                            onClick = { playerConnection.player.seekToNextMediaItem() },
-                            modifier = Modifier.size(44.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.skip_next),
-                                contentDescription = "Next",
-                                tint = Color.White.copy(alpha = (dimLevel * 0.75f).coerceIn(0.25f, 0.9f)),
-                                modifier = Modifier.size(26.dp)
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(32.dp))
-
-                // Right Pane: Glowing Album Art & Track Details
-                Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(190.dp)
-                            .drawBehind {
-                                if (isPlaying) {
-                                    drawCircle(
-                                        brush = Brush.radialGradient(
-                                            colors = listOf(
-                                                Color.White.copy(alpha = haloAlpha * 0.25f),
-                                                Color.Transparent
-                                            ),
-                                            radius = size.width * 0.75f
-                                        ),
-                                        radius = size.width * 0.75f
-                                    )
-                                }
-                            }
-                    ) {
-                        if (mediaMetadata?.thumbnailUrl != null) {
-                            AsyncImage(
-                                model = mediaMetadata?.thumbnailUrl,
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(160.dp)
-                                    .clip(RoundedCornerShape(24.dp))
-                            )
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .size(160.dp)
-                                    .clip(RoundedCornerShape(24.dp))
-                                    .background(Color(0xFF181818)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.music_note),
-                                    contentDescription = null,
-                                    tint = Color.White.copy(alpha = 0.4f),
-                                    modifier = Modifier.size(54.dp)
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = mediaMetadata?.title ?: "No track playing",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White.copy(alpha = (dimLevel * 0.95f).coerceIn(0.3f, 1f)),
-                        maxLines = 1,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .basicMarquee()
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = mediaMetadata?.artists?.joinToString { it.name } ?: "Napster",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = Color.White.copy(alpha = (dimLevel * 0.6f).coerceIn(0.2f, 0.75f)),
-                        maxLines = 1,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .basicMarquee()
-                    )
-                }
-            }
-        } else {
-            // Portrait Standby Display
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .offset { IntOffset(shiftX.roundToInt(), shiftY.roundToInt()) }
-                    .padding(horizontal = 28.dp, vertical = 40.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                // Top Section: Digital Clock, Date & Battery
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(
-                        text = currentTimeText,
-                        fontSize = 58.sp,
-                        fontWeight = FontWeight.Light,
-                        fontFamily = FontFamily.SansSerif,
-                        color = Color.White.copy(alpha = (dimLevel * 0.9f).coerceIn(0.2f, 1f)),
-                        letterSpacing = 2.sp
-                    )
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = currentDateText,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.White.copy(alpha = (dimLevel * 0.6f).coerceIn(0.15f, 0.8f))
-                        )
-
-                        Text(
-                            text = "•",
-                            fontSize = 14.sp,
-                            color = Color.White.copy(alpha = 0.3f)
-                        )
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(
-                                imageVector = if (isCharging) Icons.Default.BatteryChargingFull else Icons.Default.BatteryFull,
-                                contentDescription = null,
-                                tint = Color.White.copy(alpha = (dimLevel * 0.6f).coerceIn(0.15f, 0.8f)),
-                                modifier = Modifier.size(15.dp)
-                            )
-                            Text(
-                                text = "$batteryPercentage%",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = Color.White.copy(alpha = (dimLevel * 0.6f).coerceIn(0.15f, 0.8f))
-                            )
-                        }
-                    }
-                }
-
-                // Center Section: Glowing Artwork & Song Info
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    // Album Art with Ambient Breathing Halo
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(190.dp)
-                            .drawBehind {
-                                if (isPlaying) {
-                                    drawCircle(
-                                        brush = Brush.radialGradient(
-                                            colors = listOf(
-                                                Color.White.copy(alpha = haloAlpha * 0.25f),
-                                                Color.Transparent
-                                            ),
-                                            radius = size.width * 0.75f
-                                        ),
-                                        radius = size.width * 0.75f
-                                    )
-                                }
-                            }
-                    ) {
-                        if (mediaMetadata?.thumbnailUrl != null) {
-                            AsyncImage(
-                                model = mediaMetadata?.thumbnailUrl,
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(160.dp)
-                                    .clip(RoundedCornerShape(24.dp))
-                            )
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .size(160.dp)
-                                    .clip(RoundedCornerShape(24.dp))
-                                    .background(Color(0xFF181818)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.music_note),
-                                    contentDescription = null,
-                                    tint = Color.White.copy(alpha = 0.4f),
-                                    modifier = Modifier.size(54.dp)
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    // Track Title & Artist with Marquee
-                    Text(
-                        text = mediaMetadata?.title ?: "No track playing",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White.copy(alpha = (dimLevel * 0.95f).coerceIn(0.3f, 1f)),
-                        maxLines = 1,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth(0.85f)
-                            .basicMarquee()
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = mediaMetadata?.artists?.joinToString { it.name } ?: "Napster",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = Color.White.copy(alpha = (dimLevel * 0.6f).coerceIn(0.2f, 0.75f)),
-                        maxLines = 1,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth(0.85f)
-                            .basicMarquee()
-                    )
-                }
-
-                // Bottom Section: Minimal playback controls & exit button
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(28.dp)
-                    ) {
-                        IconButton(
-                            onClick = { playerConnection.player.seekToPreviousMediaItem() },
-                            modifier = Modifier.size(44.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.skip_previous),
-                                contentDescription = "Previous",
-                                tint = Color.White.copy(alpha = (dimLevel * 0.75f).coerceIn(0.25f, 0.9f)),
-                                modifier = Modifier.size(26.dp)
-                            )
-                        }
-
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .size(54.dp)
-                                .clip(CircleShape)
-                                .background(Color.White.copy(alpha = 0.12f))
-                                .clickable { playerConnection.player.togglePlayPause() }
-                        ) {
-                            Icon(
-                                painter = painterResource(
-                                    if (isPlaying) R.drawable.pause else R.drawable.play
-                                ),
-                                contentDescription = "Play/Pause",
-                                tint = Color.White.copy(alpha = (dimLevel * 0.95f).coerceIn(0.4f, 1f)),
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-
-                        IconButton(
-                            onClick = { playerConnection.player.seekToNextMediaItem() },
-                            modifier = Modifier.size(44.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.skip_next),
-                                contentDescription = "Next",
-                                tint = Color.White.copy(alpha = (dimLevel * 0.75f).coerceIn(0.25f, 0.9f)),
-                                modifier = Modifier.size(26.dp)
-                            )
-                        }
-                    }
-
-                    Text(
-                        text = "Double tap to Play/Pause • Swipe to Skip • Tap for options",
-                        fontSize = 11.sp,
-                        color = Color.White.copy(alpha = 0.3f),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-        }
-
-        // Top Overlay Bar (shown on tap)
-        AnimatedVisibility(
-            visible = showControls,
-            enter = fadeIn(tween(250)),
-            exit = fadeOut(tween(250)),
-            modifier = Modifier.align(Alignment.TopCenter)
+        // Centred music player stack
+        Column(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .offset { IntOffset(shiftX.roundToInt(), shiftY.roundToInt()) }
+                .alpha(dimLevel.coerceIn(0.2f, 1f)),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Row(
+            // Album artwork + Record turntable graphic
+            Box(
+                modifier = Modifier.size(turntableDiameter),
+                contentAlignment = Alignment.Center
+            ) {
+                // Record turntable circular graphics
+                RecordTurntableGraphic(
+                    isRotating = isPlaying,
+                    modifier = Modifier.fillMaxSize()
+                )
+
+                // Square album artwork
+                if (mediaMetadata?.thumbnailUrl != null) {
+                    AsyncImage(
+                        model = mediaMetadata?.thumbnailUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(artworkSize)
+                            .clip(RoundedCornerShape(18.dp))
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(artworkSize)
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(Color(0xFF161616)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.music_note),
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.35f),
+                            modifier = Modifier.size(artworkSize * 0.35f)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Minimal progress indicator (pill under artwork)
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 24.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .width(36.dp)
+                    .height(3.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.2f))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .fillMaxWidth(progressRatio)
+                        .background(Color.White)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Track information (centred, single line with ellipsis)
+            Text(
+                text = displayTrackInfo,
+                color = Color.White,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Normal,
+                fontFamily = FontFamily.SansSerif,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)
+                    .padding(horizontal = 16.dp)
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Minimal playback controls (previous, play/pause, next)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 IconButton(
-                    onClick = onDismiss,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.15f))
+                    onClick = { playerConnection.player.seekToPreviousMediaItem() },
+                    modifier = Modifier.size(44.dp)
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.close),
-                        contentDescription = "Exit AOD",
-                        tint = Color.White
+                        painter = painterResource(R.drawable.skip_previous),
+                        contentDescription = "Previous",
+                        tint = Color.White,
+                        modifier = Modifier.size(22.dp)
                     )
                 }
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                IconButton(
+                    onClick = { playerConnection.player.togglePlayPause() },
+                    modifier = Modifier.size(44.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Brightness6,
-                        contentDescription = null,
-                        tint = Color.White.copy(alpha = 0.7f),
-                        modifier = Modifier.size(18.dp)
+                        painter = painterResource(
+                            if (isPlaying) R.drawable.pause else R.drawable.play
+                        ),
+                        contentDescription = if (isPlaying) "Pause" else "Play",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
                     )
-                    Text(
-                        text = "${(dimLevel * 100).toInt()}%",
-                        fontSize = 12.sp,
-                        color = Color.White.copy(alpha = 0.8f)
+                }
+
+                IconButton(
+                    onClick = { playerConnection.player.seekToNextMediaItem() },
+                    modifier = Modifier.size(44.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.skip_next),
+                        contentDescription = "Next",
+                        tint = Color.White,
+                        modifier = Modifier.size(22.dp)
                     )
                 }
             }
@@ -723,3 +364,104 @@ fun AodScreen(
     }
 }
 
+/**
+ * Isolated digital clock for Standby display.
+ * Recomposes once per minute without invalidating the rest of the screen.
+ */
+@Composable
+private fun StandbyClock(
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    var timeText by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        while (isActive) {
+            val is24Hour = android.text.format.DateFormat.is24HourFormat(context)
+            val pattern = if (is24Hour) "HH:mm" else "h:mm"
+            timeText = LocalTime.now().format(DateTimeFormatter.ofPattern(pattern))
+            val currentSecond = LocalTime.now().second
+            val secondsToNextMinute = (60 - currentSecond).coerceAtLeast(1)
+            delay(secondsToNextMinute * 1000L)
+        }
+    }
+
+    Text(
+        text = timeText,
+        fontSize = 15.sp,
+        fontWeight = FontWeight.Normal,
+        fontFamily = FontFamily.SansSerif,
+        color = Color.White.copy(alpha = 0.85f),
+        modifier = modifier
+    )
+}
+
+/**
+ * Lightweight vinyl/record-inspired circular graphics.
+ * Uses thin subtle lines and four diagonal spokes.
+ * Rotation is lifecycle-aware and pauses when playback is paused.
+ */
+@Composable
+private fun RecordTurntableGraphic(
+    isRotating: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "VinylSpin")
+    val rotationAngle by if (isRotating) {
+        infiniteTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = 360f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 20000, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "VinylRotation"
+        )
+    } else {
+        remember { mutableFloatStateOf(0f) }
+    }
+
+    Canvas(modifier = modifier) {
+        val centerX = size.width / 2f
+        val centerY = size.height / 2f
+        val maxRadius = minOf(centerX, centerY)
+
+        // Outer thin circle
+        drawCircle(
+            color = Color.White.copy(alpha = 0.35f),
+            radius = maxRadius,
+            center = Offset(centerX, centerY),
+            style = Stroke(width = 1.dp.toPx())
+        )
+
+        // Subtle inner groove ring
+        drawCircle(
+            color = Color.White.copy(alpha = 0.12f),
+            radius = maxRadius * 0.82f,
+            center = Offset(centerX, centerY),
+            style = Stroke(width = 0.75.dp.toPx())
+        )
+
+        // Four diagonal radial spoke lines (45°, 135°, 225°, 315°)
+        rotate(degrees = rotationAngle, pivot = Offset(centerX, centerY)) {
+            val angles = listOf(45.0, 135.0, 225.0, 315.0)
+            val innerR = maxRadius * 0.52f
+            val outerR = maxRadius * 0.98f
+
+            for (angleDeg in angles) {
+                val rad = Math.toRadians(angleDeg)
+                val startX = centerX + (innerR * cos(rad)).toFloat()
+                val startY = centerY + (innerR * sin(rad)).toFloat()
+                val endX = centerX + (outerR * cos(rad)).toFloat()
+                val endY = centerY + (outerR * sin(rad)).toFloat()
+
+                drawLine(
+                    color = Color.White.copy(alpha = 0.35f),
+                    start = Offset(startX, startY),
+                    end = Offset(endX, endY),
+                    strokeWidth = 1.dp.toPx()
+                )
+            }
+        }
+    }
+}

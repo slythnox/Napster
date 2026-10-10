@@ -725,8 +725,8 @@ fun PlayerMenu(
                     )
                     add(
                         Material3MenuItemData(
-                            title = { Text(text = "Always-On Display (AOD)") },
-                            description = { Text(text = "Minimal AMOLED Standby Clock & Music") },
+                            title = { Text(text = stringResource(R.string.standby_mode)) },
+                            description = { Text(text = stringResource(R.string.standby_description)) },
                             icon = {
                                 Icon(
                                     painter = painterResource(R.drawable.bedtime),

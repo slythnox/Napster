@@ -141,6 +141,14 @@ fun SettingsScreen(
                     title = stringResource(R.string.player_and_audio),
                     onClick = { navController.navigate("settings/player") },
                 )
+                SettingsDivider()
+                SettingsNavItem(
+                    icon = painterResource(R.drawable.bedtime),
+                    iconTint = Color(0xFFFF9F0A),
+                    title = stringResource(R.string.standby),
+                    subtitle = stringResource(R.string.standby_description),
+                    onClick = { navController.navigate("settings/standby") },
+                )
             }
         }
 
@@ -328,6 +336,7 @@ private fun SettingsNavItem(
     icon: Painter,
     iconTint: Color,
     title: String,
+    subtitle: String? = null,
     badge: String? = null,
     onClick: () -> Unit,
 ) {
@@ -356,13 +365,22 @@ private fun SettingsNavItem(
 
         Spacer(Modifier.width(16.dp))
 
-        // Title
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f),
-        )
+        // Title and optional subtitle
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            if (subtitle != null) {
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
 
         // Badge or chevron
         if (badge != null) {

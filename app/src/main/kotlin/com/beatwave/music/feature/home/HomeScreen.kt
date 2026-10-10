@@ -108,9 +108,11 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import com.beatwave.music.ui.theme.bbhBartle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.NavController
@@ -1363,20 +1365,10 @@ fun HomeScreen(
                 // app bar: the bar is transparent chrome here, and a large title that
                 // scrolls away is what gives the first screenful its weight.
                 item(key = "listen_now_title", contentType = "section_title") {
-                    val currentHour = remember { java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY) }
-                    val greetingTitle = when {
-                        localOnly -> stringResource(R.string.filter_local)
-                        currentHour in 5..11 -> stringResource(R.string.good_morning)
-                        currentHour in 12..16 -> stringResource(R.string.good_afternoon)
-                        currentHour in 17..21 -> stringResource(R.string.good_evening)
-                        else -> stringResource(R.string.good_night)
-                    }
-                    val greetingSubtitle = when {
-                        localOnly -> "Explore your offline collection"
-                        currentHour in 5..11 -> "Start your day with good music"
-                        currentHour in 12..16 -> "Keep the energy flow going"
-                        currentHour in 17..21 -> "Unwind with your favorite vibes"
-                        else -> "Late night sounds & relaxing tunes"
+                    val subtitle = if (localOnly) {
+                        "Explore your offline collection"
+                    } else {
+                        stringResource(R.string.listening_subtitle)
                     }
                     Row(
                         modifier = Modifier
@@ -1396,18 +1388,39 @@ fun HomeScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = greetingTitle,
-                                fontSize = AppleTokens.TitleLarge,
-                                lineHeight = AppleTokens.TitleLargeLineHeight,
+                                text = stringResource(R.string.listening_heading_line1),
+                                fontFamily = bbhBartle,
+                                fontSize = 28.sp,
+                                lineHeight = 32.sp,
                                 fontWeight = FontWeight.Bold,
-                                letterSpacing = (-0.02).em,
+                                letterSpacing = 2.sp,
                                 color = LocalContentColor.current,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
                             )
                             Spacer(Modifier.height(2.dp))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.listening_heading_line2),
+                                    fontFamily = bbhBartle,
+                                    fontSize = 28.sp,
+                                    lineHeight = 32.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 2.sp,
+                                    color = LocalContentColor.current,
+                                    maxLines = 1,
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .background(Color(0xFFE53935), shape = CircleShape)
+                                )
+                            }
+                            Spacer(Modifier.height(4.dp))
                             Text(
-                                text = greetingSubtitle,
+                                text = subtitle,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = LocalContentColor.current.copy(alpha = 0.65f),
                                 maxLines = 1,

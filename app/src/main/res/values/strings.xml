@@ -25,6 +25,17 @@
     <string name="good_afternoon">Good afternoon</string>
     <string name="good_evening">Good evening</string>
     <string name="good_night">Good night</string>
+    <string name="standby">Standby</string>
+    <string name="standby_description">Minimal landscape music display</string>
+    <string name="launch_standby">Launch Standby Mode</string>
+    <string name="launch_standby_desc">Enter the minimal landscape music display</string>
+    <string name="standby_mode">Standby Mode</string>
+    <string name="standby_mode_desc">Keep display active as a landscape music clock</string>
+    <string name="pixel_shift">AMOLED Pixel Shift</string>
+    <string name="pixel_shift_desc">Periodically drifts display content to prevent screen burn-in</string>
+    <string name="listening_heading_line1">LISTENING</string>
+    <string name="listening_heading_line2">EVERYDAY</string>
+    <string name="listening_subtitle">Your music, ready to play.</string>
     <string name="history">History</string>
     <string name="stats">Stats</string>
     <string name="mood_and_genres">Mood and Genres</string>

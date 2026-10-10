@@ -86,6 +86,7 @@ import com.beatwave.music.feature.settings.PrivacySettings
 import com.beatwave.music.feature.settings.RomanizationSettings
 import com.beatwave.music.feature.settings.ScanMusicScreen
 import com.beatwave.music.feature.settings.SettingsScreen
+import com.beatwave.music.feature.settings.StandbySettings
 import com.beatwave.music.feature.spotifyimport.SpotifyScreen
 import com.beatwave.music.feature.settings.StorageSettings
 import com.beatwave.music.feature.settings.ThemeScreen
@@ -419,6 +420,10 @@ fun NavGraphBuilder.navigationBuilder(
 
     sharedComposable("settings/player") {
         PlayerSettings(navController, scrollBehavior)
+    }
+
+    sharedComposable("settings/standby") {
+        StandbySettings(navController, scrollBehavior)
     }
 
     sharedComposable("settings/player/jio") {
