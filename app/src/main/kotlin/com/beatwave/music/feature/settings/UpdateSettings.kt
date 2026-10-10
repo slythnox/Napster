@@ -265,25 +265,6 @@ fun UpdateSettings(
         )
         
         Spacer(modifier = Modifier.height(16.dp))
-        Material3SettingsGroup(
-            title = stringResource(R.string.changelog),
-            items = listOf(
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.history),
-                    title = { Text(stringResource(R.string.changelog)) },
-                    description = { Text(stringResource(R.string.view_version_history)) },
-                    onClick = { navController.navigate("settings/changelog") }
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.commit),
-                    title = { Text(stringResource(R.string.commits)) },
-                    description = { Text(stringResource(R.string.view_commit_history)) },
-                    onClick = { navController.navigate("settings/commits") }
-                )
-            )
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
     }
 
     TopAppBar(

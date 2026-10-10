@@ -185,10 +185,10 @@ fun LibraryMixScreen(
     // Shared resolver, so Library falls back the same way Home and Search do instead of
     // resolving the same preference by hand â€” its own fallback was colorScheme.primary,
     // a saturated accent, where every other screen falls back to a neutral surface.
-    val tint = if (libraryBackgroundMode == LibraryBackgroundMode.THEME) {
-        rememberAppBackgroundColor(MaterialTheme.colorScheme.primary)
-    } else {
-        rememberHeroTint(heroUrl)
+    val tint = when (libraryBackgroundMode) {
+        LibraryBackgroundMode.THEME -> rememberAppBackgroundColor(MaterialTheme.colorScheme.primary)
+        LibraryBackgroundMode.PLAIN -> Color.Transparent
+        else -> rememberHeroTint(heroUrl)
     }
     val onTint = AppleTokens.onColor(tint)
     val heroBackdrop = rememberLayerBackdrop()
@@ -394,7 +394,7 @@ fun LibraryMixScreen(
         // HomeImageBackground BEHIND this composable, so an opaque tint here hid the user's
         // wallpaper completely â€” suppressing only the hero artwork (heroArtworkVisible) was
         // never enough, the flat colour underneath still covered it.
-        tint = if (customBackground) Color.Transparent else tint,
+        tint = if (customBackground || libraryBackgroundMode == LibraryBackgroundMode.PLAIN) Color.Transparent else tint,
         heroSource = heroSource,
         showDefaultIcon = libraryBackgroundMode != LibraryBackgroundMode.PLAIN && heroArtworkVisible,
         blurArtwork = libraryBackgroundMode == LibraryBackgroundMode.THUMBNAIL_BLUR && heroArtworkVisible,
