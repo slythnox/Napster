@@ -2698,8 +2698,8 @@ fun BottomSheetPlayer(
 
                                             buildString {
                                                 append(codecLabel ?: if (isLosslessStream) "LOSSLESS" else "AUTO")
-                                                if (bitrateLabel != null) append(" â€¢ $bitrateLabel")
-                                                if (sampleRateLabel != null) append(" â€¢ $sampleRateLabel")
+                                                if (bitrateLabel != null) append(" • $bitrateLabel")
+                                                if (sampleRateLabel != null) append(" • $sampleRateLabel")
                                             }
                                         },
                                         style = MaterialTheme.typography.labelSmall.copy(

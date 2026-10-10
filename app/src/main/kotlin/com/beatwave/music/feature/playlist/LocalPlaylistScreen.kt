@@ -1325,7 +1325,7 @@ fun LocalPlaylistHeader(
             val playlistInfoText = buildString {
                 append(pluralStringResource(R.plurals.n_song, songCount, songCount))
                 if (playlistLength > 0) {
-                    append(" â€¢ ")
+                    append(" • ")
                     append(makeTimeString(playlistLength * 1000L))
                 }
             }
@@ -1422,7 +1422,7 @@ fun LocalPlaylistHeader(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Metadata - Song Count â€¢ Duration
+            // Metadata - Song Count • Duration
             Text(
                 text = playlistInfoText,
                 style = MaterialTheme.typography.bodyMedium,

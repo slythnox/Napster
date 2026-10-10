@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Napster (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
@@ -113,7 +113,7 @@ fun LibrarySongsScreen(
 
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
-    val (libraryIconsOnly) = rememberPreference(LibraryIconsOnlyKey, defaultValue = true)
+    val (libraryIconsOnly) = rememberPreference(LibraryIconsOnlyKey, defaultValue = false)
 
     val songs by viewModel.allSongs.collectAsState()
     val isScanning by viewModel.isScanning.collectAsState()

@@ -146,7 +146,7 @@ fun LibraryMixScreen(
     val (sortDescending, onSortDescendingChange) = rememberPreference(MixSortDescendingKey, true)
     val gridItemSize by rememberEnumPreference(GridItemsSizeKey, GridItemSize.BIG)
     
-    val (libraryIconsOnly) = rememberPreference(LibraryIconsOnlyKey, defaultValue = true)
+    val (libraryIconsOnly) = rememberPreference(LibraryIconsOnlyKey, defaultValue = false)
 
     val topSize by viewModel.topValue.collectAsState(initial = 50)
     
@@ -161,7 +161,7 @@ fun LibraryMixScreen(
     val artists by viewModel.artists.collectAsState()
     val playlists by viewModel.playlists.collectAsState()
 
-    val libraryBackgroundMode by rememberEnumPreference(LibraryBackgroundModeKey, LibraryBackgroundMode.THUMBNAIL_BLUR)
+    val libraryBackgroundMode by rememberEnumPreference(LibraryBackgroundModeKey, LibraryBackgroundMode.PLAIN)
 
     // LibraryBackgroundMode only applies when no custom image is set. Without this
     // the blurred-artwork hero and its scrim kept rendering under the user's own

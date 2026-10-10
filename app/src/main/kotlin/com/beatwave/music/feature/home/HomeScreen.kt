@@ -701,13 +701,13 @@ fun DailyDiscoverCard(
                                     if (song != null) {
                                         append(song.artists.joinToString(", ") { it.name })
                                         if (playCount > 0) {
-                                            append(" â€¢ $playCount $playsString")
+                                            append(" • $playCount $playsString")
                                         }
                                     } else if (album != null) {
                                         append("Album")
                                         val albumArtists = album.artists?.joinToString(", ") { it.name }
                                         if (!albumArtists.isNullOrEmpty()) {
-                                            append(" â€¢ $albumArtists")
+                                            append(" • $albumArtists")
                                         }
                                     }
                                 },
@@ -718,7 +718,7 @@ fun DailyDiscoverCard(
                             )
                             Spacer(Modifier.height(4.dp))
                             Text(
-                                text = stringResource(messageRes, "${dailyDiscover.seed.title} â€¢ ${dailyDiscover.seed.artists.joinToString(", ") { it.name }}"),
+                                text = stringResource(messageRes, "${dailyDiscover.seed.title} • ${dailyDiscover.seed.artists.joinToString(", ") { it.name }}"),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
                                 color = Color.White.copy(alpha = 0.6f),

@@ -1019,7 +1019,7 @@ private fun OnlinePlaylistHeader(
                 text = buildString {
                     append(pluralStringResource(R.plurals.n_song, songs.size, songs.size))
                     if (totalDuration > 0) {
-                        append(" â€¢ ")
+                        append(" • ")
                         val hours = totalDuration / 3600
                         val minutes = (totalDuration % 3600) / 60
                         if (hours > 0) {

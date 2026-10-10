@@ -1,107 +1,56 @@
 package com.beatwave.music.feature.settings
 
 import com.beatwave.music.ui.utils.appTopBarWindowInsets
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.foundation.layout.Column
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.foundation.layout.Spacer
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.foundation.layout.height
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.foundation.layout.padding
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.foundation.layout.size
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.foundation.layout.windowInsetsPadding
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.foundation.rememberScrollState
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.foundation.verticalScroll
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.material3.ExperimentalMaterial3Api
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.material3.Icon
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.ui.component.GlassSwitchCompat as Switch
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.material3.SwitchDefaults
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.material3.Text
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.material3.TopAppBar
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.material3.TopAppBarScrollBehavior
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.runtime.Composable
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.runtime.LaunchedEffect
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.runtime.getValue
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.runtime.mutableStateOf
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.runtime.remember
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.runtime.setValue
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.ui.Modifier
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.ui.platform.LocalContext
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.ui.res.painterResource
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.ui.res.stringResource
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.ui.unit.dp
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import android.content.Intent
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import android.net.Uri
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.navigation.NavController
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.LocalPlayerAwareWindowInsets
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.R
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.ui.component.IconButton
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.ui.component.Material3SettingsGroup
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.ui.component.Material3SettingsItem
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.integration.updater.UpdateInfoDialog
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.ui.utils.backToMain
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.integration.updater.getAutoUpdateCheckSetting
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.integration.updater.saveAutoUpdateCheckSetting
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.integration.updater.getUpdateAvailableState
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.integration.updater.saveUpdateAvailableState
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.integration.updater.getUpdateNotificationsSetting
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.integration.updater.saveUpdateNotificationsSetting
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import android.widget.Toast
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.ui.res.pluralStringResource
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.integration.updater.getDownloadedApkCount
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.integration.updater.clearDownloadedApks
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.integration.updater.getBetaUpdatesSetting
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.integration.updater.saveBetaUpdatesSetting
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.integration.updater.autoClearOldApks
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import androidx.compose.material3.MaterialTheme
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.BuildConfig
 
 //here b5.0.1 must be used for the beta tag
@@ -160,13 +109,7 @@ fun UpdateSettings(
                         }
                     },
                     onClick = {
-                        val isFoss = !BuildConfig.CAST_AVAILABLE
-                        if (isFoss) {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/slythnox/Napster/releases"))
-                            context.startActivity(intent)
-                        } else {
-                            navController.navigate("update")
-                        }
+                        navController.navigate("update")
                     }
                 ),
                 Material3SettingsItem(

@@ -111,29 +111,52 @@ fun SpotifyScreen(
                             }
                         )
                     },
-                    description = {
-                        Button(
-                            onClick = {
-                                if (playlistLink.isBlank()) {
-                                    android.widget.Toast.makeText(context, "Please enter a Spotify link or ID first", android.widget.Toast.LENGTH_SHORT).show()
-                                    return@Button
-                                }
-                                viewModel.importPlaylistByLink(playlistLink)
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            enabled = !state.isLoading
-                        ) {
-                            Text("Import Playlist")
-                        }
-                    },
                     icon = painterResource(R.drawable.link),
                     onClick = {}
                 )
             )
         )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Button(
+            onClick = {
+                if (playlistLink.isBlank()) {
+                    android.widget.Toast.makeText(context, "Please enter a Spotify link or ID first", android.widget.Toast.LENGTH_SHORT).show()
+                    return@Button
+                }
+                viewModel.importPlaylistByLink(playlistLink)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            shape = RoundedCornerShape(12.dp),
+            enabled = !state.isLoading && playlistLink.isNotBlank(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+            )
+        ) {
+            if (state.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Importing...",
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+                )
+            } else {
+                Text(
+                    text = "Import Playlist",
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 

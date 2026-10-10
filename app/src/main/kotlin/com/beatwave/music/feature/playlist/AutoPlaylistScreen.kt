@@ -753,7 +753,7 @@ private fun AutoPlaylistHeader(
             text = buildString {
                 append(pluralStringResource(R.plurals.n_song, songs.size, songs.size))
                 if (totalLength > 0) {
-                    append(" â€¢ ")
+                    append(" • ")
                     append(makeTimeString(totalLength * 1000L))
                 }
             },

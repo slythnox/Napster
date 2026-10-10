@@ -70,7 +70,7 @@ fun LibraryArtistGridItem(
     coroutineScope: CoroutineScope,
     artist: Artist,
     modifier: Modifier = Modifier,
-    showIconOnly: Boolean = true,
+    showIconOnly: Boolean = false,
 ) = ArtistGridItem(
     artist = artist,
     fillMaxWidth = true,
@@ -101,7 +101,7 @@ fun LibraryAlbumListItem(
     album: Album,
     isActive: Boolean = false,
     isPlaying: Boolean = false,
-    showIconOnly: Boolean = true,
+    showIconOnly: Boolean = false,
 ) = AlbumListItem(
     album = album,
     isActive = isActive,
@@ -142,7 +142,7 @@ fun LibraryAlbumGridItem(
     album: Album,
     isActive: Boolean = false,
     isPlaying: Boolean = false,
-    showIconOnly: Boolean = true,
+    showIconOnly: Boolean = false,
 ) = AlbumGridItem(
     album = album,
     isActive = isActive,

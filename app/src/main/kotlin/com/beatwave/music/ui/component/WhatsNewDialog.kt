@@ -59,7 +59,15 @@ fun WhatsNewPromptHost(
     val currentVersion = BuildConfig.VERSION_NAME
 
     var visible by remember(lastSeenVersion, currentVersion) {
-        mutableStateOf(lastSeenVersion != currentVersion)
+        // On a fresh install, lastSeenVersion is empty. Do not show changelog.
+        // Only show when upgrading from a previous version (lastSeenVersion is non-empty and differs from current).
+        mutableStateOf(lastSeenVersion.isNotEmpty() && lastSeenVersion != currentVersion)
+    }
+
+    androidx.compose.runtime.LaunchedEffect(lastSeenVersion, currentVersion) {
+        if (lastSeenVersion.isEmpty()) {
+            lastSeenVersion = currentVersion
+        }
     }
 
     if (!visible) return

@@ -685,12 +685,12 @@ private fun CachePlaylistHeader(
 
         Spacer(Modifier.height(8.dp))
 
-        // Metadata - Song Count â€¢ Duration
+        // Metadata - Song Count • Duration
         Text(
             text = buildString {
                 append(pluralStringResource(R.plurals.n_song, songs.size, songs.size))
                 if (cacheLength > 0) {
-                    append(" â€¢ ")
+                    append(" • ")
                     append(makeTimeString(cacheLength * 1000L))
                 }
             },

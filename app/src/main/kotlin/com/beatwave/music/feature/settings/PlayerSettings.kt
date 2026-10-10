@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Napster (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
@@ -313,9 +313,9 @@ fun PlayerSettings(
             values = AudioQuality.values().toList(),
             valueText = {
                 when (it) {
-                    AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
-                    AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
-                    AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
+                    AudioQuality.AUTO -> "Auto (Adapts to network speed)"
+                    AudioQuality.HIGH -> "High Quality (Best available audio, higher data use)"
+                    AudioQuality.LOW -> "Data Saver (Lower bitrates, minimal data use)"
                 }
             }
         )
@@ -373,9 +373,9 @@ fun PlayerSettings(
                     description = {
                         Text(
                             when (audioQuality) {
-                                AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
-                                AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
-                                AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
+                                AudioQuality.AUTO -> "Auto • Adapts to connection"
+                                AudioQuality.HIGH -> "High Quality • Best sound"
+                                AudioQuality.LOW -> "Data Saver • Minimal data"
                             }
                         )
                     },

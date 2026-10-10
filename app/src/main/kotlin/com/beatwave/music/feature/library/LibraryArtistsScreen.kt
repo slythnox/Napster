@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Napster (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
@@ -113,7 +113,7 @@ fun LibraryArtistsScreen(
     val (sortDescending, onSortDescendingChange) = rememberPreference(ArtistSortDescendingKey, true)
     val gridItemSize by rememberEnumPreference(GridItemsSizeKey, GridItemSize.BIG)
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
-    val (libraryIconsOnly) = rememberPreference(LibraryIconsOnlyKey, defaultValue = true)
+    val (libraryIconsOnly) = rememberPreference(LibraryIconsOnlyKey, defaultValue = false)
 
     val filterContent = @Composable {
         Row {
