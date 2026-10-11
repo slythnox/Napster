@@ -18,8 +18,8 @@ The `app` module declares two product flavours:
 
 | Flavour dimension | Values | Notes |
 |---|---|---|
-| `abi` | `arm64`, `universal` | `arm64` targets 64-bit ARM devices; `universal` includes all ABIs |
-| `store` | `foss`, `gms` | `foss` omits Google Play Services (Cast, GMS); `gms` includes them |
+| `abi` | `arm64`, `armeabi`, `universal`, `x86`, `x86_64` | Target CPU ABI; `arm64` is standard 64-bit ARM, `universal` builds fat binary |
+| `variant` | `foss`, `gms` | `foss` omits Google Play Services / Cast; `gms` includes Cast support |
 
 Combined with the standard `debug` / `release` build types, the primary variants used in development are:
 
