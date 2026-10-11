@@ -540,14 +540,10 @@ object YTPlayerUtils {
                 // Check if this is a privately owned track (uploaded song)
                 val isPrivatelyOwned = streamPlayerResponse.videoDetails?.musicVideoType == "MUSIC_VIDEO_TYPE_PRIVATELY_OWNED_TRACK"
 
-                if (clientIndex == STREAM_FALLBACK_CLIENTS.size - 1 || isPrivatelyOwned) {
-                    /** skip [validateStatus] for last client or private tracks */
-                    if (isPrivatelyOwned) {
-                        Timber.tag(logTag).d("Skipping validation for privately owned track: ${currentClient.clientName}")
-                    } else {
-                        Timber.tag(logTag).d("Using last fallback client without validation: ${STREAM_FALLBACK_CLIENTS[clientIndex].clientName}")
-                    }
-                    Timber.tag(TAG).i("Playback: client=${currentClient.clientName}, videoId=$videoId, private=$isPrivatelyOwned")
+                if (isPrivatelyOwned) {
+                    /** skip [validateStatus] for privately owned tracks */
+                    Timber.tag(logTag).d("Skipping validation for privately owned track: ${currentClient.clientName}")
+                    Timber.tag(TAG).i("Playback: client=${currentClient.clientName}, videoId=$videoId, private=true")
                     break
                 }
 

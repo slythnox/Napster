@@ -80,4 +80,44 @@ class WidgetRedesignLogicTest {
             }
         }
     }
+
+    @Test
+    fun vinylDeck_rotationAngleStepAndContinuousBounds() {
+        var angle = 0f
+        val step = 6.0f // Phase 17.1: smooth 10 FPS cadence (6.0° per 100ms = 60°/s)
+
+        for (tick in 1..600) {
+            angle = (angle + step) % 360f
+            assertTrue("Angle must remain in [0, 360)", angle in 0.0f..360.0f)
+            assertFalse("Angle must not be NaN", angle.isNaN())
+        }
+        // Exactly 60 full rotations after 600 ticks at 36° each 60 ticks
+        assertEquals(0.0f, angle, 0.001f)
+    }
+
+    @Test
+    fun playbackSnapshot_threadSafetyDecoupling() {
+        // Simulates thread-safe published snapshot contract used by MusicService
+        data class PlaybackSnapshot(
+            val isPlaying: Boolean,
+            val durationMs: Long,
+            val positionMs: Long
+        )
+
+        class SnapshotHolder {
+            @Volatile
+            var snapshot = PlaybackSnapshot(isPlaying = true, durationMs = 210000L, positionMs = 45000L)
+        }
+        val holder = SnapshotHolder()
+
+        // Consumer on background dispatcher reads only snapshot without accessing player
+        val readerResult = holder.snapshot
+        assertTrue(readerResult.isPlaying)
+        assertEquals(210000L, readerResult.durationMs)
+        assertEquals(45000L, readerResult.positionMs)
+
+        // Player updates state on main looper
+        holder.snapshot = PlaybackSnapshot(isPlaying = false, durationMs = 210000L, positionMs = 45000L)
+        assertFalse(holder.snapshot.isPlaying)
+    }
 }

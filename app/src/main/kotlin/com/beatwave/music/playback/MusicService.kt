@@ -27,6 +27,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Binder
 import android.os.Build
+import android.os.Looper
 import android.os.SystemClock
 import android.widget.Toast
 
@@ -329,6 +330,12 @@ class MusicService :
 
     // Last DB write per media id, to coalesce the ~3s ExoPlayer stats reports.
     private val lastStatsWriteAt = HashMap<String, Long>()
+
+    // Safely published immutable playback-state snapshots for thread-safe access
+    // across background tickers and coroutines without touching ExoPlayer directly.
+    @Volatile private var isPlayerPlayingSnapshot: Boolean = false
+    @Volatile private var playerDurationSnapshot: Long = 0L
+    @Volatile private var playerPositionSnapshot: Long = 0L
 
     private val binder = MusicBinder()
 
@@ -2290,8 +2297,13 @@ class MusicService :
             prefetchUpcomingTracks()
         }
 
+        // Safely publish immutable playback snapshots on player's application looper
+        isPlayerPlayingSnapshot = player.isPlaying
+        playerDurationSnapshot = if (player.duration != C.TIME_UNSET) player.duration else 0L
+        playerPositionSnapshot = player.currentPosition
+
         // Widget updates
-        if (events.containsAny(Player.EVENT_IS_PLAYING_CHANGED)) {
+        if (events.containsAny(Player.EVENT_IS_PLAYING_CHANGED, Player.EVENT_MEDIA_ITEM_TRANSITION)) {
             updateWidgetUI(player.isPlaying)
             restartWidgetProgressTicker()
         }
@@ -3557,6 +3569,14 @@ class MusicService :
         isRunning = false
         playbackEventDispatcher.destroy()
 
+        // Cancel widget tickers and coroutine scopes BEFORE releasing player!
+        widgetProgressJob?.cancel()
+        widgetAnimationJob?.cancel()
+        widgetProgressJob = null
+        widgetAnimationJob = null
+        scope.cancel()
+        persistenceScope.cancel()
+
         audioManager.unregisterAudioDeviceCallback(audioDeviceCallback)
         castConnectionHandler?.release()
         if (cachedPersistentQueue) {
@@ -3571,12 +3591,7 @@ class MusicService :
         player.removeListener(sleepTimer)
         playerSilenceProcessors.remove(player)
         playerEightDProcessors.remove(player)
-        // Note: equalizerService audio processors are cleared in equalizerService.release() if needed,
-        // or we can't easily reference the specific processor created in createExoPlayer here without storing it.
-        // But since we are destroying the service, it's fine.
         player.release()
-        scope.cancel()
-        persistenceScope.cancel()
         super.onDestroy()
     }
 
@@ -3642,21 +3657,35 @@ class MusicService :
         when (intent?.action) {
             MusicWidgetReceiver.ACTION_PLAY_PAUSE -> {
                 if (player.isPlaying) player.pause() else player.play()
+                isPlayerPlayingSnapshot = player.isPlaying
+                playerDurationSnapshot = if (player.duration != C.TIME_UNSET) player.duration else 0L
+                playerPositionSnapshot = player.currentPosition
                 updateWidgetUI(player.isPlaying)
+                restartWidgetProgressTicker()
             }
             MusicWidgetReceiver.ACTION_LIKE -> {
                 toggleLike()
             }
             MusicWidgetReceiver.ACTION_NEXT -> {
                 player.seekToNext()
+                isPlayerPlayingSnapshot = player.isPlaying
+                playerDurationSnapshot = if (player.duration != C.TIME_UNSET) player.duration else 0L
+                playerPositionSnapshot = player.currentPosition
                 updateWidgetUI(player.isPlaying)
             }
             MusicWidgetReceiver.ACTION_PREVIOUS -> {
                 player.seekToPrevious()
+                isPlayerPlayingSnapshot = player.isPlaying
+                playerDurationSnapshot = if (player.duration != C.TIME_UNSET) player.duration else 0L
+                playerPositionSnapshot = player.currentPosition
                 updateWidgetUI(player.isPlaying)
             }
             MusicWidgetReceiver.ACTION_UPDATE_WIDGET, TurntableWidgetReceiver.ACTION_UPDATE_TURNTABLE_WIDGET -> {
+                isPlayerPlayingSnapshot = player.isPlaying
+                playerDurationSnapshot = if (player.duration != C.TIME_UNSET) player.duration else 0L
+                playerPositionSnapshot = player.currentPosition
                 updateWidgetUI(player.isPlaying)
+                restartWidgetProgressTicker()
             }
         }
 
@@ -3674,12 +3703,20 @@ class MusicService :
      * is a permanent once-a-second wakeup for no visible benefit.
      */
     private var widgetProgressJob: Job? = null
-    private var vinylRotationJob: Job? = null
+    private var widgetAnimationJob: Job? = null
 
     private fun restartWidgetProgressTicker() {
         widgetProgressJob?.cancel()
-        vinylRotationJob?.cancel()
-        if (!player.isPlaying) {
+        widgetAnimationJob?.cancel()
+
+        // Sync snapshot from player safely if on application main thread
+        if (Looper.myLooper() == Looper.getMainLooper() && playerInitialized.value) {
+            isPlayerPlayingSnapshot = player.isPlaying
+            playerDurationSnapshot = if (player.duration != C.TIME_UNSET) player.duration else 0L
+            playerPositionSnapshot = player.currentPosition
+        }
+
+        if (!isPlayerPlayingSnapshot) {
             updateWidgetUI(false)
             return
         }
@@ -3698,23 +3735,37 @@ class MusicService :
 
         val powerManager = getSystemService(PowerManager::class.java)
 
-        // 1. Progress and state ticker: once per second for elapsed time, lyrics, and EQ frame
+        // 1. Progress and state ticker: once per second on Main dispatcher for elapsed time, lyrics line, and time remaining
         widgetProgressJob = scope.launch {
             while (isActive) {
                 delay(1000L)
-                if (powerManager?.isInteractive != false) {
-                    updateWidgetUI(player.isPlaying)
+                if (powerManager?.isInteractive != false && isPlayerPlayingSnapshot) {
+                    if (playerInitialized.value) {
+                        playerDurationSnapshot = if (player.duration != C.TIME_UNSET) player.duration else 0L
+                        playerPositionSnapshot = player.currentPosition
+                    }
+                    updateWidgetUI(true)
                 }
             }
         }
 
-        // 2. Turntable rotation ticker: smooth 16.6 FPS (60ms) continuous rotation
-        if (hasTurntableWidget) {
-            vinylRotationJob = scope.launch(Dispatchers.Default) {
-                while (isActive) {
-                    delay(60L)
-                    if (powerManager?.isInteractive != false) {
-                        widgetManager.updateVinylRotationOnly(player.isPlaying)
+        // 2. Coordinated animation ticker (turntable rotation & bouncing dots)
+        // Runs on Dispatchers.Default, reading only thread-safe published snapshots.
+        // NEVER accesses player directly on background threads!
+        if (hasTurntableWidget || hasDotWidget || hasLyricsWidget) {
+            widgetAnimationJob = scope.launch(Dispatchers.Default) {
+                var tickCounter = 0
+                while (isActive && isPlayerPlayingSnapshot) {
+                    delay(100L) // 100ms stable cadence (10 FPS)
+                    if (powerManager?.isInteractive != false && isPlayerPlayingSnapshot) {
+                        tickCounter++
+                        if (hasTurntableWidget) {
+                            widgetManager.updateVinylRotationOnly(true)
+                        }
+                        // Update bouncing dots every 200ms (5 FPS)
+                        if ((hasDotWidget || hasLyricsWidget) && tickCounter % 2 == 0) {
+                            widgetManager.updateEqualizerDotsOnly(true)
+                        }
                     }
                 }
             }
@@ -3731,14 +3782,17 @@ class MusicService :
                 val artistName = if (hasTrack) songData?.artists?.joinToString(", ") { it.name }.orEmpty() else ""
                 val isLiked = songData?.song?.liked == true
 
+                val safeDuration = if (hasTrack) playerDurationSnapshot else 0L
+                val safePosition = if (hasTrack) playerPositionSnapshot else 0L
+
                 widgetManager.updateWidgets(
                     title = songTitle,
                     artist = artistName,
                     artworkUri = if (hasTrack) song?.thumbnailUrl else null,
                     isPlaying = isPlaying,
                     isLiked = isLiked,
-                    duration = if (hasTrack && player.duration != C.TIME_UNSET) player.duration else 0,
-                    currentPosition = if (hasTrack) player.currentPosition else 0,
+                    duration = safeDuration,
+                    currentPosition = safePosition,
                     mediaId = if (hasTrack) song?.id else null,
                 )
             } catch (e: Exception) {
@@ -4137,6 +4191,7 @@ class MusicService :
         // Widget progress ticking follows play/pause, so it never runs while paused.
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
+                isPlayerPlayingSnapshot = isPlaying
                 restartWidgetProgressTicker()
             }
         })

@@ -68,8 +68,44 @@ class vivimusicWidgetManager @Inject constructor(
     private var cachedDiscArt: Bitmap? = null
     private var cachedBaseDisc: Bitmap? = null
     private var cachedDiscSize: Int = 0
-    private val discBuffers = arrayOfNulls<Bitmap>(2)
+    private val discBuffers = arrayOfNulls<Bitmap>(3)
     private var activeDiscBufferIndex = 0
+    private val vinylMatrix = Matrix()
+    private val vinylPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+    private val isVinylUpdating = java.util.concurrent.atomic.AtomicBoolean(false)
+
+    // Base square card cache for Dot Player (Widget A) to avoid full bitmap recreation
+    private var cachedSquareBaseCard: Bitmap? = null
+    private var cachedSquareBaseArt: Bitmap? = null
+    private var cachedSquareBaseSize: Int = 0
+    private var cachedSquareCornerPx: Float = 0f
+    private val squareCardBuffers = arrayOfNulls<Bitmap>(2)
+    private var activeSquareCardBufferIndex = 0
+    private var cachedDotCardSize: Int = 0
+    private var cachedDotCornerPx: Float = 0f
+    private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.WHITE
+        style = Paint.Style.FILL
+        setShadowLayer(4f, 0f, 2f, Color.parseColor("#99000000"))
+    }
+
+    // Equalizer dot buffers for Lyrics Widget (Widget B)
+    private val eqBuffers = arrayOfNulls<Bitmap>(2)
+    private var activeEqBufferIndex = 0
+    private val eqPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.WHITE
+        style = Paint.Style.FILL
+    }
+    private val isDotsUpdating = java.util.concurrent.atomic.AtomicBoolean(false)
+
+    // Cached widget component IDs to avoid repeated IPC
+    private var cachedDotWidgetIds = intArrayOf()
+    private var cachedLyricsWidgetIds = intArrayOf()
+    private var cachedVinylWidgetIds = intArrayOf()
+
+    // Cached parsed lyrics to avoid DB queries and regex parsing every second
+    private var cachedLyricsMediaId: String? = null
+    private var cachedLyricsLines: List<LyricsEntry> = emptyList()
 
     // State counters for playback visualisations (equaliser, vinyl angle)
     private var eqFrameCounter: Int = 0
@@ -88,11 +124,18 @@ class vivimusicWidgetManager @Inject constructor(
         val appWidgetManager = AppWidgetManager.getInstance(context)
         val hasTrack = mediaId != null && title.isNotBlank()
 
-        // Advance animation frames when playing
+        // Advance animation frame counter when playing (continuous angle rotation is driven by ticker)
         if (isPlaying && hasTrack) {
             eqFrameCounter = (eqFrameCounter + 1) % 120
-            vinylRotationAngle = (vinylRotationAngle + 12f) % 360f
         }
+
+        // Cache widget IDs for low-overhead partial updates
+        val dotComponent = ComponentName(context, MusicWidgetReceiver::class.java)
+        cachedDotWidgetIds = appWidgetManager.getAppWidgetIds(dotComponent)
+        val lyricsComponent = ComponentName(context, LyricsWidgetReceiver::class.java)
+        cachedLyricsWidgetIds = appWidgetManager.getAppWidgetIds(lyricsComponent)
+        val vinylComponent = ComponentName(context, TurntableWidgetReceiver::class.java)
+        cachedVinylWidgetIds = appWidgetManager.getAppWidgetIds(vinylComponent)
 
         // Use cached album art if URI hasn't changed, otherwise load new one
         val albumArt: Bitmap?
@@ -110,6 +153,8 @@ class vivimusicWidgetManager @Inject constructor(
                 cachedAlbumArt = albumArt
                 cachedCircularAlbumArt = circularAlbumArt
                 cachedBaseDisc = null // Invalidate disc cache for new art
+                cachedSquareBaseCard = null // Invalidate square card cache for new art
+                cachedSquareBaseArt = null
             }
         } else {
             albumArt = null
@@ -118,13 +163,16 @@ class vivimusicWidgetManager @Inject constructor(
             cachedAlbumArt = null
             cachedCircularAlbumArt = null
             cachedBaseDisc = null
+            cachedSquareBaseCard = null
+            cachedSquareBaseArt = null
+            cachedDotCardSize = 0
+            cachedLyricsMediaId = null
+            cachedLyricsLines = emptyList()
         }
 
         // 1. Update Widget A: Dot Player (MusicWidgetReceiver)
-        val dotComponent = ComponentName(context, MusicWidgetReceiver::class.java)
-        val dotWidgetIds = appWidgetManager.getAppWidgetIds(dotComponent)
-        if (dotWidgetIds.isNotEmpty()) {
-            dotWidgetIds.forEach { widgetId ->
+        if (cachedDotWidgetIds.isNotEmpty()) {
+            cachedDotWidgetIds.forEach { widgetId ->
                 val options = appWidgetManager.getAppWidgetOptions(widgetId)
                 val views = createDotPlayerViews(
                     options = options,
@@ -138,11 +186,9 @@ class vivimusicWidgetManager @Inject constructor(
         }
 
         // 2. Update Widget B: Lyrics Player (LyricsWidgetReceiver)
-        val lyricsComponent = ComponentName(context, LyricsWidgetReceiver::class.java)
-        val lyricsWidgetIds = appWidgetManager.getAppWidgetIds(lyricsComponent)
-        if (lyricsWidgetIds.isNotEmpty()) {
+        if (cachedLyricsWidgetIds.isNotEmpty()) {
             val lines = if (hasTrack) loadLyricLines(mediaId) else emptyList()
-            lyricsWidgetIds.forEach { widgetId ->
+            cachedLyricsWidgetIds.forEach { widgetId ->
                 val options = appWidgetManager.getAppWidgetOptions(widgetId)
                 val views = createLyricsPlayerViews(
                     options = options,
@@ -158,10 +204,8 @@ class vivimusicWidgetManager @Inject constructor(
         }
 
         // 3. Update Widget C: Vinyl Deck (TurntableWidgetReceiver)
-        val vinylComponent = ComponentName(context, TurntableWidgetReceiver::class.java)
-        val vinylWidgetIds = appWidgetManager.getAppWidgetIds(vinylComponent)
-        if (vinylWidgetIds.isNotEmpty()) {
-            vinylWidgetIds.forEach { widgetId ->
+        if (cachedVinylWidgetIds.isNotEmpty()) {
+            cachedVinylWidgetIds.forEach { widgetId ->
                 val options = appWidgetManager.getAppWidgetOptions(widgetId)
                 val views = createVinylDeckViews(
                     options = options,
@@ -183,39 +227,104 @@ class vivimusicWidgetManager @Inject constructor(
     /**
      * Fast, lightweight partial update for Widget C (Vinyl Deck) to spin the turntable disc
      * smoothly without regenerating the entire widget hierarchy or allocating new bitmaps.
+     * Guarded by AtomicBoolean to avoid overlapping Binder IPC calls.
      */
     fun updateVinylRotationOnly(isPlaying: Boolean) {
         if (!isPlaying) return
         val baseDisc = cachedBaseDisc ?: return
-        val appWidgetManager = AppWidgetManager.getInstance(context)
-        val vinylComponent = ComponentName(context, TurntableWidgetReceiver::class.java)
-        val vinylWidgetIds = appWidgetManager.getAppWidgetIds(vinylComponent)
-        if (vinylWidgetIds.isEmpty()) return
+        if (!isVinylUpdating.compareAndSet(false, true)) return
+        try {
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            if (cachedVinylWidgetIds.isEmpty()) {
+                val vinylComponent = ComponentName(context, TurntableWidgetReceiver::class.java)
+                cachedVinylWidgetIds = appWidgetManager.getAppWidgetIds(vinylComponent)
+            }
+            if (cachedVinylWidgetIds.isEmpty()) return
 
-        vinylRotationAngle = (vinylRotationAngle + 3.0f) % 360f
-        val discSize = cachedDiscSize.coerceIn(60, 260)
+            vinylRotationAngle = (vinylRotationAngle + 6.0f) % 360f
+            val discSize = cachedDiscSize.coerceIn(60, 260)
 
-        // Alternate double buffer to eliminate runtime allocations
-        activeDiscBufferIndex = (activeDiscBufferIndex + 1) % 2
-        var buffer = discBuffers[activeDiscBufferIndex]
-        if (buffer == null || buffer.width != discSize || buffer.height != discSize || buffer.isRecycled) {
-            buffer = Bitmap.createBitmap(discSize, discSize, Bitmap.Config.ARGB_8888)
-            discBuffers[activeDiscBufferIndex] = buffer
-        } else {
-            buffer.eraseColor(Color.TRANSPARENT)
+            // Triple buffer to eliminate tearing and concurrent read/write during Binder marshalling
+            activeDiscBufferIndex = (activeDiscBufferIndex + 1) % 3
+            var buffer = discBuffers[activeDiscBufferIndex]
+            if (buffer == null || buffer.width != discSize || buffer.height != discSize || buffer.isRecycled) {
+                buffer = Bitmap.createBitmap(discSize, discSize, Bitmap.Config.ARGB_8888)
+                discBuffers[activeDiscBufferIndex] = buffer
+            } else {
+                buffer.eraseColor(Color.TRANSPARENT)
+            }
+
+            val canvas = Canvas(buffer)
+            vinylMatrix.reset()
+            vinylMatrix.postRotate(vinylRotationAngle, discSize / 2f, discSize / 2f)
+            canvas.drawBitmap(baseDisc, vinylMatrix, vinylPaint)
+
+            val partial = RemoteViews(context.packageName, R.layout.widget_vinyl_deck)
+            partial.setImageViewBitmap(R.id.widget_vinyl_disc, buffer)
+            cachedVinylWidgetIds.forEach { widgetId ->
+                appWidgetManager.partiallyUpdateAppWidget(widgetId, partial)
+            }
+        } catch (e: Exception) {
+            // Guard against binder / transaction exceptions
+        } finally {
+            isVinylUpdating.set(false)
         }
+    }
 
-        val canvas = Canvas(buffer)
-        val matrix = Matrix().apply {
-            postRotate(vinylRotationAngle, discSize / 2f, discSize / 2f)
-        }
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
-        canvas.drawBitmap(baseDisc, matrix, paint)
+    /**
+     * Fast, lightweight partial update for the 4 circular bouncing dots in Widget A (Dot Player)
+     * and Widget B (Lyrics Player). Only sends partial updates to the launcher, reusing buffers.
+     */
+    fun updateEqualizerDotsOnly(isPlaying: Boolean) {
+        val hasTrack = cachedArtworkUri != null || cachedAlbumArt != null
+        if (!hasTrack || !isPlaying) return
+        if (!isDotsUpdating.compareAndSet(false, true)) return
+        try {
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            if (cachedDotWidgetIds.isEmpty()) {
+                cachedDotWidgetIds = appWidgetManager.getAppWidgetIds(ComponentName(context, MusicWidgetReceiver::class.java))
+            }
+            if (cachedLyricsWidgetIds.isEmpty()) {
+                cachedLyricsWidgetIds = appWidgetManager.getAppWidgetIds(ComponentName(context, LyricsWidgetReceiver::class.java))
+            }
+            if (cachedDotWidgetIds.isEmpty() && cachedLyricsWidgetIds.isEmpty()) return
 
-        val partial = RemoteViews(context.packageName, R.layout.widget_vinyl_deck)
-        partial.setImageViewBitmap(R.id.widget_vinyl_disc, buffer)
-        vinylWidgetIds.forEach { widgetId ->
-            appWidgetManager.partiallyUpdateAppWidget(widgetId, partial)
+            eqFrameCounter = (eqFrameCounter + 1) % 120
+
+            // 1. Partial update for Widget A (Dot Player)
+            if (cachedDotWidgetIds.isNotEmpty() && cachedDotCardSize > 0) {
+                val albumArt = cachedAlbumArt ?: getRoundedDefaultIcon()
+                val cardSize = cachedDotCardSize.coerceIn(120, 600)
+                val cornerRadius = cachedDotCornerPx.coerceAtMost(cardSize * 0.22f)
+                val dotCardBitmap = createSquareDotCard(
+                    albumArt = albumArt,
+                    targetSize = cardSize,
+                    cornerPx = cornerRadius,
+                    isPlaying = true,
+                    frame = eqFrameCounter,
+                )
+                val partialDot = RemoteViews(context.packageName, R.layout.widget_dot_player)
+                partialDot.setImageViewBitmap(R.id.widget_dot_center_art, dotCardBitmap)
+                cachedDotWidgetIds.forEach { widgetId ->
+                    appWidgetManager.partiallyUpdateAppWidget(widgetId, partialDot)
+                }
+            }
+
+            // 2. Partial update for Widget B (Lyrics Player)
+            if (cachedLyricsWidgetIds.isNotEmpty()) {
+                val eqBitmap = createDottedEqualiserMotif(isPlaying = true, frame = eqFrameCounter, hasTrack = true)
+                if (eqBitmap != null) {
+                    val partialLyrics = RemoteViews(context.packageName, R.layout.widget_lyrics_player)
+                    partialLyrics.setImageViewBitmap(R.id.widget_lyrics_art_eq, eqBitmap)
+                    cachedLyricsWidgetIds.forEach { widgetId ->
+                        appWidgetManager.partiallyUpdateAppWidget(widgetId, partialLyrics)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            // Guard against launcher binder exceptions
+        } finally {
+            isDotsUpdating.set(false)
         }
     }
 
@@ -237,6 +346,8 @@ class vivimusicWidgetManager @Inject constructor(
         if (hasTrack && albumArt != null) {
             val squareSize = minOf(card.width, card.height).coerceIn(120, 600)
             val cornerRadius = card.cornerPx.coerceAtMost(squareSize * 0.22f)
+            cachedDotCardSize = squareSize
+            cachedDotCornerPx = cornerRadius
             val squareCardBitmap = createSquareDotCard(
                 albumArt = albumArt,
                 targetSize = squareSize,
@@ -247,6 +358,7 @@ class vivimusicWidgetManager @Inject constructor(
             views.setImageViewBitmap(R.id.widget_dot_center_art, squareCardBitmap)
         } else {
             // Completely empty when no music is playing
+            cachedDotCardSize = 0
             views.setImageViewBitmap(R.id.widget_dot_center_art, null)
         }
 
@@ -260,23 +372,17 @@ class vivimusicWidgetManager @Inject constructor(
     }
 
     /**
-     * Renders a perfect 1:1 square card for Widget A (Dot Player).
-     * Includes album artwork filled with continuous rounded corners and
-     * the 4 circular bouncing dots drawn directly in the bottom-left corner.
+     * Pre-renders and caches the rounded square album art card without dots.
      */
-    private fun createSquareDotCard(
-        albumArt: Bitmap?,
-        targetSize: Int,
-        cornerPx: Float,
-        isPlaying: Boolean,
-        frame: Int,
-    ): Bitmap {
-        val size = targetSize.coerceIn(120, 600)
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-
-        // 1. Draw rounded square card with album art
+    private fun getOrCreateSquareBaseCard(albumArt: Bitmap?, size: Int, cornerPx: Float): Bitmap {
         val artBitmap = albumArt ?: getRoundedDefaultIcon()
+        if (cachedSquareBaseCard != null && cachedSquareBaseArt === artBitmap && cachedSquareBaseSize == size && cachedSquareCornerPx == cornerPx) {
+            return cachedSquareBaseCard!!
+        }
+
+        val baseBitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(baseBitmap)
+
         val scale = maxOf(size.toFloat() / artBitmap.width, size.toFloat() / artBitmap.height)
         val matrix = Matrix().apply {
             setScale(scale, scale)
@@ -294,7 +400,42 @@ class vivimusicWidgetManager @Inject constructor(
         }
         drawContinuousRoundedRect(canvas, size.toFloat(), size.toFloat(), cornerPx, cardPaint)
 
-        // 2. Draw 4 circular bouncing dots in the bottom-left corner of the square
+        cachedSquareBaseCard = baseBitmap
+        cachedSquareBaseArt = artBitmap
+        cachedSquareBaseSize = size
+        cachedSquareCornerPx = cornerPx
+        return baseBitmap
+    }
+
+    /**
+     * Renders a perfect 1:1 square card for Widget A (Dot Player).
+     * Includes album artwork filled with continuous rounded corners and
+     * the 4 circular bouncing dots drawn directly in the bottom-left corner.
+     * Uses cached base card and double-buffering to eliminate allocations on animation frames.
+     */
+    private fun createSquareDotCard(
+        albumArt: Bitmap?,
+        targetSize: Int,
+        cornerPx: Float,
+        isPlaying: Boolean,
+        frame: Int,
+    ): Bitmap {
+        val size = targetSize.coerceIn(120, 600)
+        val baseCard = getOrCreateSquareBaseCard(albumArt, size, cornerPx)
+
+        activeSquareCardBufferIndex = (activeSquareCardBufferIndex + 1) % 2
+        var buffer = squareCardBuffers[activeSquareCardBufferIndex]
+        if (buffer == null || buffer.width != size || buffer.height != size || buffer.isRecycled) {
+            buffer = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+            squareCardBuffers[activeSquareCardBufferIndex] = buffer
+        } else {
+            buffer.eraseColor(Color.TRANSPARENT)
+        }
+
+        val canvas = Canvas(buffer)
+        canvas.drawBitmap(baseCard, 0f, 0f, null)
+
+        // Draw 4 circular bouncing dots in the bottom-left corner of the square
         val numDots = 4
         val dotRadius = size * 0.024f
         val dotSpacing = size * 0.052f
@@ -302,12 +443,7 @@ class vivimusicWidgetManager @Inject constructor(
         val baselineY = size - (size * 0.08f)
         val maxBounce = size * 0.055f
 
-        val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.WHITE
-            style = Paint.Style.FILL
-            setShadowLayer(4f, 0f, 2f, Color.parseColor("#99000000"))
-        }
-
+        dotPaint.alpha = if (isPlaying) 255 else 180
         for (i in 0 until numDots) {
             val cx = startX + i * dotSpacing
             val cy = if (isPlaying) {
@@ -317,11 +453,10 @@ class vivimusicWidgetManager @Inject constructor(
             } else {
                 baselineY
             }
-            dotPaint.alpha = if (isPlaying) 255 else 180
             canvas.drawCircle(cx, cy, dotRadius, dotPaint)
         }
 
-        return bitmap
+        return buffer
     }
 
     /**
@@ -592,18 +727,22 @@ class vivimusicWidgetManager @Inject constructor(
      * 4 circular dots equalizer motif bouncing up and down when music is playing.
      * When paused, 4 circular dots sit at baseline.
      * When no music is playing, returns null (completely empty).
+     * Double-buffered to eliminate allocations on animation frames.
      */
     private fun createDottedEqualiserMotif(isPlaying: Boolean, frame: Int, hasTrack: Boolean): Bitmap? {
         if (!hasTrack) return null
         val width = 72
         val height = 36
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
 
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.WHITE
-            style = Paint.Style.FILL
+        activeEqBufferIndex = (activeEqBufferIndex + 1) % 2
+        var bitmap = eqBuffers[activeEqBufferIndex]
+        if (bitmap == null || bitmap.width != width || bitmap.height != height || bitmap.isRecycled) {
+            bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            eqBuffers[activeEqBufferIndex] = bitmap
+        } else {
+            bitmap.eraseColor(Color.TRANSPARENT)
         }
+        val canvas = Canvas(bitmap)
 
         val numDots = 4
         val dotRadius = 4f
@@ -612,6 +751,7 @@ class vivimusicWidgetManager @Inject constructor(
         val baselineY = height - 8f
         val maxBounce = 16f
 
+        eqPaint.alpha = if (isPlaying) 255 else 180
         for (i in 0 until numDots) {
             val cx = startX + i * dotSpacing
             val cy = if (isPlaying) {
@@ -622,8 +762,7 @@ class vivimusicWidgetManager @Inject constructor(
             } else {
                 baselineY
             }
-            paint.alpha = if (isPlaying) 255 else 180
-            canvas.drawCircle(cx, cy, dotRadius, paint)
+            canvas.drawCircle(cx, cy, dotRadius, eqPaint)
         }
 
         return bitmap
@@ -739,9 +878,18 @@ class vivimusicWidgetManager @Inject constructor(
 
     private suspend fun loadLyricLines(mediaId: String?): List<LyricsEntry> {
         if (mediaId == null) return emptyList()
+        if (mediaId == cachedLyricsMediaId && cachedLyricsLines.isNotEmpty()) {
+            return cachedLyricsLines
+        }
         val raw = runCatching { database.lyrics(mediaId).first()?.lyrics }.getOrNull()
-        if (raw.isNullOrBlank()) return emptyList()
-        return runCatching { LyricsUtils.parseLyrics(raw) }.getOrDefault(emptyList())
+        val lines = if (raw.isNullOrBlank()) {
+            emptyList()
+        } else {
+            runCatching { LyricsUtils.parseLyrics(raw) }.getOrDefault(emptyList())
+        }
+        cachedLyricsMediaId = mediaId
+        cachedLyricsLines = lines
+        return lines
     }
 
     private fun getOpenAppIntent(): PendingIntent {
