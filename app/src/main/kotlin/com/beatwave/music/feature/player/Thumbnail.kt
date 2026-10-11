@@ -809,8 +809,6 @@ private fun ThumbnailItem(
                         val songTitle = normalizeCanvasSongTitle(songTitleRaw)
                         val artistName = normalizeCanvasArtistName(artistNameRaw)
                         
-                        println("CanvasFetch: Song='$songTitle' (raw='$songTitleRaw'), Artist='$artistName' (raw='$artistNameRaw'), Album='$albumName'")
-                        
                         val searchTasks = listOf(
                             songTitleRaw to artistNameRaw
                         ).filter { (s, a) -> s.isNotBlank() && a.isNotBlank() }
@@ -907,15 +905,9 @@ private fun ThumbnailItem(
 
                         val titleMatches = songMatches && albumMatches
 
-                        println("CanvasValidation: artistMatches=$artistMatches, songMatches=$songMatches, albumMatches=$albumMatches")
-                        println("  Requested: Title='$requestedTitle', Album='$requestedAlbum', Artists='$requestedArtist'")
-                        println("  Returned: Title='$resultName', Album='$canvasAlbumName', Artists='$resultArtist'")
-
                         if (artistMatches && titleMatches) {
-                            println("CanvasValidation: Match SUCCESS for '${artwork.name}'")
                             artwork
                         } else {
-                            println("CanvasValidation: Match FAILED for '${artwork.name}' by '${artwork.artist}'")
                             null
                         }
                     }

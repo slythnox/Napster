@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Napster (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
@@ -31,6 +31,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -141,16 +142,23 @@ class PlayerConnection(
     
     val mediaMetadata = MutableStateFlow(player.currentMetadata)
     val currentSong =
-        mediaMetadata.flatMapLatest {
-            database.song(it?.id)
-        }
-    val currentLyrics = mediaMetadata.flatMapLatest { mediaMetadata ->
-        database.lyrics(mediaMetadata?.id)
-    }
+        mediaMetadata
+            .distinctUntilChangedBy { it?.id }
+            .flatMapLatest {
+                database.song(it?.id)
+            }
+    val currentLyrics =
+        mediaMetadata
+            .distinctUntilChangedBy { it?.id }
+            .flatMapLatest { mediaMetadata ->
+                database.lyrics(mediaMetadata?.id)
+            }
     val currentFormat =
-        mediaMetadata.flatMapLatest { mediaMetadata ->
-            database.format(mediaMetadata?.id)
-        }
+        mediaMetadata
+            .distinctUntilChangedBy { it?.id }
+            .flatMapLatest { mediaMetadata ->
+                database.format(mediaMetadata?.id)
+            }
 
     /** BPM, key, tier and transition style, straight from the DJ engine. */
     val djState = service.djState

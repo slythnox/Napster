@@ -64,7 +64,7 @@ com.beatwave.music/
 │   ├── theme/
 │   └── utils/
 ├── utils/         – DataStore helpers, YTPlayerUtils, SongExporter, cipher, potoken, preset
-└── widget/        – App widgets (compact, now-playing, lyrics, turntable)
+└── widget/        – App widgets (Dot Player, Lyrics Player, Vinyl Deck)
 ```
 
 ---

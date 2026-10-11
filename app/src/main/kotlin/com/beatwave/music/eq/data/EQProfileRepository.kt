@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
+import timber.log.Timber
 
 /**
  * Saved EQ Profile with metadata
@@ -77,7 +78,7 @@ class EQProfileRepository @Inject constructor(
                 _activeProfile.value = loadedProfiles.find { it.id == activeId }
             }
         } catch (e: Exception) {
-            println("Error loading EQ profiles: ${e.message}")
+            Timber.e(e, "Error loading EQ profiles")
             _profiles.value = emptyList()
             _activeProfile.value = null
         }

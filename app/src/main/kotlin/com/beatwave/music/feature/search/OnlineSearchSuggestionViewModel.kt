@@ -98,7 +98,6 @@ constructor(
     }
 
     private suspend fun fetchParsedUrlItem(parsedUrl: YouTubeUrlParser.ParsedUrl): YTItem? {
-        println("[LINK_PARSE_DEBUG] Fetching metadata for: $parsedUrl")
         return try {
             val item = when (parsedUrl) {
                 is YouTubeUrlParser.ParsedUrl.Video -> {
@@ -109,11 +108,8 @@ constructor(
                     YouTube.artist(parsedUrl.id).getOrNull()?.artist
                 }
             }
-            println("[LINK_PARSE_DEBUG] Fetch successful: ${item?.id} (${item?.javaClass?.simpleName})")
             item
         } catch (e: Exception) {
-            println("[LINK_PARSE_DEBUG] Fetch failed: ${e.message}")
-            e.printStackTrace()
             null
         }
     }

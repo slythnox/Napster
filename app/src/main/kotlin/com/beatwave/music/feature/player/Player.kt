@@ -1547,13 +1547,11 @@ fun BottomSheetPlayer(
                                                     // This candidate's video doesn't actually play (dead
                                                     // link, unsupported format, ...) â€” try the next one
                                                     // in priority order instead of just going blank.
-                                                    println("CanvasFallback: onError fired at index=$canvasCandidateIndex of ${canvasCandidates.size} candidates")
                                                     if (canvasCandidateIndex < canvasCandidates.lastIndex) {
                                                         canvasCandidateIndex++
                                                     } else {
                                                         canvasCandidateIndex = canvasCandidates.size
                                                     }
-                                                    println("CanvasFallback: advanced to index=$canvasCandidateIndex, next url=${canvasCandidates.getOrNull(canvasCandidateIndex)?.preferredAnimationUrl}")
                                                 },
                                                 onReady = {
                                                     canvasArtwork?.let {
@@ -3672,8 +3670,6 @@ private fun BackgroundVideoView(
                 currentOnReady()
             }
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
-                println("BackgroundVideoView: E: failed to play '$videoUrl': ${error.errorCodeName} ${error.message}")
-                error.printStackTrace()
                 currentOnError()
             }
         }
@@ -3682,7 +3678,6 @@ private fun BackgroundVideoView(
     }
 
     LaunchedEffect(videoUrl, mediaId) {
-        println("BackgroundVideoView: D: loading '$videoUrl'")
         isVideoReady = false
         val mediaItem = MediaItem.Builder()
             .setUri(videoUrl)

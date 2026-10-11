@@ -36,6 +36,7 @@ import com.beatwave.music.utils.potoken.PoTokenGenerator
 import com.beatwave.music.utils.potoken.PoTokenResult
 import com.beatwave.music.utils.sabr.EjsNTransformSolver
 import com.beatwave.music.playback.resolver.providers.ExternalStreamProviderResolver
+import com.beatwave.music.BuildConfig
 import com.beatwave.music.utils.PlaybackLogLevel
 import com.beatwave.music.utils.PlaybackLogManager
 import com.music.innertube.models.IpVersion
@@ -61,7 +62,7 @@ object YTPlayerUtils {
     private const val logTag = "YTPlayerUtils"
     private const val TAG = "YTPlayerUtils"
 
-    private val httpClient: OkHttpClient = OkHttpClient.Builder()
+    internal val httpClient: OkHttpClient = OkHttpClient.Builder()
         .dns(object : Dns {
             override fun lookup(hostname: String): List<InetAddress> {
                 val addresses = Dns.SYSTEM.lookup(hostname)
@@ -238,9 +239,6 @@ object YTPlayerUtils {
     ): Result<PlaybackData> = runCatching {
         Timber.tag(logTag).d("Fetching player response for videoId: $videoId, playlistId: $playlistId")
         PlaybackLogManager.log(PlaybackLogLevel.INFO, "Resolving playback data", "Video: $videoId")
-        
-        // Debug: Log ALL playback attempts
-        println("[PLAYBACK_DEBUG] playerResponseForPlayback called: videoId=$videoId, playlistId=$playlistId")
         // Check if this is an uploaded/privately owned track
         val isUploadedTrack = playlistId == "MLPT" || playlistId?.contains("MLPT") == true
 
@@ -325,12 +323,12 @@ object YTPlayerUtils {
         }
 
         // Debug uploaded track response
-        if (isUploadedTrack || playlistId?.contains("MLPT") == true) {
-            println("[PLAYBACK_DEBUG] Main player response status: ${mainPlayerResponse.playabilityStatus.status}")
-            println("[PLAYBACK_DEBUG] Playability reason: ${mainPlayerResponse.playabilityStatus.reason}")
-            println("[PLAYBACK_DEBUG] Video details: title=${mainPlayerResponse.videoDetails?.title}, videoId=${mainPlayerResponse.videoDetails?.videoId}")
-            println("[PLAYBACK_DEBUG] Streaming data null? ${mainPlayerResponse.streamingData == null}")
-            println("[PLAYBACK_DEBUG] Adaptive formats count: ${mainPlayerResponse.streamingData?.adaptiveFormats?.size ?: 0}")
+        if (BuildConfig.DEBUG && (isUploadedTrack || playlistId?.contains("MLPT") == true)) {
+            Timber.tag(logTag).d("Main player response status: ${mainPlayerResponse.playabilityStatus.status}")
+            Timber.tag(logTag).d("Playability reason: ${mainPlayerResponse.playabilityStatus.reason}")
+            Timber.tag(logTag).d("Video details: title=${mainPlayerResponse.videoDetails?.title}, videoId=${mainPlayerResponse.videoDetails?.videoId}")
+            Timber.tag(logTag).d("Streaming data null? ${mainPlayerResponse.streamingData == null}")
+            Timber.tag(logTag).d("Adaptive formats count: ${mainPlayerResponse.streamingData?.adaptiveFormats?.size ?: 0}")
         }
 
         var usedAgeRestrictedClient: YouTubeClient? = null
@@ -546,7 +544,6 @@ object YTPlayerUtils {
                     /** skip [validateStatus] for last client or private tracks */
                     if (isPrivatelyOwned) {
                         Timber.tag(logTag).d("Skipping validation for privately owned track: ${currentClient.clientName}")
-                        println("[PLAYBACK_DEBUG] Using stream without validation for PRIVATELY_OWNED_TRACK")
                     } else {
                         Timber.tag(logTag).d("Using last fallback client without validation: ${STREAM_FALLBACK_CLIENTS[clientIndex].clientName}")
                     }
@@ -602,8 +599,8 @@ object YTPlayerUtils {
 
         if (streamPlayerResponse == null) {
             Timber.tag(logTag).e("Bad stream player response - all clients failed")
-            if (isUploadedTrack) {
-                println("[PLAYBACK_DEBUG] FAILURE: All clients failed for uploaded track videoId=$videoId")
+            if (BuildConfig.DEBUG && isUploadedTrack) {
+                Timber.tag(logTag).e("FAILURE: All clients failed for uploaded track videoId=$videoId")
             }
             throw Exception("Bad stream player response")
         }
@@ -611,8 +608,8 @@ object YTPlayerUtils {
         if (streamPlayerResponse.playabilityStatus.status != "OK") {
             val errorReason = streamPlayerResponse.playabilityStatus.reason
             Timber.tag(logTag).e("Playability status not OK: $errorReason")
-            if (isUploadedTrack) {
-                println("[PLAYBACK_DEBUG] FAILURE: Playability not OK for uploaded track - status=${streamPlayerResponse.playabilityStatus.status}, reason=$errorReason")
+            if (BuildConfig.DEBUG && isUploadedTrack) {
+                Timber.tag(logTag).e("FAILURE: Playability not OK for uploaded track - status=${streamPlayerResponse.playabilityStatus.status}, reason=$errorReason")
             }
             throw PlaybackException(
                 errorReason,
@@ -644,8 +641,8 @@ object YTPlayerUtils {
         val expiresInSeconds = streamExpiresInSeconds ?: DEFAULT_STREAM_EXPIRY_SECONDS
 
         Timber.tag(logTag).d("Successfully obtained playback data with format: ${format.mimeType}, bitrate: ${format.bitrate}")
-        if (isUploadedTrack) {
-            println("[PLAYBACK_DEBUG] SUCCESS: Got playback data for uploaded track - format=${format.mimeType}, streamUrl=${streamUrl?.take(100)}...")
+        if (BuildConfig.DEBUG && isUploadedTrack) {
+            Timber.tag(logTag).d("SUCCESS: Got playback data for uploaded track - format=${format.mimeType}")
         }
         PlaybackData(
             audioConfig,
@@ -658,10 +655,9 @@ object YTPlayerUtils {
     }.onFailure { e ->
         Timber.tag(logTag).e(e, "Playback resolution failed")
         PlaybackLogManager.log(PlaybackLogLevel.ERROR, "Playback failed", "${e::class.simpleName}: ${e.message}")
-        
-        // Restore original println for Logcat
-        println("[PLAYBACK_DEBUG] EXCEPTION during playback for videoId=$videoId: ${e::class.simpleName}: ${e.message}")
-        e.printStackTrace()
+        if (BuildConfig.DEBUG) {
+            e.printStackTrace()
+        }
     }
     /**
      * Simple player response intended to use for metadata only.

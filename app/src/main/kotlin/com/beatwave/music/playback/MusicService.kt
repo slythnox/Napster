@@ -130,6 +130,7 @@ import com.beatwave.music.constants.SkipSilenceKey
 import com.beatwave.music.constants.IpVersionKey
 import com.music.innertube.models.IpVersion
 import okhttp3.Dns
+import okhttp3.OkHttpClient
 import java.net.InetAddress
 import java.net.Inet4Address
 import java.net.Inet6Address
@@ -188,8 +189,9 @@ import com.beatwave.music.utils.YTPlayerUtils
 import com.beatwave.music.utils.dataStore
 import com.beatwave.music.utils.get
 import com.beatwave.music.utils.reportException
+import com.beatwave.music.widget.LyricsWidgetReceiver
 import com.beatwave.music.widget.MusicWidgetReceiver
-import com.beatwave.music.widget.NowPlayingWidgetReceiver
+import com.beatwave.music.widget.TurntableWidgetReceiver
 import com.beatwave.music.widget.vivimusicWidgetManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.PI
@@ -220,7 +222,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import timber.log.Timber
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
@@ -350,13 +351,16 @@ class MusicService :
     val currentMediaMetadata = MutableStateFlow<com.beatwave.music.models.MediaMetadata?>(null)
     private val currentSong =
         currentMediaMetadata
+            .distinctUntilChangedBy { it?.id }
             .flatMapLatest { mediaMetadata ->
                 database.song(mediaMetadata?.id)
             }.stateIn(scope, SharingStarted.Lazily, null)
     private val currentFormat =
-        currentMediaMetadata.flatMapLatest { mediaMetadata ->
-            database.format(mediaMetadata?.id)
-        }
+        currentMediaMetadata
+            .distinctUntilChangedBy { it?.id }
+            .flatMapLatest { mediaMetadata ->
+                database.format(mediaMetadata?.id)
+            }
 
     lateinit var playerVolume: MutableStateFlow<Float>
     val isMuted = MutableStateFlow(false)
@@ -561,7 +565,7 @@ class MusicService :
             val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle(getString(R.string.music_player))
                 .setContentText("")
-                .setSmallIcon(R.drawable.ic_launcher_monochrome)
+                .setSmallIcon(R.drawable.ic_notification_napster)
                 .setContentIntent(pending)
                 .setOngoing(true)
                 .build()
@@ -584,7 +588,7 @@ class MusicService :
                 R.string.music_player
             )
                 .apply {
-                    setSmallIcon(R.drawable.ic_launcher_monochrome)
+                    setSmallIcon(R.drawable.ic_notification_napster)
                 },
         )
         player = createExoPlayer()
@@ -2289,11 +2293,7 @@ class MusicService :
         // Widget updates
         if (events.containsAny(Player.EVENT_IS_PLAYING_CHANGED)) {
             updateWidgetUI(player.isPlaying)
-            if (player.isPlaying) {
-                startWidgetUpdates()
-            } else {
-                stopWidgetUpdates()
-            }
+            restartWidgetProgressTicker()
         }
 
         // Optional playback integrations
@@ -3655,7 +3655,7 @@ class MusicService :
                 player.seekToPrevious()
                 updateWidgetUI(player.isPlaying)
             }
-            MusicWidgetReceiver.ACTION_UPDATE_WIDGET -> {
+            MusicWidgetReceiver.ACTION_UPDATE_WIDGET, TurntableWidgetReceiver.ACTION_UPDATE_TURNTABLE_WIDGET -> {
                 updateWidgetUI(player.isPlaying)
             }
         }
@@ -3674,23 +3674,48 @@ class MusicService :
      * is a permanent once-a-second wakeup for no visible benefit.
      */
     private var widgetProgressJob: Job? = null
+    private var vinylRotationJob: Job? = null
 
     private fun restartWidgetProgressTicker() {
         widgetProgressJob?.cancel()
-        if (!player.isPlaying) return
+        vinylRotationJob?.cancel()
+        if (!player.isPlaying) {
+            updateWidgetUI(false)
+            return
+        }
 
         val appWidgetManager = AppWidgetManager.getInstance(this)
-        val hasProgressWidget = appWidgetManager
-            .getAppWidgetIds(ComponentName(this, NowPlayingWidgetReceiver::class.java))
+        val hasDotWidget = appWidgetManager
+            .getAppWidgetIds(ComponentName(this, MusicWidgetReceiver::class.java))
             .isNotEmpty()
-        if (!hasProgressWidget) return
+        val hasLyricsWidget = appWidgetManager
+            .getAppWidgetIds(ComponentName(this, LyricsWidgetReceiver::class.java))
+            .isNotEmpty()
+        val hasTurntableWidget = appWidgetManager
+            .getAppWidgetIds(ComponentName(this, TurntableWidgetReceiver::class.java))
+            .isNotEmpty()
+        if (!hasDotWidget && !hasLyricsWidget && !hasTurntableWidget) return
 
+        val powerManager = getSystemService(PowerManager::class.java)
+
+        // 1. Progress and state ticker: once per second for elapsed time, lyrics, and EQ frame
         widgetProgressJob = scope.launch {
-            val powerManager = getSystemService(PowerManager::class.java)
             while (isActive) {
-                delay(WIDGET_PROGRESS_INTERVAL_MS)
+                delay(1000L)
                 if (powerManager?.isInteractive != false) {
                     updateWidgetUI(player.isPlaying)
+                }
+            }
+        }
+
+        // 2. Turntable rotation ticker: smooth 16.6 FPS (60ms) continuous rotation
+        if (hasTurntableWidget) {
+            vinylRotationJob = scope.launch(Dispatchers.Default) {
+                while (isActive) {
+                    delay(60L)
+                    if (powerManager?.isInteractive != false) {
+                        widgetManager.updateVinylRotationOnly(player.isPlaying)
+                    }
                 }
             }
         }
@@ -3701,43 +3726,25 @@ class MusicService :
             try {
                 val songData = currentSong.value
                 val song = songData?.song
-                val songTitle = song?.title ?: getString(R.string.no_song_playing)
-                val artistName = songData?.artists?.joinToString(", ") { it.name } ?: getString(R.string.tap_to_open)
+                val hasTrack = song != null && song.id.isNotBlank()
+                val songTitle = if (hasTrack) song!!.title else ""
+                val artistName = if (hasTrack) songData?.artists?.joinToString(", ") { it.name }.orEmpty() else ""
                 val isLiked = songData?.song?.liked == true
 
                 widgetManager.updateWidgets(
                     title = songTitle,
                     artist = artistName,
-                    artworkUri = song?.thumbnailUrl,
+                    artworkUri = if (hasTrack) song?.thumbnailUrl else null,
                     isPlaying = isPlaying,
                     isLiked = isLiked,
-                    duration = if (player.duration != C.TIME_UNSET) player.duration else 0,
-                    currentPosition = player.currentPosition,
-                    mediaId = song?.id,
+                    duration = if (hasTrack && player.duration != C.TIME_UNSET) player.duration else 0,
+                    currentPosition = if (hasTrack) player.currentPosition else 0,
+                    mediaId = if (hasTrack) song?.id else null,
                 )
             } catch (e: Exception) {
                 // Widget not added to home screen or other error
             }
         }
-    }
-
-    private var widgetUpdateJob: Job? = null
-
-    private fun startWidgetUpdates() {
-        widgetUpdateJob?.cancel()
-        widgetUpdateJob = scope.launch {
-            while (isActive) {
-                if (player.isPlaying) {
-                    updateWidgetUI(true)
-                }
-                delay(200)
-            }
-        }
-    }
-
-    private fun stopWidgetUpdates() {
-        widgetUpdateJob?.cancel()
-        widgetUpdateJob = null
     }
 
     private fun shareSong() {

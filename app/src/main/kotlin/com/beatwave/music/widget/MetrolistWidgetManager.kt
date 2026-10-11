@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Napster (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
@@ -15,41 +15,38 @@ import android.graphics.Bitmap
 import android.graphics.BitmapShader
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.LinearGradient
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.RectF
-import android.graphics.BitmapFactory
 import android.graphics.Shader
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.util.SizeF
-import android.util.TypedValue
+import android.view.View
 import android.widget.RemoteViews
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.core.graphics.ColorUtils
-import androidx.palette.graphics.Palette
-import com.beatwave.music.ui.component.shapes.ContinuousRoundedRectangle
 import coil3.ImageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.request.crossfade
 import coil3.toBitmap
-import com.beatwave.music.app.MainActivity
 import com.beatwave.music.R
+import com.beatwave.music.app.MainActivity
 import com.beatwave.music.db.MusicDatabase
 import com.beatwave.music.feature.lyrics.LyricsEntry
 import com.beatwave.music.feature.lyrics.LyricsUtils
+import com.beatwave.music.ui.component.shapes.ContinuousRoundedRectangle
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.sin
 
 @Singleton
 class vivimusicWidgetManager @Inject constructor(
@@ -67,6 +64,17 @@ class vivimusicWidgetManager @Inject constructor(
     private var cachedAlbumArt: Bitmap? = null
     private var cachedCircularAlbumArt: Bitmap? = null
 
+    // Base disc cache for smooth vinyl turntable rotation
+    private var cachedDiscArt: Bitmap? = null
+    private var cachedBaseDisc: Bitmap? = null
+    private var cachedDiscSize: Int = 0
+    private val discBuffers = arrayOfNulls<Bitmap>(2)
+    private var activeDiscBufferIndex = 0
+
+    // State counters for playback visualisations (equaliser, vinyl angle)
+    private var eqFrameCounter: Int = 0
+    private var vinylRotationAngle: Float = 0f
+
     suspend fun updateWidgets(
         title: String,
         artist: String,
@@ -78,587 +86,635 @@ class vivimusicWidgetManager @Inject constructor(
         mediaId: String? = null,
     ) {
         val appWidgetManager = AppWidgetManager.getInstance(context)
+        val hasTrack = mediaId != null && title.isNotBlank()
+
+        // Advance animation frames when playing
+        if (isPlaying && hasTrack) {
+            eqFrameCounter = (eqFrameCounter + 1) % 120
+            vinylRotationAngle = (vinylRotationAngle + 12f) % 360f
+        }
 
         // Use cached album art if URI hasn't changed, otherwise load new one
         val albumArt: Bitmap?
         val circularAlbumArt: Bitmap?
-        
-        if (artworkUri != null && artworkUri == cachedArtworkUri && cachedAlbumArt != null) {
-            albumArt = cachedAlbumArt
-            circularAlbumArt = cachedCircularAlbumArt
+
+        if (hasTrack) {
+            if (artworkUri != null && artworkUri == cachedArtworkUri && cachedAlbumArt != null) {
+                albumArt = cachedAlbumArt
+                circularAlbumArt = cachedCircularAlbumArt
+            } else {
+                albumArt = artworkUri?.let { loadAlbumArt(it, 400) }
+                circularAlbumArt = albumArt?.let { getCircularBitmap(it) }
+                // Update cache
+                cachedArtworkUri = artworkUri
+                cachedAlbumArt = albumArt
+                cachedCircularAlbumArt = circularAlbumArt
+                cachedBaseDisc = null // Invalidate disc cache for new art
+            }
         } else {
-            albumArt = artworkUri?.let { loadAlbumArt(it, 300) }
-            circularAlbumArt = albumArt?.let { getCircularBitmap(it) }
-            // Update cache
-            cachedArtworkUri = artworkUri
-            cachedAlbumArt = albumArt
-            cachedCircularAlbumArt = circularAlbumArt
+            albumArt = null
+            circularAlbumArt = null
+            cachedArtworkUri = null
+            cachedAlbumArt = null
+            cachedCircularAlbumArt = null
+            cachedBaseDisc = null
         }
 
-        // Update main music player widgets
-        val componentName = ComponentName(context, MusicWidgetReceiver::class.java)
-        val widgetIds = appWidgetManager.getAppWidgetIds(componentName)
-        if (widgetIds.isNotEmpty()) {
-            widgetIds.forEach { widgetId ->
+        // 1. Update Widget A: Dot Player (MusicWidgetReceiver)
+        val dotComponent = ComponentName(context, MusicWidgetReceiver::class.java)
+        val dotWidgetIds = appWidgetManager.getAppWidgetIds(dotComponent)
+        if (dotWidgetIds.isNotEmpty()) {
+            dotWidgetIds.forEach { widgetId ->
                 val options = appWidgetManager.getAppWidgetOptions(widgetId)
-                val views = createRemoteViewsForSize(
-                    options,
-                    title,
-                    artist,
-                    albumArt,
-                    isPlaying,
-                    isLiked,
-                    duration,
-                    currentPosition
+                val views = createDotPlayerViews(
+                    options = options,
+                    albumArt = albumArt,
+                    isPlaying = isPlaying,
+                    hasTrack = hasTrack,
+                    frame = eqFrameCounter,
                 )
                 appWidgetManager.updateAppWidget(widgetId, views)
             }
         }
 
-        // Update Apple Music styled "Now Playing" widgets. Layout is chosen per
-        // widget instance from its own size, same as the main widget above.
-        val nowPlayingComponent = ComponentName(context, NowPlayingWidgetReceiver::class.java)
-        appWidgetManager.getAppWidgetIds(nowPlayingComponent).forEach { widgetId ->
-            val options = appWidgetManager.getAppWidgetOptions(widgetId)
-            appWidgetManager.updateAppWidget(
-                widgetId,
-                createNowPlayingRemoteViews(
-                    options,
-                    WidgetConfig.load(context, widgetId),
-                    title,
-                    artist,
-                    albumArt,
-                    isPlaying,
-                    duration,
-                    currentPosition,
-                ),
-            )
-        }
-
-        // Update lyrics widgets
+        // 2. Update Widget B: Lyrics Player (LyricsWidgetReceiver)
         val lyricsComponent = ComponentName(context, LyricsWidgetReceiver::class.java)
         val lyricsWidgetIds = appWidgetManager.getAppWidgetIds(lyricsComponent)
         if (lyricsWidgetIds.isNotEmpty()) {
-            val lines = loadLyricLines(mediaId)
+            val lines = if (hasTrack) loadLyricLines(mediaId) else emptyList()
             lyricsWidgetIds.forEach { widgetId ->
-                appWidgetManager.updateAppWidget(
-                    widgetId,
-                    createLyricsRemoteViews(
-                        appWidgetManager.getAppWidgetOptions(widgetId),
-                        WidgetConfig.load(context, widgetId),
-                        title,
-                        artist,
-                        albumArt,
-                        isPlaying,
-                        lines,
-                        currentPosition,
-                    ),
+                val options = appWidgetManager.getAppWidgetOptions(widgetId)
+                val views = createLyricsPlayerViews(
+                    options = options,
+                    albumArt = albumArt,
+                    isPlaying = isPlaying,
+                    hasTrack = hasTrack,
+                    lines = lines,
+                    currentPosition = currentPosition,
+                    frame = eqFrameCounter,
                 )
+                appWidgetManager.updateAppWidget(widgetId, views)
             }
         }
 
-        // Update turntable widgets
-        val turntableComponentName = ComponentName(context, TurntableWidgetReceiver::class.java)
-        val turntableWidgetIds = appWidgetManager.getAppWidgetIds(turntableComponentName)
-        if (turntableWidgetIds.isNotEmpty()) {
-            val turntableViews = createTurntableRemoteViews(
-                circularAlbumArt,
-                isPlaying,
-                isLiked
-            )
-            turntableWidgetIds.forEach { widgetId ->
-                appWidgetManager.updateAppWidget(widgetId, turntableViews)
+        // 3. Update Widget C: Vinyl Deck (TurntableWidgetReceiver)
+        val vinylComponent = ComponentName(context, TurntableWidgetReceiver::class.java)
+        val vinylWidgetIds = appWidgetManager.getAppWidgetIds(vinylComponent)
+        if (vinylWidgetIds.isNotEmpty()) {
+            vinylWidgetIds.forEach { widgetId ->
+                val options = appWidgetManager.getAppWidgetOptions(widgetId)
+                val views = createVinylDeckViews(
+                    options = options,
+                    title = title,
+                    artist = artist,
+                    albumArt = albumArt,
+                    circularAlbumArt = circularAlbumArt,
+                    isPlaying = isPlaying,
+                    hasTrack = hasTrack,
+                    duration = duration,
+                    currentPosition = currentPosition,
+                    rotationAngle = vinylRotationAngle,
+                )
+                appWidgetManager.updateAppWidget(widgetId, views)
             }
         }
     }
 
-    private fun createRemoteViewsForSize(
+    /**
+     * Fast, lightweight partial update for Widget C (Vinyl Deck) to spin the turntable disc
+     * smoothly without regenerating the entire widget hierarchy or allocating new bitmaps.
+     */
+    fun updateVinylRotationOnly(isPlaying: Boolean) {
+        if (!isPlaying) return
+        val baseDisc = cachedBaseDisc ?: return
+        val appWidgetManager = AppWidgetManager.getInstance(context)
+        val vinylComponent = ComponentName(context, TurntableWidgetReceiver::class.java)
+        val vinylWidgetIds = appWidgetManager.getAppWidgetIds(vinylComponent)
+        if (vinylWidgetIds.isEmpty()) return
+
+        vinylRotationAngle = (vinylRotationAngle + 3.0f) % 360f
+        val discSize = cachedDiscSize.coerceIn(60, 260)
+
+        // Alternate double buffer to eliminate runtime allocations
+        activeDiscBufferIndex = (activeDiscBufferIndex + 1) % 2
+        var buffer = discBuffers[activeDiscBufferIndex]
+        if (buffer == null || buffer.width != discSize || buffer.height != discSize || buffer.isRecycled) {
+            buffer = Bitmap.createBitmap(discSize, discSize, Bitmap.Config.ARGB_8888)
+            discBuffers[activeDiscBufferIndex] = buffer
+        } else {
+            buffer.eraseColor(Color.TRANSPARENT)
+        }
+
+        val canvas = Canvas(buffer)
+        val matrix = Matrix().apply {
+            postRotate(vinylRotationAngle, discSize / 2f, discSize / 2f)
+        }
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+        canvas.drawBitmap(baseDisc, matrix, paint)
+
+        val partial = RemoteViews(context.packageName, R.layout.widget_vinyl_deck)
+        partial.setImageViewBitmap(R.id.widget_vinyl_disc, buffer)
+        vinylWidgetIds.forEach { widgetId ->
+            appWidgetManager.partiallyUpdateAppWidget(widgetId, partial)
+        }
+    }
+
+    /**
+     * Widget A — Napster Dot Player
+     * Idle (no track): Completely empty.
+     * Active: Full album artwork rendered as a true un-stretched square with 4 circular dots bouncing up and down in bottom-left corner.
+     */
+    private fun createDotPlayerViews(
+        options: Bundle,
+        albumArt: Bitmap?,
+        isPlaying: Boolean,
+        hasTrack: Boolean,
+        frame: Int,
+    ): RemoteViews {
+        val views = RemoteViews(context.packageName, R.layout.widget_dot_player)
+        val card = cardSizeFor(options)
+
+        if (hasTrack && albumArt != null) {
+            val squareSize = minOf(card.width, card.height).coerceIn(120, 600)
+            val cornerRadius = card.cornerPx.coerceAtMost(squareSize * 0.22f)
+            val squareCardBitmap = createSquareDotCard(
+                albumArt = albumArt,
+                targetSize = squareSize,
+                cornerPx = cornerRadius,
+                isPlaying = isPlaying,
+                frame = frame,
+            )
+            views.setImageViewBitmap(R.id.widget_dot_center_art, squareCardBitmap)
+        } else {
+            // Completely empty when no music is playing
+            views.setImageViewBitmap(R.id.widget_dot_center_art, null)
+        }
+
+        // Actions
+        views.setOnClickPendingIntent(R.id.widget_dot_action_prev, getPreviousIntent())
+        views.setOnClickPendingIntent(R.id.widget_dot_action_play_pause, getPlayPauseIntent())
+        views.setOnClickPendingIntent(R.id.widget_dot_action_next, getNextIntent())
+        views.setOnClickPendingIntent(R.id.widget_dot_center_art, getPlayPauseIntent())
+
+        return views
+    }
+
+    /**
+     * Renders a perfect 1:1 square card for Widget A (Dot Player).
+     * Includes album artwork filled with continuous rounded corners and
+     * the 4 circular bouncing dots drawn directly in the bottom-left corner.
+     */
+    private fun createSquareDotCard(
+        albumArt: Bitmap?,
+        targetSize: Int,
+        cornerPx: Float,
+        isPlaying: Boolean,
+        frame: Int,
+    ): Bitmap {
+        val size = targetSize.coerceIn(120, 600)
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+
+        // 1. Draw rounded square card with album art
+        val artBitmap = albumArt ?: getRoundedDefaultIcon()
+        val scale = maxOf(size.toFloat() / artBitmap.width, size.toFloat() / artBitmap.height)
+        val matrix = Matrix().apply {
+            setScale(scale, scale)
+            postTranslate(
+                (size - artBitmap.width * scale) / 2f,
+                (size - artBitmap.height * scale) / 2f,
+            )
+        }
+        val shader = BitmapShader(artBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP).apply {
+            setLocalMatrix(matrix)
+        }
+        val cardPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            this.shader = shader
+            isFilterBitmap = true
+        }
+        drawContinuousRoundedRect(canvas, size.toFloat(), size.toFloat(), cornerPx, cardPaint)
+
+        // 2. Draw 4 circular bouncing dots in the bottom-left corner of the square
+        val numDots = 4
+        val dotRadius = size * 0.024f
+        val dotSpacing = size * 0.052f
+        val startX = size * 0.08f
+        val baselineY = size - (size * 0.08f)
+        val maxBounce = size * 0.055f
+
+        val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            style = Paint.Style.FILL
+            setShadowLayer(4f, 0f, 2f, Color.parseColor("#99000000"))
+        }
+
+        for (i in 0 until numDots) {
+            val cx = startX + i * dotSpacing
+            val cy = if (isPlaying) {
+                val wave = sin((frame * 0.45 + i * 1.15)).toFloat()
+                val bounce = (wave + 1f) / 2f
+                baselineY - (bounce * maxBounce)
+            } else {
+                baselineY
+            }
+            dotPaint.alpha = if (isPlaying) 255 else 180
+            canvas.drawCircle(cx, cy, dotRadius, dotPaint)
+        }
+
+        return bitmap
+    }
+
+    /**
+     * Widget B — Napster Lyrics Player
+     * Idle (no track): Completely empty.
+     * Active: Left album artwork with red accent edge + 4 bouncing circular dots; Right synchronized lyrics.
+     */
+    private fun createLyricsPlayerViews(
+        options: Bundle,
+        albumArt: Bitmap?,
+        isPlaying: Boolean,
+        hasTrack: Boolean,
+        lines: List<LyricsEntry>,
+        currentPosition: Long,
+        frame: Int,
+    ): RemoteViews {
+        val views = RemoteViews(context.packageName, R.layout.widget_lyrics_player)
+        val card = cardSizeFor(options)
+
+        views.setInt(R.id.widget_lyrics_root, "setBackgroundResource", if (hasTrack) R.drawable.widget_lyrics_card_bg else 0)
+
+        if (hasTrack) {
+            val artPanelWidth = (card.width * 0.44f).toInt().coerceAtLeast(1)
+            val artPanelHeight = card.height
+            val panelArtBitmap = createArtPanelWithAccent(
+                albumArt,
+                artPanelWidth,
+                artPanelHeight,
+                card.cornerPx,
+            )
+            views.setImageViewBitmap(R.id.widget_lyrics_art, panelArtBitmap)
+
+            val eqBitmap = createDottedEqualiserMotif(isPlaying, frame, hasTrack = true)
+            views.setImageViewBitmap(R.id.widget_lyrics_art_eq, eqBitmap)
+
+            if (lines.isEmpty()) {
+                views.setTextViewText(R.id.widget_lyrics_active_text, "")
+                views.setTextViewText(R.id.widget_lyrics_dots_indicator, "")
+            } else {
+                val index = LyricsUtils.findCurrentLineIndex(lines, currentPosition)
+                    .coerceIn(0, lines.lastIndex)
+                views.setTextViewText(R.id.widget_lyrics_active_text, lines[index].text)
+                views.setTextViewText(R.id.widget_lyrics_dots_indicator, "•  •  •")
+            }
+        } else {
+            // Completely empty when no music is playing
+            views.setImageViewBitmap(R.id.widget_lyrics_art, null)
+            views.setImageViewBitmap(R.id.widget_lyrics_art_eq, null)
+            views.setTextViewText(R.id.widget_lyrics_active_text, "")
+            views.setTextViewText(R.id.widget_lyrics_dots_indicator, "")
+            views.setTextViewText(R.id.widget_lyrics_prev_text, "")
+        }
+
+        // Actions
+        views.setOnClickPendingIntent(R.id.widget_lyrics_action_prev, getPreviousIntent())
+        views.setOnClickPendingIntent(R.id.widget_lyrics_action_play_pause, getPlayPauseIntent())
+        views.setOnClickPendingIntent(R.id.widget_lyrics_action_next, getNextIntent())
+        views.setOnClickPendingIntent(R.id.widget_lyrics_art, getPlayPauseIntent())
+        views.setOnClickPendingIntent(R.id.widget_lyrics_bg, getOpenAppIntent())
+
+        return views
+    }
+
+    /**
+     * Widget C — Napster Vinyl Deck
+     * Idle (no track): Completely empty.
+     * Active: Left vinyl turntable rotating smoothly in circular motion; Right cover art, title, artist, controls.
+     */
+    private fun createVinylDeckViews(
         options: Bundle,
         title: String,
         artist: String,
         albumArt: Bitmap?,
-        isPlaying: Boolean,
-        isLiked: Boolean,
-        duration: Long,
-        currentPosition: Long
-    ): RemoteViews {
-        val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
-        val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
-        val card = cardSizeFor(options)
-
-        // Determine widget size category
-        // 2x2: approximately 110dp x 110dp (compact square)
-        // 4x1: approximately 250dp x 40dp (wide single row)
-        // Full: approximately 250dp x 110dp (default)
-        return when {
-            minWidth < 180 && minHeight < 100 -> {
-                // 2x2 Compact - Only play button with album art
-                createCompactSquareRemoteViews(card, albumArt, isPlaying)
-            }
-            minWidth >= 180 && minHeight < 100 -> {
-                // 4x1 Wide - Single row with album art, song info, like and play buttons
-                createCompactWideRemoteViews(card, title, artist, albumArt, isPlaying, isLiked)
-            }
-            else -> {
-                // Full layout
-                createRemoteViews(
-                    card, title, artist, albumArt, isPlaying, isLiked, duration, currentPosition,
-                )
-            }
-        }
-    }
-
-    /**
-     * The card these widgets paint. They have no per-instance config screen â€” only
-     * the Now Playing and lyrics widgets do â€” so they always take the album tint.
-     */
-    private val defaultCardConfig = WidgetConfig()
-
-    private fun createRemoteViews(
-        card: CardSize,
-        title: String,
-        artist: String,
-        albumArt: Bitmap?,
-        isPlaying: Boolean,
-        isLiked: Boolean,
-        duration: Long = 0,
-        currentPosition: Long = 0
-    ): RemoteViews {
-        val views = RemoteViews(context.packageName, R.layout.widget_music_player)
-        val ink = onCardColorFor(defaultCardConfig, albumArt)
-
-        views.setImageViewBitmap(
-            R.id.widget_player_bg,
-            createCardBackground(defaultCardConfig, albumArt, card),
-        )
-
-        // Set song info
-        views.setTextViewText(R.id.widget_song_title, title)
-        views.setTextViewText(R.id.widget_artist_name, artist)
-
-        // Set album art with rounded corners
-        if (albumArt != null) {
-            val roundedAlbumArt = getRoundedCornerBitmap(albumArt)
-            views.setImageViewBitmap(R.id.widget_album_art, roundedAlbumArt)
-        } else {
-            views.setImageViewBitmap(R.id.widget_album_art, getRoundedDefaultIcon())
-        }
-
-        // Set play/pause icon
-        val playPauseIcon = if (isPlaying) R.drawable.ic_widget_pause else R.drawable.ic_widget_play
-        views.setImageViewResource(R.id.widget_play_pause, playPauseIcon)
-        views.setTextViewText(
-            R.id.widget_play_pause_text,
-            context.getString(if (isPlaying) R.string.widget_pause else R.string.widget_play),
-        )
-
-        val likeIcon = if (isLiked) R.drawable.ic_widget_heart_nav else R.drawable.ic_widget_heart_outline_nav
-        views.setImageViewResource(R.id.widget_like_button, likeIcon)
-
-        // Set Progress Level
-        if (duration > 0) {
-            val level = ((currentPosition.toDouble() / duration.toDouble()) * 10000).toInt()
-            views.setInt(R.id.widget_progress_fill, "setImageLevel", level)
-        } else {
-            views.setInt(R.id.widget_progress_fill, "setImageLevel", 0)
-        }
-
-        applyCardInk(
-            views,
-            ink,
-            texts = listOf(
-                R.id.widget_song_title,
-                R.id.widget_artist_name,
-                R.id.widget_play_pause_text,
-            ),
-            icons = listOf(
-                R.id.widget_play_pause,
-                R.id.widget_like_button,
-                R.id.widget_progress_track,
-                R.id.widget_progress_fill,
-            ),
-            pillId = R.id.widget_play_pause_container,
-        )
-
-        // Set click intents
-        views.setOnClickPendingIntent(R.id.widget_player_bg, getOpenAppIntent())
-        views.setOnClickPendingIntent(R.id.widget_album_art, getOpenAppIntent())
-        views.setOnClickPendingIntent(R.id.widget_play_pause_container, getPlayPauseIntent())
-        views.setOnClickPendingIntent(R.id.widget_like_button, getLikeIntent())
-
-        return views
-    }
-
-    /**
-     * Paints text, icons and the play pill in the card's ink colour.
-     *
-     * Every widget family shares this so a card never renders text that matches
-     * its own background â€” the failure the light card used to have.
-     */
-    private fun applyCardInk(
-        views: RemoteViews,
-        ink: Int,
-        texts: List<Int>,
-        icons: List<Int>,
-        pillId: Int? = null,
-    ) {
-        texts.forEach { views.setTextColor(it, ink) }
-        icons.forEach { tint(views, it, ink) }
-        pillId?.let {
-            views.setInt(
-                it,
-                "setBackgroundResource",
-                if (ink == Color.WHITE) R.drawable.widget_pill_scrim_light
-                else R.drawable.widget_pill_scrim_dark,
-            )
-        }
-    }
-
-    private suspend fun loadAlbumArt(artworkUri: String, size: Int = 200): Bitmap? {
-        return withContext(Dispatchers.IO) {
-            try {
-                val request = ImageRequest.Builder(context)
-                    .data(artworkUri)
-                    .size(size, size)
-                    .allowHardware(false)
-                    .crossfade(300)
-                    .build()
-                val result = imageLoader.execute(request)
-                result.image?.toBitmap()
-            } catch (e: Exception) {
-                null
-            }
-        }
-    }
-
-    /**
-     * Square-cropped artwork with the app's continuous corners.
-     *
-     * The radius is a fraction of the bitmap's own side, not a pixel or dp value:
-     * artwork is decoded at whatever size the loader returns and then scaled again
-     * by the ImageView, so a fixed radius lands at a different on-screen size every
-     * time â€” which is why the corners used to read as square.
-     */
-    private fun getRoundedCornerBitmap(
-        bitmap: Bitmap,
-        cornerFraction: Float = ART_CORNER_FRACTION,
-    ): Bitmap {
-        // Ensure the bitmap is square for thumbnails
-        val size = minOf(bitmap.width, bitmap.height)
-        val xOffset = (bitmap.width - size) / 2
-        val yOffset = (bitmap.height - size) / 2
-        val squareBitmap = Bitmap.createBitmap(bitmap, xOffset, yOffset, size, size)
-
-        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(output)
-        val paint = Paint().apply {
-            isAntiAlias = true
-            isFilterBitmap = true
-            shader = BitmapShader(squareBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
-        }
-        drawContinuousRoundedRect(canvas, size.toFloat(), size.toFloat(), size * cornerFraction, paint)
-
-        if (squareBitmap != bitmap) {
-            squareBitmap.recycle()
-        }
-        
-        return output
-    }
-
-    private fun getCircularBitmap(bitmap: Bitmap): Bitmap {
-        val size = minOf(bitmap.width, bitmap.height)
-        
-        // First crop to square
-        val xOffset = (bitmap.width - size) / 2
-        val yOffset = (bitmap.height - size) / 2
-        val squareBitmap = Bitmap.createBitmap(bitmap, xOffset, yOffset, size, size)
-        
-        // Create circular output
-        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(output)
-        val paint = Paint().apply {
-            isAntiAlias = true
-            isFilterBitmap = true
-            shader = BitmapShader(squareBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
-        }
-        val radius = size / 2f
-        canvas.drawCircle(radius, radius, radius, paint)
-        
-        if (squareBitmap != bitmap) {
-            squareBitmap.recycle()
-        }
-        return output
-    }
-
-    private fun createCompactSquareRemoteViews(
-        card: CardSize,
-        albumArt: Bitmap?,
-        isPlaying: Boolean
-    ): RemoteViews {
-        val views = RemoteViews(context.packageName, R.layout.widget_compact_square)
-
-        views.setImageViewBitmap(
-            R.id.widget_compact_bg,
-            createCardBackground(defaultCardConfig, albumArt, card),
-        )
-
-        // Set album art with rounded corners
-        if (albumArt != null) {
-            val roundedAlbumArt = getRoundedCornerBitmap(albumArt)
-            views.setImageViewBitmap(R.id.widget_compact_album_art, roundedAlbumArt)
-        } else {
-            views.setImageViewBitmap(R.id.widget_compact_album_art, getRoundedDefaultIcon())
-        }
-
-        val playPauseIcon = if (isPlaying) R.drawable.ic_widget_pause else R.drawable.ic_widget_play
-        views.setImageViewResource(R.id.widget_compact_play_pause, playPauseIcon)
-
-        // The pill sits on the artwork, not the card, so it always takes the
-        // white-on-dark treatment regardless of the card's own ink.
-        applyCardInk(
-            views,
-            Color.WHITE,
-            texts = emptyList(),
-            icons = listOf(R.id.widget_compact_play_pause),
-            pillId = R.id.widget_compact_play_container,
-        )
-
-        // Set click intents
-        views.setOnClickPendingIntent(R.id.widget_compact_bg, getOpenAppIntent())
-        views.setOnClickPendingIntent(R.id.widget_compact_album_art, getOpenAppIntent())
-        views.setOnClickPendingIntent(R.id.widget_compact_play_container, getPlayPauseIntent())
-
-        return views
-    }
-
-    private fun createCompactWideRemoteViews(
-        card: CardSize,
-        title: String,
-        artist: String,
-        albumArt: Bitmap?,
-        isPlaying: Boolean,
-        isLiked: Boolean
-    ): RemoteViews {
-        val views = RemoteViews(context.packageName, R.layout.widget_compact_wide)
-        val ink = onCardColorFor(defaultCardConfig, albumArt)
-
-        views.setImageViewBitmap(
-            R.id.widget_wide_bg,
-            createCardBackground(defaultCardConfig, albumArt, card),
-        )
-
-        // Set song info
-        views.setTextViewText(R.id.widget_wide_song_title, title)
-        views.setTextViewText(R.id.widget_wide_artist_name, artist)
-
-        if (albumArt != null) {
-            val roundedAlbumArt = getRoundedCornerBitmap(albumArt)
-            views.setImageViewBitmap(R.id.widget_wide_album_art, roundedAlbumArt)
-        } else {
-            // Create rounded default icon
-            views.setImageViewBitmap(R.id.widget_wide_album_art, getRoundedDefaultIcon())
-        }
-
-        val playPauseIcon = if (isPlaying) R.drawable.ic_widget_pause else R.drawable.ic_widget_play
-        views.setImageViewResource(R.id.widget_wide_play_pause, playPauseIcon)
-
-        val likeIcon = if (isLiked) R.drawable.ic_widget_heart_nav else R.drawable.ic_widget_heart_outline_nav
-        views.setImageViewResource(R.id.widget_wide_like_button, likeIcon)
-
-        applyCardInk(
-            views,
-            ink,
-            texts = listOf(R.id.widget_wide_song_title, R.id.widget_wide_artist_name),
-            icons = listOf(R.id.widget_wide_play_pause, R.id.widget_wide_like_button),
-        )
-
-        // Set click intents
-        views.setOnClickPendingIntent(R.id.widget_wide_bg, getOpenAppIntent())
-        views.setOnClickPendingIntent(R.id.widget_wide_album_art, getOpenAppIntent())
-        views.setOnClickPendingIntent(R.id.widget_wide_play_pause, getPlayPauseIntent())
-        views.setOnClickPendingIntent(R.id.widget_wide_like_button, getLikeIntent())
-
-        return views
-    }
-
-    private fun createTurntableRemoteViews(
         circularAlbumArt: Bitmap?,
         isPlaying: Boolean,
-        isLiked: Boolean
+        hasTrack: Boolean,
+        duration: Long,
+        currentPosition: Long,
+        rotationAngle: Float,
     ): RemoteViews {
-        val views = RemoteViews(context.packageName, R.layout.widget_turntable)
+        val views = RemoteViews(context.packageName, R.layout.widget_vinyl_deck)
+        val card = cardSizeFor(options)
 
-        // Set circular album art - create circular default icon if no album art
-        if (circularAlbumArt != null) {
-            views.setImageViewBitmap(R.id.widget_turntable_album_art, circularAlbumArt)
+        views.setInt(R.id.widget_vinyl_root, "setBackgroundResource", if (hasTrack) R.drawable.widget_vinyl_card_bg else 0)
+
+        if (hasTrack) {
+            val discSize = (minOf(card.width * 0.48f, card.height.toFloat()) * 0.92f).toInt()
+                .coerceAtLeast(60)
+                .coerceAtMost(260)
+            val vinylBitmap = createVinylRecordDisc(circularAlbumArt, discSize, rotationAngle)
+            views.setImageViewBitmap(R.id.widget_vinyl_disc, vinylBitmap)
+
+            val remainingMs = (duration - currentPosition).coerceAtLeast(0)
+            val minutes = (remainingMs / 1000) / 60
+            val seconds = (remainingMs / 1000) % 60
+            val timeStr = if (duration > 0) String.format(Locale.getDefault(), "-%d:%02d", minutes, seconds) else ""
+            views.setTextViewText(R.id.widget_vinyl_time_text, timeStr)
+            views.setTextViewText(R.id.widget_vinyl_badge, "A-B")
+
+            val thumbArt = albumArt?.let { getRoundedCornerBitmap(it, 0.16f) }
+            views.setImageViewBitmap(R.id.widget_vinyl_album_art, thumbArt)
+            views.setTextViewText(R.id.widget_vinyl_title, title)
+            views.setTextViewText(R.id.widget_vinyl_artist, artist)
+
+            val playPauseIcon = if (isPlaying) R.drawable.ic_widget_pause else R.drawable.ic_widget_play
+            views.setImageViewResource(R.id.widget_vinyl_play_pause, playPauseIcon)
+
+            views.setViewVisibility(R.id.widget_vinyl_controls, View.VISIBLE)
+            views.setViewVisibility(R.id.widget_vinyl_open_app, View.VISIBLE)
         } else {
-            // Load and make the default icon circular
-            views.setImageViewBitmap(R.id.widget_turntable_album_art, getCircularDefaultIcon())
+            // Completely empty when no music is playing
+            views.setImageViewBitmap(R.id.widget_vinyl_disc, null)
+            views.setImageViewBitmap(R.id.widget_vinyl_album_art, null)
+            views.setTextViewText(R.id.widget_vinyl_time_text, "")
+            views.setTextViewText(R.id.widget_vinyl_badge, "")
+            views.setTextViewText(R.id.widget_vinyl_title, "")
+            views.setTextViewText(R.id.widget_vinyl_artist, "")
+            views.setViewVisibility(R.id.widget_vinyl_controls, View.GONE)
+            views.setViewVisibility(R.id.widget_vinyl_open_app, View.GONE)
         }
 
-        val playPauseIcon = if (isPlaying) R.drawable.ic_widget_pause else R.drawable.ic_widget_play
-        views.setImageViewResource(R.id.widget_turntable_play_pause, playPauseIcon)
-
-        // Set click intents
-        views.setOnClickPendingIntent(R.id.widget_turntable_album_art, getOpenAppIntent())
-        views.setOnClickPendingIntent(R.id.widget_turntable_play_container, getTurntablePlayPauseIntent())
-        views.setOnClickPendingIntent(R.id.widget_turntable_prev_button, getTurntablePreviousIntent())
-        views.setOnClickPendingIntent(R.id.widget_turntable_next_button, getTurntableNextIntent())
+        // Actions
+        views.setOnClickPendingIntent(R.id.widget_vinyl_prev, getTurntablePreviousIntent())
+        views.setOnClickPendingIntent(R.id.widget_vinyl_play_pause, getTurntablePlayPauseIntent())
+        views.setOnClickPendingIntent(R.id.widget_vinyl_next, getTurntableNextIntent())
+        views.setOnClickPendingIntent(R.id.widget_vinyl_disc, getTurntablePlayPauseIntent())
+        views.setOnClickPendingIntent(R.id.widget_vinyl_album_art, getOpenAppIntent())
+        views.setOnClickPendingIntent(R.id.widget_vinyl_open_app, getOpenAppIntent())
+        views.setOnClickPendingIntent(R.id.widget_vinyl_bg, getOpenAppIntent())
 
         return views
     }
-    
-    private fun getCircularDefaultIcon(): Bitmap {
-        // Get the launcher icon and make it circular
-        val drawable = context.packageManager.getApplicationIcon(context.packageName)
-        val size = 300
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, size, size)
-        drawable.draw(canvas)
-        return getCircularBitmap(bitmap)
-    }
-    
-    private fun getRoundedDefaultIcon(
-        cornerFraction: Float = ART_CORNER_FRACTION,
-    ): Bitmap {
-        // Get the launcher icon and make it rounded
-        val drawable = context.packageManager.getApplicationIcon(context.packageName)
-        val size = 300
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, size, size)
-        drawable.draw(canvas)
-        return getRoundedCornerBitmap(bitmap, cornerFraction)
-    }
 
     /**
-     * Dominant colour of the artwork, darkened enough that white text and the
-     * translucent pill stay legible on top. Apple's widget tints the whole card
-     * to the art; a raw vibrant swatch is often far too light for white-on-colour,
-     * so this clamps lightness rather than trusting the swatch.
+     * Generates or retrieves the cached unrotated base vinyl record disc.
      */
-    /** Card colour for a widget instance, honouring its configured background mode. */
-    private fun backgroundColorFor(config: WidgetConfig, albumArt: Bitmap?): Int =
-        when (config.background) {
-            WidgetBackground.ALBUM_TINT -> tintColorFor(albumArt)
-            WidgetBackground.DARK -> Color.parseColor("#141414")
-            WidgetBackground.LIGHT -> Color.parseColor("#F2EFED")
-            // IMAGE draws the user's picture instead; this only shows through if
-            // the image is missing or unreadable.
-            WidgetBackground.IMAGE -> tintColorFor(albumArt)
+    private fun getOrCreateBaseDisc(centerArt: Bitmap?, size: Int): Bitmap {
+        if (cachedBaseDisc != null && cachedDiscArt === centerArt && cachedDiscSize == size) {
+            return cachedBaseDisc!!
         }
 
-    /**
-     * The user's chosen background image, centre-cropped into the card and rounded
-     * to its corners. Returns null if unset or unreadable â€” a revoked uri after a
-     * reboot or a deleted file must fall back to the colour card rather than render
-     * blank.
-     */
-    private fun loadConfiguredBackground(config: WidgetConfig, card: CardSize): Bitmap? {
-        if (config.background != WidgetBackground.IMAGE) return null
-        val uri = config.imageUri ?: return null
-        val source = runCatching {
-            context.contentResolver.openInputStream(Uri.parse(uri)).use { stream ->
-                BitmapFactory.decodeStream(stream)
-            }
-        }.getOrNull() ?: return null
+        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+        val center = size / 2f
+        val radius = size / 2f - 2f
 
-        val output = Bitmap.createBitmap(card.width, card.height, Bitmap.Config.ARGB_8888)
-        // Centre-crop rather than fitXY: the card is rarely the picture's aspect and
-        // a squashed photo is the most obvious way for this to look cheap.
-        val scale = maxOf(
-            card.width.toFloat() / source.width,
-            card.height.toFloat() / source.height,
-        )
-        val matrix = android.graphics.Matrix().apply {
+        // Outer glossy vinyl base
+        val vinylPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#101012")
+            style = Paint.Style.FILL
+        }
+        canvas.drawCircle(center, center, radius, vinylPaint)
+
+        // Concentric vinyl groove rings
+        val groovePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = 1f
+            color = Color.argb(32, 255, 255, 255)
+        }
+        val grooveRadii = floatArrayOf(0.92f, 0.86f, 0.80f, 0.74f, 0.68f, 0.62f, 0.56f)
+        for (f in grooveRadii) {
+            canvas.drawCircle(center, center, radius * f, groovePaint)
+        }
+
+        // Center label with album artwork (or Napster accent when art unavailable)
+        val labelRadius = radius * 0.42f
+        if (centerArt != null) {
+            val labelBitmap = Bitmap.createScaledBitmap(centerArt, (labelRadius * 2).toInt(), (labelRadius * 2).toInt(), true)
+            val artPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+            val saveCount = canvas.save()
+            val clipPath = android.graphics.Path().apply {
+                addCircle(center, center, labelRadius, android.graphics.Path.Direction.CW)
+            }
+            canvas.clipPath(clipPath)
+            canvas.drawBitmap(labelBitmap, center - labelRadius, center - labelRadius, artPaint)
+            canvas.restoreToCount(saveCount)
+        } else {
+            val defaultLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.parseColor("#18181A")
+                style = Paint.Style.FILL
+            }
+            canvas.drawCircle(center, center, labelRadius, defaultLabelPaint)
+            val redRingPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = NAPSTER_RED
+                style = Paint.Style.STROKE
+                strokeWidth = 2f
+            }
+            canvas.drawCircle(center, center, labelRadius - 2f, redRingPaint)
+        }
+
+        // Center spindle hole
+        val spindlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#09090A")
+            style = Paint.Style.FILL
+        }
+        canvas.drawCircle(center, center, radius * 0.08f, spindlePaint)
+
+        val spindleRimPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#444446")
+            style = Paint.Style.STROKE
+            strokeWidth = 1.5f
+        }
+        canvas.drawCircle(center, center, radius * 0.08f, spindleRimPaint)
+
+        cachedDiscArt = centerArt
+        cachedBaseDisc = output
+        cachedDiscSize = size
+        return output
+    }
+
+    /**
+     * Rotates the pre-rendered base vinyl disc for smooth circular turntable motion.
+     */
+    private fun createVinylRecordDisc(centerArt: Bitmap?, size: Int, rotationAngle: Float): Bitmap {
+        val baseDisc = getOrCreateBaseDisc(centerArt, size)
+        val rotated = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(rotated)
+        val matrix = Matrix().apply {
+            postRotate(rotationAngle, size / 2f, size / 2f)
+        }
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+        canvas.drawBitmap(baseDisc, matrix, paint)
+        return rotated
+    }
+
+    /**
+     * Left art panel for lyrics widget with red accent divider line.
+     */
+    private fun createArtPanelWithAccent(
+        albumArt: Bitmap?,
+        width: Int,
+        height: Int,
+        cornerPx: Float,
+    ): Bitmap {
+        val output = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+
+        val src = albumArt ?: getRoundedDefaultIcon()
+        val scale = maxOf(width.toFloat() / src.width, height.toFloat() / src.height)
+        val matrix = Matrix().apply {
             setScale(scale, scale)
             postTranslate(
-                (card.width - source.width * scale) / 2f,
-                (card.height - source.height * scale) / 2f,
+                (width - src.width * scale) / 2f,
+                (height - src.height * scale) / 2f,
             )
         }
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             isFilterBitmap = true
-            shader = BitmapShader(source, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
-                .apply { setLocalMatrix(matrix) }
+            shader = BitmapShader(src, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP).apply {
+                setLocalMatrix(matrix)
+            }
         }
-        drawContinuousRoundedRect(
-            Canvas(output),
-            card.width.toFloat(),
-            card.height.toFloat(),
-            card.cornerPx,
-            paint,
-        )
+
+        drawContinuousRoundedRect(canvas, width.toFloat(), height.toFloat(), cornerPx, paint)
+
+        // Subtle Napster-red accent bar on the right edge of this panel
+        val redAccentPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = NAPSTER_RED
+            style = Paint.Style.STROKE
+            strokeWidth = 3f
+        }
+        canvas.drawLine(width - 1.5f, 0f, width - 1.5f, height.toFloat(), redAccentPaint)
+
         return output
     }
 
-    private fun tintColorFor(albumArt: Bitmap?): Int {
-        val fallback = Color.parseColor("#B03A3A")
-        val bitmap = albumArt ?: return fallback
-        val swatch = Palette.from(bitmap).clearFilters().generate().let { palette ->
-            palette.vibrantSwatch ?: palette.dominantSwatch ?: palette.mutedSwatch
-        } ?: return fallback
+    /**
+     * 4 circular dots equalizer motif bouncing up and down when music is playing.
+     * When paused, 4 circular dots sit at baseline.
+     * When no music is playing, returns null (completely empty).
+     */
+    private fun createDottedEqualiserMotif(isPlaying: Boolean, frame: Int, hasTrack: Boolean): Bitmap? {
+        if (!hasTrack) return null
+        val width = 72
+        val height = 36
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
 
-        val hsl = FloatArray(3)
-        ColorUtils.colorToHSL(swatch.rgb, hsl)
-        // Keep some saturation so it reads as "the album's colour", but pin
-        // lightness into a band that white text survives.
-        hsl[1] = hsl[1].coerceIn(0.35f, 0.85f)
-        hsl[2] = hsl[2].coerceIn(0.32f, 0.52f)
-        return ColorUtils.HSLToColor(hsl)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            style = Paint.Style.FILL
+        }
+
+        val numDots = 4
+        val dotRadius = 4f
+        val startX = 10f
+        val dotSpacing = 16f
+        val baselineY = height - 8f
+        val maxBounce = 16f
+
+        for (i in 0 until numDots) {
+            val cx = startX + i * dotSpacing
+            val cy = if (isPlaying) {
+                // Harmonic sine wave: each dot bounces with a distinct phase offset
+                val wave = sin((frame * 0.45 + i * 1.15)).toFloat()
+                val bounce = (wave + 1f) / 2f
+                baselineY - (bounce * maxBounce)
+            } else {
+                baselineY
+            }
+            paint.alpha = if (isPlaying) 255 else 180
+            canvas.drawCircle(cx, cy, dotRadius, paint)
+        }
+
+        return bitmap
     }
 
-    /**
-     * Draws a continuous (G2) rounded rectangle rather than the circular-arc corner
-     * [Canvas.drawRoundRect] gives, so widget corners match the squircles used
-     * throughout the app UI. Falls back to a plain round rect if the shape returns
-     * a non-path outline (radius 0, or a capsule).
-     */
     private fun drawContinuousRoundedRect(
         canvas: Canvas,
         width: Float,
         height: Float,
-        cornerRadius: Float,
+        cornerPx: Float,
         paint: Paint,
     ) {
-        val outline = ContinuousRoundedRectangle(cornerRadius).createOutline(
+        val density = Density(context.resources.displayMetrics.density)
+        val shape = ContinuousRoundedRectangle(cornerPx)
+        val outline = shape.createOutline(
             size = Size(width, height),
             layoutDirection = LayoutDirection.Ltr,
-            density = Density(1f),
+            density = density,
         )
-        val path = (outline as? Outline.Generic)?.path?.asAndroidPath()
-        if (path != null) {
-            canvas.drawPath(path, paint)
-        } else {
-            canvas.drawRoundRect(RectF(0f, 0f, width, height), cornerRadius, cornerRadius, paint)
+        when (outline) {
+            is Outline.Generic -> canvas.drawPath(outline.path.asAndroidPath(), paint)
+            is Outline.Rounded -> canvas.drawRoundRect(
+                RectF(0f, 0f, width, height),
+                cornerPx,
+                cornerPx,
+                paint,
+            )
+            is Outline.Rectangle -> canvas.drawRect(RectF(0f, 0f, width, height), paint)
         }
     }
 
-    /**
-     * The pixel size a widget's card bitmap should be drawn at, plus the corner
-     * radius to draw it with.
-     *
-     * The card ImageView is `fitXY`, so anything drawn at a different aspect than
-     * the widget gets scaled unevenly and the corners come out as stretched
-     * ellipses â€” that is what made them look far too round on square tiles. Drawing
-     * at the widget's real size makes that scale 1:1 and the radius exact.
-     */
+    private fun getRoundedCornerBitmap(src: Bitmap, cornerRadiusRatio: Float): Bitmap {
+        val size = minOf(src.width, src.height)
+        val output = Bitmap.createBitmap(src.width, src.height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            isFilterBitmap = true
+            shader = BitmapShader(src, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+        }
+        val radius = size * cornerRadiusRatio
+        drawContinuousRoundedRect(canvas, src.width.toFloat(), src.height.toFloat(), radius, paint)
+        return output
+    }
+
+    private fun getCircularBitmap(src: Bitmap): Bitmap {
+        val size = minOf(src.width, src.height)
+        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            isFilterBitmap = true
+            shader = BitmapShader(src, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP).apply {
+                val dx = (size - src.width) / 2f
+                val dy = (size - src.height) / 2f
+                setLocalMatrix(Matrix().apply { postTranslate(dx, dy) })
+            }
+        }
+        canvas.drawCircle(size / 2f, size / 2f, size / 2f, paint)
+        return output
+    }
+
+    private fun getRoundedDefaultIcon(cornerRadiusRatio: Float = 0.22f): Bitmap {
+        val size = 200
+        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+        val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#141A29")
+            style = Paint.Style.FILL
+        }
+        val radius = size * cornerRadiusRatio
+        canvas.drawRoundRect(RectF(0f, 0f, size.toFloat(), size.toFloat()), radius, radius, bgPaint)
+        return output
+    }
+
+    private suspend fun loadAlbumArt(uri: String, targetSize: Int): Bitmap? =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val request = ImageRequest.Builder(context)
+                    .data(uri)
+                    .size(targetSize)
+                    .allowHardware(false)
+                    .build()
+                imageLoader.execute(request).image?.toBitmap()
+            }.getOrNull()
+        }
+
     private data class CardSize(val width: Int, val height: Int, val cornerPx: Float)
 
-    /**
-     * Card geometry for a widget instance.
-     *
-     * Android 12+ publishes the launcher's own widget corner radius, so honouring it
-     * makes the card sit flush inside the system's widget frame instead of showing a
-     * second, mismatched curve.
-     */
     private fun cardSizeFor(options: Bundle): CardSize {
         val density = context.resources.displayMetrics.density
         val portrait = context.resources.configuration.orientation ==
             Configuration.ORIENTATION_PORTRAIT
-        // The launcher reports the tile's width at its narrowest rotation and height
-        // at its tallest, so which extra holds the current size depends on rotation.
         val widthDp = options.getInt(
             if (portrait) AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH
             else AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH
@@ -667,8 +723,6 @@ class vivimusicWidgetManager @Inject constructor(
             if (portrait) AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT
             else AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT
         )
-        // A widget that has never reported a size â€” freshly restored, or a launcher
-        // that omits the extras â€” still has to render, so fall back to a 4x2 tile.
         val width = ((if (widthDp > 0) widthDp else 250) * density).toInt().coerceIn(1, 1600)
         val height = ((if (heightDp > 0) heightDp else 110) * density).toInt().coerceIn(1, 1600)
 
@@ -683,393 +737,11 @@ class vivimusicWidgetManager @Inject constructor(
         return CardSize(width, height, radiusDp.coerceIn(8f, 28f) * density)
     }
 
-    /**
-     * Two swatches for the card gradient. Apple's widget isn't a flat fill â€” it runs
-     * a light-to-dark sweep of the album colour, which is what gives it depth. Falls
-     * back to a darkened copy of the single tint when the art yields only one usable
-     * swatch.
-     */
-    private fun gradientColorsFor(config: WidgetConfig, albumArt: Bitmap?): Pair<Int, Int> {
-        val base = backgroundColorFor(config, albumArt)
-        val hsl = FloatArray(3)
-        ColorUtils.colorToHSL(base, hsl)
-
-        val top = ColorUtils.HSLToColor(
-            floatArrayOf(hsl[0], hsl[1], (hsl[2] + 0.10f).coerceAtMost(0.62f)),
-        )
-        val bottom = ColorUtils.HSLToColor(
-            floatArrayOf(hsl[0], hsl[1], (hsl[2] - 0.10f).coerceAtLeast(0.16f)),
-        )
-        return top to bottom
-    }
-
-    /**
-     * The card: continuous-corner rounded rect, diagonal gradient, and a specular rim
-     * along the top edge. The rim is what reads as "height" on a glass surface â€”
-     * without it a gradient card still looks flat.
-     */
-    private fun createCardBackground(
-        config: WidgetConfig,
-        albumArt: Bitmap?,
-        card: CardSize,
-    ): Bitmap {
-        val (top, bottom) = gradientColorsFor(config, albumArt)
-        val width = card.width
-        val height = card.height
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-
-        val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            shader = LinearGradient(
-                0f, 0f, width * 0.35f, height.toFloat(),
-                top, bottom, Shader.TileMode.CLAMP,
-            )
-        }
-        drawContinuousRoundedRect(canvas, width.toFloat(), height.toFloat(), card.cornerPx, fill)
-
-        // Specular rim: brightest at the top edge, gone by ~a third down.
-        val rim = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            style = Paint.Style.STROKE
-            strokeWidth = (height * 0.012f).coerceAtLeast(1f)
-            shader = LinearGradient(
-                0f, 0f, 0f, height * 0.34f,
-                Color.argb(120, 255, 255, 255), Color.TRANSPARENT, Shader.TileMode.CLAMP,
-            )
-        }
-        drawContinuousRoundedRect(canvas, width.toFloat(), height.toFloat(), card.cornerPx, rim)
-        return bitmap
-    }
-
-    /**
-     * Ink colour for text and icons drawn on the card.
-     *
-     * The card can be an album tint, near-black, near-white or a photo, so a fixed
-     * colour is wrong for at least one of them â€” a LIGHT card with the layout's
-     * white text renders as a blank rectangle. Picked from the card's own
-     * luminance instead.
-     */
-    private fun onCardColorFor(config: WidgetConfig, albumArt: Bitmap?): Int {
-        // A photo background is unknowable ahead of time and usually mid-to-dark
-        // once scaled; white with the card's own contrast is the safe read.
-        if (config.background == WidgetBackground.IMAGE) return Color.WHITE
-        val luminance = ColorUtils.calculateLuminance(backgroundColorFor(config, albumArt))
-        return if (luminance > 0.5) Color.parseColor("#12100F") else Color.WHITE
-    }
-
-    /**
-     * The tile forms the Now Playing widget can take. Each is a real layout, not a
-     * scaled version of one â€” the row drops the label and pill text, the square
-     * stacks what the wide form puts side by side.
-     */
-    private enum class NowPlayingForm(val minWidthDp: Float, val minHeightDp: Float) {
-        ROW(180f, 40f),
-        SQUARE(110f, 110f),
-        WIDE(250f, 110f),
-    }
-
-    /**
-     * Builds every form up front and lets the launcher pick per size.
-     *
-     * On API 31+ the mapped RemoteViews constructor means resizing swaps layout
-     * instantly inside the launcher, with no broadcast back to us â€” so dragging a
-     * widget bigger costs nothing and never wakes the app. Older devices get the
-     * single best-fit form, refreshed from onAppWidgetOptionsChanged instead.
-     */
-    private fun createNowPlayingRemoteViews(
-        options: Bundle,
-        config: WidgetConfig,
-        title: String,
-        artist: String,
-        albumArt: Bitmap?,
-        isPlaying: Boolean,
-        duration: Long,
-        currentPosition: Long,
-    ): RemoteViews {
-        val card = cardSizeFor(options)
-        val build = { form: NowPlayingForm ->
-            buildNowPlayingForm(
-                form, card, config, title, artist, albumArt, isPlaying, duration, currentPosition,
-            )
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            return RemoteViews(
-                NowPlayingForm.entries.associate { form ->
-                    SizeF(form.minWidthDp, form.minHeightDp) to build(form)
-                }
-            )
-        }
-
-        val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
-        val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
-        val form = when {
-            minHeight < 100 -> NowPlayingForm.ROW
-            minWidth < 180 -> NowPlayingForm.SQUARE
-            else -> NowPlayingForm.WIDE
-        }
-        return build(form)
-    }
-
-    private fun buildNowPlayingForm(
-        form: NowPlayingForm,
-        card: CardSize,
-        config: WidgetConfig,
-        title: String,
-        artist: String,
-        albumArt: Bitmap?,
-        isPlaying: Boolean,
-        duration: Long,
-        currentPosition: Long,
-    ): RemoteViews {
-        val layout = when (form) {
-            NowPlayingForm.ROW -> R.layout.widget_now_playing_row
-            NowPlayingForm.SQUARE -> R.layout.widget_now_playing_square
-            NowPlayingForm.WIDE -> R.layout.widget_now_playing_wide
-        }
-        val views = RemoteViews(context.packageName, layout)
-
-        val bgId = when (form) {
-            NowPlayingForm.ROW -> R.id.widget_np_row_bg
-            NowPlayingForm.SQUARE -> R.id.widget_np_sq_bg
-            NowPlayingForm.WIDE -> R.id.widget_np_wide_bg
-        }
-        val artId = when (form) {
-            NowPlayingForm.ROW -> R.id.widget_np_row_album_art
-            NowPlayingForm.SQUARE -> R.id.widget_np_sq_album_art
-            NowPlayingForm.WIDE -> R.id.widget_np_wide_album_art
-        }
-        val titleId = when (form) {
-            NowPlayingForm.ROW -> R.id.widget_np_row_title
-            NowPlayingForm.SQUARE -> R.id.widget_np_sq_title
-            NowPlayingForm.WIDE -> R.id.widget_np_wide_title
-        }
-        val artistId = when (form) {
-            NowPlayingForm.ROW -> R.id.widget_np_row_artist
-            NowPlayingForm.SQUARE -> R.id.widget_np_sq_artist
-            NowPlayingForm.WIDE -> R.id.widget_np_wide_artist
-        }
-        val iconId = when (form) {
-            NowPlayingForm.ROW -> R.id.widget_np_row_play_pause
-            NowPlayingForm.SQUARE -> R.id.widget_np_sq_play_pause
-            NowPlayingForm.WIDE -> R.id.widget_np_wide_play_pause
-        }
-
-        views.setImageViewBitmap(
-            bgId,
-            loadConfiguredBackground(config, card)
-                ?: createCardBackground(config, albumArt, card),
-        )
-
-        if (config.showArtwork) {
-            views.setViewVisibility(artId, android.view.View.VISIBLE)
-            views.setImageViewBitmap(
-                artId,
-                albumArt?.let { getRoundedCornerBitmap(it) } ?: getRoundedDefaultIcon(),
-            )
-            sizeArtwork(views, artId, form, card)
-        } else {
-            views.setViewVisibility(artId, android.view.View.GONE)
-        }
-
-        views.setTextViewText(titleId, title)
-        views.setTextViewText(artistId, artist)
-        views.setImageViewResource(
-            iconId,
-            if (isPlaying) R.drawable.ic_widget_pause else R.drawable.ic_widget_play,
-        )
-
-        val ink = onCardColorFor(config, albumArt)
-        val labelId = if (form == NowPlayingForm.WIDE) R.id.widget_np_wide_label else null
-        listOfNotNull(titleId, artistId, labelId).forEach { views.setTextColor(it, ink) }
-        val glyphId = when (form) {
-            NowPlayingForm.ROW -> null
-            NowPlayingForm.SQUARE -> R.id.widget_np_sq_glyph
-            NowPlayingForm.WIDE -> R.id.widget_np_wide_glyph
-        }
-        listOfNotNull(iconId, glyphId).forEach { tint(views, it, ink) }
-
-        // The row form has no room for a progress bar; the other two do.
-        val progressFillId = when (form) {
-            NowPlayingForm.ROW -> null
-            NowPlayingForm.SQUARE -> R.id.widget_np_sq_progress_fill
-            NowPlayingForm.WIDE -> R.id.widget_np_wide_progress_fill
-        }
-        progressFillId?.let { fillId ->
-            // Level drawables run 0..10000.
-            val level =
-                if (duration > 0) {
-                    ((currentPosition.toDouble() / duration) * 10000).toInt().coerceIn(0, 10000)
-                } else {
-                    0
-                }
-            views.setInt(fillId, "setImageLevel", level)
-            tint(views, fillId, ink)
-            tint(
-                views,
-                if (form == NowPlayingForm.WIDE) R.id.widget_np_wide_progress_track
-                else R.id.widget_np_sq_progress_track,
-                ink,
-            )
-        }
-
-        if (form == NowPlayingForm.ROW) {
-            views.setOnClickPendingIntent(iconId, getPlayPauseIntent())
-            val transportVisibility =
-                if (config.showPrevNext) android.view.View.VISIBLE else android.view.View.GONE
-            views.setViewVisibility(R.id.widget_np_row_next, transportVisibility)
-            views.setViewVisibility(R.id.widget_np_row_prev, transportVisibility)
-            views.setOnClickPendingIntent(R.id.widget_np_row_next, getNextIntent())
-            views.setOnClickPendingIntent(R.id.widget_np_row_prev, getPreviousIntent())
-            tint(views, R.id.widget_np_row_next, ink)
-            tint(views, R.id.widget_np_row_prev, ink)
-        } else {
-            val pillId =
-                if (form == NowPlayingForm.WIDE) R.id.widget_np_wide_pill
-                else R.id.widget_np_sq_pill
-            val pillTextId =
-                if (form == NowPlayingForm.WIDE) R.id.widget_np_wide_pill_text
-                else R.id.widget_np_sq_pill_text
-            views.setTextViewText(
-                pillTextId,
-                context.getString(if (isPlaying) R.string.widget_pause else R.string.widget_play),
-            )
-            views.setTextColor(pillTextId, ink)
-            // A white scrim vanishes on a light card and a black one vanishes on a
-            // dark card, so the pill follows whichever ink the card called for.
-            views.setInt(
-                pillId,
-                "setBackgroundResource",
-                if (ink == Color.WHITE) R.drawable.widget_pill_scrim_light
-                else R.drawable.widget_pill_scrim_dark,
-            )
-            views.setOnClickPendingIntent(pillId, getPlayPauseIntent())
-        }
-
-        views.setOnClickPendingIntent(bgId, getOpenAppIntent())
-        return views
-    }
-
-    /** Tints a RemoteViews ImageView; there is no setImageTintList before API 31. */
-    private fun tint(views: RemoteViews, viewId: Int, color: Int) {
-        views.setInt(viewId, "setColorFilter", color)
-    }
-
-    /**
-     * Scales the artwork to the tile it is actually being drawn in.
-     *
-     * The layouts carry a fixed dp size, which is right at the smallest size each
-     * form covers and far too small once the tile is dragged bigger â€” the reference
-     * widget's art is a fraction of the card, not a constant. RemoteViews can only
-     * resize a view from API 31, so older devices keep the layout's value.
-     */
-    private fun sizeArtwork(
-        views: RemoteViews,
-        artId: Int,
-        form: NowPlayingForm,
-        card: CardSize,
-    ) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
-        val density = context.resources.displayMetrics.density
-        val widthDp = card.width / density
-        val heightDp = card.height / density
-        val artDp = when (form) {
-            // Fills the row's height inside its padding.
-            NowPlayingForm.ROW -> (heightDp - 2 * ROW_PADDING_DP).coerceIn(36f, 72f)
-            // Reference square: art is a little under half the tile.
-            NowPlayingForm.SQUARE -> (minOf(widthDp, heightDp) * 0.46f).coerceIn(56f, 130f)
-            // Reference wide: art is the full card height inside its padding.
-            NowPlayingForm.WIDE -> (heightDp - 2 * CARD_PADDING_DP).coerceIn(72f, 190f)
-        }
-        views.setViewLayoutWidth(artId, artDp, TypedValue.COMPLEX_UNIT_DIP)
-        views.setViewLayoutHeight(artId, artDp, TypedValue.COMPLEX_UNIT_DIP)
-    }
-
-    /**
-     * Synced lyric lines for the current song, or empty when there are none or
-     * they're unsynced. Unsynced lyrics have no timestamps, so there is no
-     * "current line" to show and the widget says so rather than showing line 1.
-     */
     private suspend fun loadLyricLines(mediaId: String?): List<LyricsEntry> {
         if (mediaId == null) return emptyList()
         val raw = runCatching { database.lyrics(mediaId).first()?.lyrics }.getOrNull()
         if (raw.isNullOrBlank()) return emptyList()
         return runCatching { LyricsUtils.parseLyrics(raw) }.getOrDefault(emptyList())
-    }
-
-    /**
-     * Lyrics widget: a three-line window around the current line.
-     *
-     * RemoteViews has no animation, so this cannot reproduce the app's Apple-style
-     * glide â€” it steps as the line changes, keeping the same visual language
-     * (active line solid, neighbours faded) that ViviMusicLyrics uses.
-     */
-    private fun createLyricsRemoteViews(
-        options: Bundle,
-        config: WidgetConfig,
-        title: String,
-        artist: String,
-        albumArt: Bitmap?,
-        isPlaying: Boolean,
-        lines: List<LyricsEntry>,
-        currentPosition: Long,
-    ): RemoteViews {
-        val views = RemoteViews(context.packageName, R.layout.widget_lyrics)
-        val card = cardSizeFor(options)
-
-        views.setImageViewBitmap(
-            R.id.widget_lyr_bg,
-            loadConfiguredBackground(config, card)
-                ?: createCardBackground(config, albumArt, card),
-        )
-
-        views.setTextViewText(R.id.widget_lyr_title, title)
-        views.setTextViewText(R.id.widget_lyr_artist, artist)
-
-        if (lines.isEmpty()) {
-            views.setTextViewText(R.id.widget_lyr_prev, "")
-            views.setTextViewText(
-                R.id.widget_lyr_current,
-                context.getString(R.string.widget_no_lyrics),
-            )
-            views.setTextViewText(R.id.widget_lyr_next, "")
-        } else {
-            val index = LyricsUtils.findCurrentLineIndex(lines, currentPosition)
-                .coerceIn(0, lines.lastIndex)
-            views.setTextViewText(R.id.widget_lyr_prev, lines.getOrNull(index - 1)?.text ?: "")
-            views.setTextViewText(R.id.widget_lyr_current, lines[index].text)
-            views.setTextViewText(R.id.widget_lyr_next, lines.getOrNull(index + 1)?.text ?: "")
-        }
-
-        views.setImageViewResource(
-            R.id.widget_lyr_play_pause,
-            if (isPlaying) R.drawable.ic_widget_pause else R.drawable.ic_widget_play,
-        )
-
-        val transportVisibility =
-            if (config.showPrevNext) android.view.View.VISIBLE else android.view.View.GONE
-        views.setViewVisibility(R.id.widget_lyr_skip_prev, transportVisibility)
-        views.setViewVisibility(R.id.widget_lyr_skip_next, transportVisibility)
-
-        views.setOnClickPendingIntent(R.id.widget_lyr_play_pause, getPlayPauseIntent())
-        views.setOnClickPendingIntent(R.id.widget_lyr_skip_next, getNextIntent())
-        views.setOnClickPendingIntent(R.id.widget_lyr_skip_prev, getPreviousIntent())
-        views.setOnClickPendingIntent(R.id.widget_lyr_bg, getOpenAppIntent())
-
-        val ink = onCardColorFor(config, albumArt)
-        listOf(
-            R.id.widget_lyr_title,
-            R.id.widget_lyr_artist,
-            R.id.widget_lyr_prev,
-            R.id.widget_lyr_current,
-            R.id.widget_lyr_next,
-        ).forEach { views.setTextColor(it, ink) }
-        listOf(
-            R.id.widget_lyr_play_pause,
-            R.id.widget_lyr_skip_next,
-            R.id.widget_lyr_skip_prev,
-            R.id.widget_lyr_glyph,
-        ).forEach { tint(views, it, ink) }
-        return views
     }
 
     private fun getOpenAppIntent(): PendingIntent {
@@ -1116,18 +788,6 @@ class vivimusicWidgetManager @Inject constructor(
         )
     }
 
-    private fun getLikeIntent(): PendingIntent {
-        val intent = Intent(context, MusicWidgetReceiver::class.java).apply {
-            action = MusicWidgetReceiver.ACTION_LIKE
-        }
-        return PendingIntent.getBroadcast(
-            context,
-            2,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-    }
-
     private fun getTurntablePlayPauseIntent(): PendingIntent {
         val intent = Intent(context, TurntableWidgetReceiver::class.java).apply {
             action = TurntableWidgetReceiver.ACTION_TURNTABLE_PLAY_PAUSE
@@ -1165,20 +825,7 @@ class vivimusicWidgetManager @Inject constructor(
     }
 
     private companion object {
-        /**
-         * Artwork corner as a share of the art's own side. Measured off the
-         * reference widget, where the art keeps the same curve at every tile size.
-         */
-        const val ART_CORNER_FRACTION = 0.13f
-
-        /** Card inset, shared by every layout so the forms read as one family. */
-        const val CARD_PADDING_DP = 14f
-
-        /** The row form is short, so it gets a tighter inset than the tall cards. */
-        const val ROW_PADDING_DP = 8f
-
-        /** Card corner used before API 31, which has no launcher radius to read. */
+        val NAPSTER_RED = Color.parseColor("#E53935")
         const val CARD_CORNER_DP = 16f
     }
 }
-

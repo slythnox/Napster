@@ -71,7 +71,7 @@ The client is published with the application identifier `com.napster.music`. Wit
 - **Synchronised Lyrics:** Multi-source lyrics engine querying LRCLIB, KuGou, Paxsenix, Better Lyrics, and local embedded LRC/TTML tags with word-level and line-level karaoke synchronisation.
 - **Visual Canvas:** High-definition animated album canvas rendering supporting Apple Music canvas streams, Tidal canvas streams, and artist video loops.
 - **Multiple Form Factors:** Dedicated responsive layouts for smartphones, tablets, foldables, and Android Auto dashboard displays.
-- **Home Screen Widgets:** Compact, Now-Playing, Synchronised Lyrics, and Turntable interactive desktop widgets.
+- **Home Screen Widgets:** Redesigned interactive widgets including the minimalist Napster Dot Player (2×2), split-panel Napster Lyrics Player (4×2), and animated Napster Vinyl Deck (4×2).
 
 ### Discovery & Integrations
 - **Multi-Endpoint InnerTube Search:** Search songs, albums, artists, community playlists, and mood stations with instant client-side debouncing (300 ms).

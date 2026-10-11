@@ -5,17 +5,10 @@
 
 package com.beatwave.music.widget
 
-import android.content.Context
-
 /**
- * Lyrics widget: current lyric line with its neighbours faded, plus transport.
+ * Napster Lyrics Player widget (Widget B):
+ * Split-panel 2×4 layout with album artwork and synchronised lyrics.
  *
- * Same update/click plumbing as [MusicWidgetReceiver]; only the rendering differs.
+ * Inherits transport and update forwarding from [MusicWidgetReceiver].
  */
-class LyricsWidgetReceiver : MusicWidgetReceiver() {
-
-    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
-        super.onDeleted(context, appWidgetIds)
-        WidgetConfig.delete(context, appWidgetIds)
-    }
-}
+class LyricsWidgetReceiver : MusicWidgetReceiver()

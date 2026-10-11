@@ -226,15 +226,16 @@
         <meta-data
             android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc" />
-        <!-- Music Widget -->
+        <!-- Napster Dot Player (Widget A - Compact 2x2) -->
         <receiver
             android:name=".widget.MusicWidgetReceiver"
             android:exported="true"
-            android:label="@string/widget_music_player">
+            android:label="@string/widget_dot_player">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.beatwave.music.widget.PLAY_PAUSE" />
-                <action android:name="com.beatwave.music.widget.LIKE" />
+                <action android:name="com.beatwave.music.widget.NEXT" />
+                <action android:name="com.beatwave.music.widget.PREVIOUS" />
                 <action android:name="com.beatwave.music.widget.UPDATE_WIDGET" />
             </intent-filter>
 
@@ -243,39 +244,16 @@
                 android:resource="@xml/music_widget_info" />
         </receiver>
 
-        <!-- Per-widget configuration screen (APPWIDGET_CONFIGURE) -->
-        <activity
-            android:name=".widget.WidgetConfigActivity"
-            android:exported="true"
-            android:excludeFromRecents="true"
-            android:theme="@style/Theme.Napster">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
-            </intent-filter>
-        </activity>
-
-        <!-- Now Playing Widget (Apple Music styled, row + square + wide) -->
-        <receiver
-            android:name=".widget.NowPlayingWidgetReceiver"
-            android:exported="true"
-            android:label="@string/widget_now_playing">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.beatwave.music.widget.UPDATE_WIDGET" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/now_playing_widget_info" />
-        </receiver>
-
-        <!-- Lyrics Widget -->
+        <!-- Napster Lyrics Player (Widget B - Wide 2x4 split panel) -->
         <receiver
             android:name=".widget.LyricsWidgetReceiver"
             android:exported="true"
-            android:label="@string/widget_lyrics">
+            android:label="@string/widget_lyrics_player">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.beatwave.music.widget.PLAY_PAUSE" />
+                <action android:name="com.beatwave.music.widget.NEXT" />
+                <action android:name="com.beatwave.music.widget.PREVIOUS" />
                 <action android:name="com.beatwave.music.widget.UPDATE_WIDGET" />
             </intent-filter>
 
@@ -284,15 +262,16 @@
                 android:resource="@xml/lyrics_widget_info" />
         </receiver>
 
-        <!-- Turntable Widget -->
+        <!-- Napster Vinyl Deck (Widget C - Disc + Player 2x4) -->
         <receiver
             android:name=".widget.TurntableWidgetReceiver"
             android:exported="true"
-            android:label="@string/widget_turntable">
+            android:label="@string/widget_vinyl_deck">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.beatwave.music.widget.TURNTABLE_PLAY_PAUSE" />
-                <action android:name="com.beatwave.music.widget.TURNTABLE_LIKE" />
+                <action android:name="com.beatwave.music.widget.TURNTABLE_NEXT" />
+                <action android:name="com.beatwave.music.widget.TURNTABLE_PREVIOUS" />
                 <action android:name="com.beatwave.music.widget.UPDATE_TURNTABLE_WIDGET" />
             </intent-filter>
 

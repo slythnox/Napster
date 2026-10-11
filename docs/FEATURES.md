@@ -47,7 +47,7 @@ This document provides a comprehensive inventory of verified features available 
 - **Dynamic Theming:** Instant palette derivation from current song artwork or system Material You dynamic colours.
 - **Pure Black Mode:** OLED black background configuration for power efficiency and high contrast.
 - **Theme Presets:** One-tap presets (Deep Midnight OLED, Cyberpunk Neon, Emerald Frosted Glass, Rose Gold, Sunset Amber, Dynamic Material You) with export/import support via `.napsterpreset` archives.
-- **Homescreen Widgets:** Four dedicated app widget layouts (Compact, Now Playing Row/Square/Wide, Synchronised Lyrics, and Turntable).
+- **Homescreen Widgets:** Three dedicated app widget designs (Napster Dot Player 2×2, split-panel Napster Lyrics Player 4×2, and Napster Vinyl Deck 4×2).
 
 ---
 

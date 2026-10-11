@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_vinyl_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:theme="@style/Theme.Widget.Napster">
+
+    <!-- Dark rounded enclosure background -->
+    <ImageView
+        android:id="@+id/widget_vinyl_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:contentDescription="@null" />
+
+    <!-- Split content: Left Vinyl turntable disc, Right Album info + controls -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:padding="10dp"
+        android:gravity="center_vertical"
+        android:baselineAligned="false">
+
+        <!-- Left: Vinyl Record / Disc Area -->
+        <FrameLayout
+            android:id="@+id/widget_vinyl_disc_container"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.48">
+
+            <ImageView
+                android:id="@+id/widget_vinyl_disc"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter"
+                android:contentDescription="@string/widget_vinyl_deck" />
+
+            <!-- Time remaining or A-B badge overlay (top-left / bottom-left) -->
+            <TextView
+                android:id="@+id/widget_vinyl_time_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|start"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="2dp"
+                android:textColor="#99FFFFFF"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/widget_vinyl_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|start"
+                android:layout_marginStart="4dp"
+                android:layout_marginBottom="2dp"
+                android:textColor="#55FFFFFF"
+                android:textSize="10sp" />
+        </FrameLayout>
+
+        <!-- Right: Cover, Metadata, Transport Buttons -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.52"
+            android:orientation="vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="4dp"
+            android:gravity="center_vertical">
+
+            <!-- Top Row: Album Cover Artwork + Open App Pill -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical|center_horizontal">
+
+                <ImageView
+                    android:id="@+id/widget_vinyl_album_art"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="@string/album_art" />
+
+                <ImageView
+                    android:id="@+id/widget_vinyl_open_app"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="16dp"
+                    android:alpha="0.8"
+                    android:visibility="gone"
+                    android:src="@drawable/dock_to_top"
+                    android:contentDescription="@string/app_name" />
+            </LinearLayout>
+
+            <!-- Middle: Song Title & Artist -->
+            <TextView
+                android:id="@+id/widget_vinyl_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFFFF" />
+
+            <TextView
+                android:id="@+id/widget_vinyl_artist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:gravity="center"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:textSize="11sp"
+                android:textColor="#88FFFFFF" />
+
+            <!-- Bottom: Previous, Play/Pause, Next Controls -->
+            <LinearLayout
+                android:id="@+id/widget_vinyl_controls"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                android:gravity="center">
+
+                <ImageView
+                    android:id="@+id/widget_vinyl_prev"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:padding="3dp"
+                    android:src="@drawable/ic_widget_skip_previous"
+                    android:contentDescription="@string/previous" />
+
+                <ImageView
+                    android:id="@+id/widget_vinyl_play_pause"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="14dp"
+                    android:layout_marginEnd="14dp"
+                    android:padding="2dp"
+                    android:src="@drawable/ic_widget_play"
+                    android:contentDescription="@string/play_pause" />
+
+                <ImageView
+                    android:id="@+id/widget_vinyl_next"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:padding="3dp"
+                    android:src="@drawable/ic_widget_skip_next"
+                    android:contentDescription="@string/next" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</FrameLayout>

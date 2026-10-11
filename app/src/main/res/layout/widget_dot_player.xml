@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_dot_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:theme="@style/Theme.Widget.Napster">
+
+    <!-- Center Content: Square Album Artwork with rounded corners and bottom-left 4 bouncing dots -->
+    <ImageView
+        android:id="@+id/widget_dot_center_art"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="true"
+        android:contentDescription="@string/album_art" />
+
+    <!-- Transparent touch overlay: Left = Previous, Center = Play/Pause, Right = Next -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:baselineAligned="false">
+
+        <FrameLayout
+            android:id="@+id/widget_dot_action_prev"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.25"
+            android:clickable="true" />
+
+        <FrameLayout
+            android:id="@+id/widget_dot_action_play_pause"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.5"
+            android:clickable="true" />
+
+        <FrameLayout
+            android:id="@+id/widget_dot_action_next"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.25"
+            android:clickable="true" />
+    </LinearLayout>
+
+</FrameLayout>
