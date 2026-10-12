@@ -8,6 +8,7 @@ package com.beatwave.music.feature.settings
 import android.app.ActivityManager
 import android.net.TrafficStats
 import android.os.Debug
+import android.os.Process
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -47,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil3.annotation.DelicateCoilApi
 import coil3.annotation.ExperimentalCoilApi
+import coil3.disk.directory
 import coil3.imageLoader
 import com.beatwave.music.LocalDatabase
 import com.beatwave.music.LocalPlayerAwareWindowInsets
@@ -62,8 +64,21 @@ import com.beatwave.music.ui.utils.backToMain
 import com.beatwave.music.ui.utils.formatFileSize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okio.ByteString.Companion.encodeUtf8
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+
+// Baseline network counters captured once when the process loads this class
+private val appStartRxBytes = TrafficStats.getUidRxBytes(Process.myUid()).let {
+    if (it == TrafficStats.UNSUPPORTED.toLong()) 0L else it.coerceAtLeast(0L)
+}
+private val appStartTxBytes = TrafficStats.getUidTxBytes(Process.myUid()).let {
+    if (it == TrafficStats.UNSUPPORTED.toLong()) 0L else it.coerceAtLeast(0L)
+}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalCoilApi::class, DelicateCoilApi::class)
 @Composable
@@ -78,48 +93,16 @@ fun TrackUsageScreen(
     val downloadCache = LocalPlayerConnection.current?.service?.downloadCache
     val coroutineScope = rememberCoroutineScope()
 
-    // ── Storage ──────────────────────────────────────────────────────────────
+    // ── Storage state ─────────────────────────────────────────────────────────
     var imageCacheSize by remember { mutableLongStateOf(imageDiskCache?.size ?: 0L) }
     var playerCacheSize by remember { mutableLongStateOf(tryOrNull { playerCache?.cacheSpace } ?: 0L) }
     var downloadCacheSize by remember { mutableLongStateOf(tryOrNull { downloadCache?.cacheSpace } ?: 0L) }
 
-    LaunchedEffect(imageDiskCache) {
-        while (isActive) {
-            delay(1000)
-            imageCacheSize = imageDiskCache?.size ?: 0L
-        }
-    }
-    LaunchedEffect(playerCache) {
-        while (isActive) {
-            delay(1000)
-            playerCacheSize = tryOrNull { playerCache?.cacheSpace } ?: 0L
-        }
-    }
-    LaunchedEffect(downloadCache) {
-        while (isActive) {
-            delay(1000)
-            downloadCacheSize = tryOrNull { downloadCache?.cacheSpace } ?: 0L
-        }
-    }
-
-    // ── Memory (RAM) ──────────────────────────────────────────────────────────
-    val activityManager = context.getSystemService(ActivityManager::class.java)
+    // ── Memory state ──────────────────────────────────────────────────────────
+    val activityManager = remember { context.getSystemService(ActivityManager::class.java) }
     var totalRam by remember { mutableLongStateOf(0L) }
     var availRam by remember { mutableLongStateOf(0L) }
     var appPssKb by remember { mutableLongStateOf(0L) }
-
-    LaunchedEffect(Unit) {
-        while (isActive) {
-            val memInfo = ActivityManager.MemoryInfo()
-            activityManager.getMemoryInfo(memInfo)
-            totalRam = memInfo.totalMem
-            availRam = memInfo.availMem
-            val dbgInfo = Debug.MemoryInfo()
-            Debug.getMemoryInfo(dbgInfo)
-            appPssKb = dbgInfo.totalPss.toLong()
-            delay(2000)
-        }
-    }
 
     val ramProgress by animateFloatAsState(
         targetValue = if (totalRam > 0) {
@@ -128,30 +111,74 @@ fun TrackUsageScreen(
         label = "ramProgress",
     )
 
-    // ── Network (current session via TrafficStats) ────────────────────────────
-    val uid = context.applicationInfo.uid
-    val rxStart = remember { TrafficStats.getUidRxBytes(uid).coerceAtLeast(0L) }
-    val txStart = remember { TrafficStats.getUidTxBytes(uid).coerceAtLeast(0L) }
+    // ── Network state ─────────────────────────────────────────────────────────
+    val uid = remember { context.applicationInfo.uid }
     var sessionRx by remember { mutableLongStateOf(0L) }
     var sessionTx by remember { mutableLongStateOf(0L) }
 
-    LaunchedEffect(Unit) {
+    // Unified off-main-thread poller for Storage, Memory, and Network
+    LaunchedEffect(playerCache, downloadCache, imageDiskCache) {
         while (isActive) {
+            withContext(Dispatchers.IO) {
+                // Storage reads
+                val imgSize = imageDiskCache?.size ?: 0L
+                val plySize = tryOrNull { playerCache?.cacheSpace } ?: 0L
+                val dwnSize = tryOrNull { downloadCache?.cacheSpace } ?: 0L
+
+                // Memory reads (off main thread to avoid procfs IPC stutters)
+                var totR = 0L
+                var avlR = 0L
+                var pss = 0L
+                tryOrNull {
+                    val memInfo = ActivityManager.MemoryInfo()
+                    activityManager?.getMemoryInfo(memInfo)
+                    totR = memInfo.totalMem
+                    avlR = memInfo.availMem
+                    val dbgInfo = Debug.MemoryInfo()
+                    Debug.getMemoryInfo(dbgInfo)
+                    pss = dbgInfo.totalPss.toLong()
+                }
+
+                // Network reads
+                val rawRx = TrafficStats.getUidRxBytes(uid).let {
+                    if (it == TrafficStats.UNSUPPORTED.toLong()) 0L else it.coerceAtLeast(0L)
+                }
+                val rawTx = TrafficStats.getUidTxBytes(uid).let {
+                    if (it == TrafficStats.UNSUPPORTED.toLong()) 0L else it.coerceAtLeast(0L)
+                }
+                val sRx = (rawRx - appStartRxBytes).coerceAtLeast(0L)
+                val sTx = (rawTx - appStartTxBytes).coerceAtLeast(0L)
+
+                // Update Compose state
+                withContext(Dispatchers.Main) {
+                    imageCacheSize = imgSize
+                    playerCacheSize = plySize
+                    downloadCacheSize = dwnSize
+                    if (totR > 0) {
+                        totalRam = totR
+                        availRam = avlR
+                        appPssKb = pss
+                    }
+                    sessionRx = sRx
+                    sessionTx = sTx
+                }
+            }
             delay(2000)
-            sessionRx = (TrafficStats.getUidRxBytes(uid).coerceAtLeast(0L) - rxStart).coerceAtLeast(0L)
-            sessionTx = (TrafficStats.getUidTxBytes(uid).coerceAtLeast(0L) - txStart).coerceAtLeast(0L)
         }
     }
 
     // ── Listening stats ───────────────────────────────────────────────────────
-    val nowMs = remember { System.currentTimeMillis() }
-    val dayAgoMs = remember { nowMs - 24L * 3_600_000L }
+    // Converters stores LocalDateTime via date.atZone(ZoneOffset.UTC).toInstant().toEpochMilli().
+    // We compute the 24-hour cutoff using the exact same epoch timescale.
+    val cutoffEpochMs = remember {
+        LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli() - 24L * 3_600_000L
+    }
 
     val todaySongCount by database
-        .getUniqueSongCountInRange(dayAgoMs, nowMs)
+        .getUniqueSongCountSince(cutoffEpochMs)
         .collectAsState(initial = 0)
     val todayPlayTimeMs by database
-        .getTotalPlayTimeInRange(dayAgoMs, nowMs)
+        .getTotalPlayTimeSince(cutoffEpochMs)
         .collectAsState(initial = null)
     val librarySongCount by database
         .inLibrarySongsCount()
@@ -165,18 +192,60 @@ fun TrackUsageScreen(
 
     if (showClearCacheDialog) {
         ActionPromptDialog(
-            title = "Clear all caches",
+            title = "Clear song and image caches",
             onDismiss = { showClearCacheDialog = false },
             onConfirm = {
                 coroutineScope.launch(Dispatchers.IO) {
-                    playerCache?.keys?.forEach { key -> playerCache.removeResource(key) }
-                    imageDiskCache?.clear()
+                    // Clear player streaming cache safely
+                    tryOrNull {
+                        playerCache?.keys?.forEach { key ->
+                            tryOrNull { playerCache.removeResource(key) }
+                        }
+                    }
+
+                    // Clear image cache while preserving offline downloaded artwork
+                    try {
+                        val urlsToPreserve = mutableSetOf<String>()
+                        val downloadedSongs = try {
+                            database.downloadedSongsByNameAsc().first()
+                        } catch (_: Exception) {
+                            emptyList()
+                        }
+                        downloadedSongs.forEach { song ->
+                            song.song.thumbnailUrl?.let { urlsToPreserve.add(it.encodeUtf8().sha256().hex()) }
+                            song.album?.thumbnailUrl?.let { urlsToPreserve.add(it.encodeUtf8().sha256().hex()) }
+                        }
+
+                        val directory = imageDiskCache?.directory?.toFile()
+                        if (directory != null && directory.exists() && directory.isDirectory) {
+                            directory.listFiles()?.forEach { file ->
+                                if (file.isFile && !file.name.startsWith("journal")) {
+                                    val isPreserved = urlsToPreserve.any { hash -> file.name.startsWith(hash) }
+                                    if (!isPreserved) {
+                                        file.delete()
+                                    }
+                                }
+                            }
+                        }
+                    } catch (_: Exception) {
+                    }
+
+                    // Immediately refresh values
+                    val refreshedPlayerCache = tryOrNull { playerCache?.cacheSpace } ?: 0L
+                    val refreshedImageCache = imageDiskCache?.size ?: 0L
+                    withContext(Dispatchers.Main) {
+                        playerCacheSize = refreshedPlayerCache
+                        imageCacheSize = refreshedImageCache
+                    }
                 }
                 showClearCacheDialog = false
             },
             onCancel = { showClearCacheDialog = false },
             content = {
-                Text("This will clear the song cache and image cache. Downloads will not be affected.")
+                Text(
+                    "This will clear the streaming song cache and non-downloaded image cache. " +
+                        "Downloaded music and offline cover art will not be affected."
+                )
             },
         )
     }
@@ -275,7 +344,7 @@ fun TrackUsageScreen(
 
         // Network
         Material3SettingsGroup(
-            title = "Network (this session)",
+            title = "Network (App session)",
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.network_node),
@@ -292,8 +361,8 @@ fun TrackUsageScreen(
                     title = { Text("Note") },
                     description = {
                         Text(
-                            "Session data only — traffic from before opening this screen is not counted. " +
-                                "Daily totals require the Usage Access permission.",
+                            "Traffic transferred by this app since launch. " +
+                                "Daily mobile/Wi-Fi totals require Android Usage Access permission.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -320,8 +389,8 @@ fun TrackUsageScreen(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.music_history),
-                    title = { Text("All-time play events") },
-                    description = { Text("$totalEventCount plays recorded") },
+                    title = { Text("Recorded playback events") },
+                    description = { Text("$totalEventCount events logged") },
                 ),
             )
         )

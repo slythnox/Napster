@@ -99,6 +99,7 @@ fun getAllSearchableSettings(): List<SearchableSetting> {
         SearchableSetting(stringResource(R.string.clear_song_cache), null, "Storage", "settings/storage"),
         SearchableSetting(stringResource(R.string.downloaded_songs), null, "Storage", "settings/storage"),
         SearchableSetting(stringResource(R.string.clear_all_downloads), null, "Storage", "settings/storage"),
+        SearchableSetting("Track Usage", "Storage, RAM, network and listening stats", "Data & Privacy", "settings/track_usage"),
         SearchableSetting(stringResource(R.string.backup_restore), null, "Backup & Restore", "settings/backup_restore"),
         SearchableSetting("Import from Spotify", null, "Backup & Restore", "settings/spotify"),
         SearchableSetting("Import from local file", null, "Backup & Restore", "settings/backup_restore"),
