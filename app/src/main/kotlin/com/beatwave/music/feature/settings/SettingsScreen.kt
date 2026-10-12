@@ -213,6 +213,14 @@ fun SettingsScreen(
                 )
                 SettingsDivider()
                 SettingsNavItem(
+                    icon = painterResource(R.drawable.graphic_eq),
+                    iconTint = Color(0xFF30B0C7),
+                    title = "Track Usage",
+                    subtitle = "Storage, RAM, network and listening stats",
+                    onClick = { navController.navigate("settings/track_usage") },
+                )
+                SettingsDivider()
+                SettingsNavItem(
                     icon = painterResource(R.drawable.restore),
                     iconTint = Color(0xFF34C759),
                     title = stringResource(R.string.backup_restore),

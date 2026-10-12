@@ -90,6 +90,7 @@ import com.beatwave.music.feature.settings.SettingsScreen
 import com.beatwave.music.feature.settings.StandbySettings
 import com.beatwave.music.feature.spotifyimport.SpotifyScreen
 import com.beatwave.music.feature.settings.StorageSettings
+import com.beatwave.music.feature.settings.TrackUsageScreen
 import com.beatwave.music.feature.settings.ThemeScreen
 import com.beatwave.music.feature.settings.diy.DiyEditorScreen
 import com.beatwave.music.feature.settings.diy.PlayerIconsScreen
@@ -441,6 +442,10 @@ fun NavGraphBuilder.navigationBuilder(
 
     sharedComposable("settings/storage") {
         StorageSettings(navController, scrollBehavior)
+    }
+
+    sharedComposable("settings/track_usage") {
+        TrackUsageScreen(navController, scrollBehavior)
     }
 
     sharedComposable("settings/equalizer") {
