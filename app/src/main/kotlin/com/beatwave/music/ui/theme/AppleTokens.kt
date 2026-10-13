@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.sp
  */
 object AppleTokens {
     // Accent
-    val AccentBlue = Color(0xFF255DCE)
+    val AccentBlue = Color(0xFF3B82F6)
     val AccentRed = AccentBlue
 
     // Surfaces — Apple-style soft dark greys, not pure black (pure black stays an
@@ -43,7 +43,7 @@ object AppleTokens {
      * on-surface, never full white: the hierarchy on Home is carried by this
      * contrast step rather than by size, since title and subtitle share a size.
      */
-    val Metadata = Color(0xFF8E8E93)
+    val Metadata = Color(0xFF9EACB9)
 
     // Spacing — the whole scale. Screens reference these, never a dp literal.
 
@@ -128,24 +128,17 @@ object AppleTokens {
      * is body copy, so it should read as white/black that happens to be warm or
      * cool, not as colored text.
      */
-    fun onColor(bg: Color): Color = bg.shiftedForContrast(saturation = 0.16f, lightness = 0.96f to 0.10f)
+    fun onColor(bg: Color): Color = if (bg.luminance() <= 0.5f) Color(0xFFF1F5F9) else Color(0xFF0F172A)
 
     /**
-     * Secondary text on [bg]: same hue, but the tint is allowed to show. Use for
-     * subtitles, counts and metadata — the role that reads as washed-out grey
-     * when it comes from Material's neutral palette.
+     * Secondary text on [bg]: slate subtitle matching audio quality selection card.
      */
-    fun onColorSecondary(bg: Color): Color =
-        bg.shiftedForContrast(saturation = 0.42f, lightness = 0.76f to 0.34f)
+    fun onColorSecondary(bg: Color): Color = Color(0xFF9EACB9)
 
     /**
-     * Headings on [bg] — artist names, section titles, the top-bar title. Carries
-     * the most tint of the three: a heading is short and large, so it can be
-     * clearly the screen's colour without costing legibility the way body copy
-     * would.
+     * Headings on [bg]: blue accent matching audio quality selection card.
      */
-    fun onColorHeading(bg: Color): Color =
-        bg.shiftedForContrast(saturation = 0.55f, lightness = 0.88f to 0.18f)
+    fun onColorHeading(bg: Color): Color = Color(0xFF60A5FA)
 
     /**
      * @param lightness (on-dark, on-light) target lightness.

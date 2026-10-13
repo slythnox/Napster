@@ -205,7 +205,7 @@ fun AboutScreen(
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "Napster is a free and open-source music player for Android featuring YouTube Music streaming, Liquid Glass interface, time-synced lyrics, offline downloads, queue management, and public Spotify playlist import.",
+                    text = "Napster is a free and open-source music player for Android featuring YouTube Music streaming, Liquid Glass interface, time-synced lyrics, offline downloads, queue management, and public Spotify & YouTube Music playlist import.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 20.sp
@@ -220,8 +220,8 @@ fun AboutScreen(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.license_vivi),
                     title = { Text("Upstream Attribution") },
-                    description = { Text("Built upon foundational work from BeatWave, CONVX, and vivi-music under GPL-3.0.") },
-                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/beatlabs790/BeatWave/blob/main/LICENSE") }
+                    description = { Text("Built upon foundational work from CONVX, InnerTune, and vivi-music under GPL-3.0.") },
+                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/slythnox/Napster/blob/main/LICENSE") }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.link),
@@ -270,7 +270,7 @@ fun AboutScreen(
                     icon = painterResource(R.drawable.license_vivi),
                     title = { Text(stringResource(R.string.license)) },
                     description = { Text("GPL-3.0 • Free Open Source Software") },
-                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/beatlabs790/BeatWave/blob/main/LICENSE") }
+                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/slythnox/Napster/blob/main/LICENSE") }
                 ),
             )
         )

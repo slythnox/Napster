@@ -87,7 +87,6 @@ import com.beatwave.music.constants.CrossfadeEnabledKey
 import com.beatwave.music.constants.CrossfadeGaplessKey
 import com.beatwave.music.constants.DisableLoadMoreWhenRepeatAllKey
 import com.beatwave.music.constants.EnableGoogleCastKey
-import com.beatwave.music.constants.EnableSaavnStreamingKey
 import com.beatwave.music.constants.HideVolumeBarKey
 import com.beatwave.music.constants.HistoryDuration
 import com.beatwave.music.constants.KeepScreenOn
@@ -101,16 +100,14 @@ import com.beatwave.music.constants.PersistentShuffleAcrossQueuesKey
 import com.beatwave.music.constants.PreventDuplicateTracksInQueueKey
 import com.beatwave.music.constants.RememberShuffleAndRepeatKey
 import com.beatwave.music.constants.ResumeOnBluetoothConnectKey
-import com.beatwave.music.constants.SaavnAudioQuality
-import com.beatwave.music.constants.SaavnAudioQualityKey
 import com.beatwave.music.constants.SeekExtraSeconds
 import com.beatwave.music.constants.ShufflePlaylistFirstKey
 import com.beatwave.music.constants.SimilarContent
 import com.beatwave.music.constants.SkipSilenceInstantKey
 import com.beatwave.music.constants.SkipSilenceKey
 import com.beatwave.music.constants.StopMusicOnTaskClearKey
+import com.beatwave.music.ui.component.AudioQualityBottomSheet
 import com.beatwave.music.ui.component.DefaultDialog
-import com.beatwave.music.ui.component.EnumDialog
 import com.beatwave.music.ui.component.IconButton
 import com.beatwave.music.ui.component.Material3SettingsGroup
 import com.beatwave.music.ui.component.Material3SettingsItem
@@ -262,14 +259,6 @@ fun PlayerSettings(
         HistoryDuration,
         defaultValue = 30f
     )
-    val (saavnEnabled, _) = rememberPreference(
-        EnableSaavnStreamingKey,
-        defaultValue = false
-    )
-    val (saavnQuality, _) = rememberEnumPreference(
-        SaavnAudioQualityKey,
-        defaultValue = SaavnAudioQuality.QUALITY_320
-    )
 
     val (ambientEdgeGlowEnabled, onAmbientEdgeGlowEnabledChange) = rememberPreference(
         AmbientEdgeGlowEnabledKey,
@@ -285,21 +274,13 @@ fun PlayerSettings(
     }
 
     if (showAudioQualityDialog) {
-        EnumDialog(
-            onDismiss = { showAudioQualityDialog = false },
-            onSelect = {
-                onAudioQualityChange(it)
-                showAudioQualityDialog = false
+        AudioQualityBottomSheet(
+            currentQuality = audioQuality,
+            onQualitySelected = { selected ->
+                onAudioQualityChange(selected)
             },
-            title = stringResource(R.string.audio_quality),
-            current = audioQuality,
-            values = AudioQuality.values().toList(),
-            valueText = {
-                when (it) {
-                    AudioQuality.AUTO -> "Auto (Adapts to network speed)"
-                    AudioQuality.HIGH -> "High Quality (Best available audio, higher data use)"
-                    AudioQuality.LOW -> "Data Saver (Lower bitrates, minimal data use)"
-                }
+            onDismissRequest = {
+                showAudioQualityDialog = false
             }
         )
     }
@@ -363,21 +344,6 @@ fun PlayerSettings(
                         )
                     },
                     onClick = { showAudioQualityDialog = true }
-                ))
-                // JioSaavn settings navigation
-                add(Material3SettingsItem(
-                    icon = painterResource(R.drawable.graphic_eq),
-                    title = { Text(stringResource(R.string.jiosaavn_settings)) },
-                    description = {
-                        Text(
-                            if (saavnEnabled) {
-                                saavnQuality.toLabel()
-                            } else {
-                                stringResource(R.string.jiosaavn_streaming_disabled)
-                            }
-                        )
-                    },
-                    onClick = { navController.navigate("settings/player/jio") }
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.linear_scale),

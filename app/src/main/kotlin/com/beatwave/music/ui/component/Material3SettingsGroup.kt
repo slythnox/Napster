@@ -29,12 +29,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.beatwave.music.ui.theme.AppleTokens
+
+private val SettingsSectionTitleColor = Color(0xFF60A5FA)
+private val SettingsIconTint = Color(0xFF60A5FA)
+private val SettingsIconBg = Color(0xFF1E2634)
+private val SettingsSubtitleColor = Color(0xFF9EACB9)
+private val SettingsDividerColor = Color(0xFF252932)
 
 /**
  * A Material 3 Expressive style settings group component
@@ -50,12 +57,12 @@ fun Material3SettingsGroup(
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        // Section title — matches SettingsScreen's flat-dark section header.
+        // Section title — matches Audio Quality card blue accent
         title?.let {
             Text(
                 text = it,
                 style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = SettingsSectionTitleColor,
                 modifier = Modifier.padding(bottom = 8.dp, top = 8.dp)
             )
         }
@@ -75,7 +82,7 @@ fun Material3SettingsGroup(
                 if (index > 0) {
                     HorizontalDivider(
                         modifier = Modifier.padding(start = 20.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant,
+                        color = SettingsDividerColor,
                         thickness = 0.5.dp,
                     )
                 }
@@ -113,9 +120,7 @@ private fun Material3SettingsItemRow(
                     .clip(item.iconShape ?: RoundedCornerShape(12.dp))
                     .background(
                         if (item.tintIcon) {
-                            MaterialTheme.colorScheme.primary.copy(
-                                alpha = if (item.isHighlighted) 0.15f else 0.1f
-                            )
+                            SettingsIconBg
                         } else {
                             androidx.compose.ui.graphics.Color.Transparent
                         }
@@ -137,9 +142,9 @@ private fun Material3SettingsItemRow(
                                 tint = if (!item.enabled)
                                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                                 else if (item.isHighlighted)
-                                    MaterialTheme.colorScheme.primary
+                                    Color(0xFF93C5FD)
                                 else
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
+                                    SettingsIconTint,
                                 modifier = Modifier.size(24.dp)
                             )
                         } else {
@@ -159,9 +164,9 @@ private fun Material3SettingsItemRow(
                             tint = if (!item.enabled)
                                 MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                             else if (item.isHighlighted)
-                                MaterialTheme.colorScheme.primary
+                                Color(0xFF93C5FD)
                             else
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
+                                SettingsIconTint,
                             modifier = Modifier.size(24.dp)
                         )
                     } else {
@@ -202,7 +207,7 @@ private fun Material3SettingsItemRow(
                         color = if (!item.enabled)
                             MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                         else
-                            MaterialTheme.colorScheme.onSurfaceVariant
+                            SettingsSubtitleColor
                     )
                 ) {
                     desc()

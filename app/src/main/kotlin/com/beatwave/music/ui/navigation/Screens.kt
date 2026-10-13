@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Napster (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
@@ -70,7 +70,7 @@ sealed class Screens(
     )
 
     companion object {
-        val MainScreens = listOf(Home, Search, Library)
+        val MainScreens: List<Screens> by lazy { listOf(Home, Search, Library) }
 
         /**
          * The bar's contents for the current mode. Local-only mode promotes [Songs] to a
@@ -82,6 +82,6 @@ sealed class Screens(
             if (localOnly) listOf(Home, Songs, Search, Library) else MainScreens
 
         /** Every route that counts as a tab root, in either mode. */
-        val MainRoutes: Set<String> = (MainScreens + Songs).map { it.route }.toSet()
+        val MainRoutes: Set<String> by lazy { (MainScreens + Songs).map { it.route }.toSet() }
     }
 }

@@ -17,7 +17,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import com.beatwave.music.LocalDatabase
-import com.beatwave.music.LocalSyncUtils
 import com.beatwave.music.R
 import com.beatwave.music.db.entities.PlaylistEntity
 import com.beatwave.music.ui.component.TextFieldDialog
@@ -33,7 +32,6 @@ fun ImportPlaylistDialog(
     onDismiss: () -> Unit,
 ) {
     val database = LocalDatabase.current
-    val syncUtils = LocalSyncUtils.current
     val coroutineScope = rememberCoroutineScope()
 
     val textFieldValue by remember { mutableStateOf(TextFieldValue(text = playlistTitle)) }
@@ -60,7 +58,6 @@ fun ImportPlaylistDialog(
                     if (playlist != null) {
                         songIds = onGetSong()
                         database.addSongToPlaylist(playlist, songIds!!)
-                        syncUtils.uploadPlaylistToYouTube(playlist.id, songIds!!)
                     }
 
                     onDismiss()

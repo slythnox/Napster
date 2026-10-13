@@ -7,9 +7,9 @@ This document provides a factual, step-by-step verification checklist required p
 ## 1. Functional Verification
 
 - [ ] **Unified Branding:** Verify that the launcher icon, adaptive icon, splash screen, top app bar, widgets, and settings screens display "Napster" consistently without residual fork titles.
-- [ ] **Settings Navigation Integrity:** Verify that every destination in `SettingsScreen.kt` navigates correctly and that deleted legacy routes (e.g. Account, BeatWave Story, Listen Together) are completely inaccessible.
+- [ ] **Settings Navigation Integrity:** Verify that every destination in `SettingsScreen.kt` navigates correctly and that deleted legacy routes (e.g. Account, Legacy Story, Listen Together) are completely inaccessible.
 - [ ] **Privacy Disclosures:** Confirm that `AboutScreen.kt` and `PrivacySettings.kt` accurately reflect data storage and external network flows without fabricated telemetry claims.
-- [ ] **Public Spotify Playlist Ingestion:** Confirm that a valid public Spotify playlist URL imports successfully, resolves track titles on YouTube Music, and populates the local Room database.
+- [ ] **Public Playlist Ingestion:** Confirm that valid public Spotify and YouTube Music playlist URLs import successfully, resolve track titles, and populate the local Room database.
 - [ ] **Offline Media Playback:** Download an audio track, activate flight mode, and verify offline playback and notification controls operate without network access.
 - [ ] **Lock Screen and MediaSession Controls:** Validate play, pause, skip, seek, and artwork rendering within the system media notification shade and lock-screen controls.
 - [ ] **Audio Focus Behaviour:** Confirm playback ducks or pauses during phone calls or incoming notifications and resumes reliably upon focus restoration.

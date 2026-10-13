@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -69,8 +70,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okio.ByteString.Companion.encodeUtf8
-import java.time.LocalDateTime
-import java.time.ZoneOffset
+
 
 // Baseline network counters captured once when the process loads this class
 private val appStartRxBytes = TrafficStats.getUidRxBytes(Process.myUid()).let {
@@ -167,24 +167,8 @@ fun TrackUsageScreen(
         }
     }
 
-    // ── Listening stats ───────────────────────────────────────────────────────
-    // Converters stores LocalDateTime via date.atZone(ZoneOffset.UTC).toInstant().toEpochMilli().
-    // We compute the 24-hour cutoff using the exact same epoch timescale.
-    val cutoffEpochMs = remember {
-        LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli() - 24L * 3_600_000L
-    }
-
-    val todaySongCount by database
-        .getUniqueSongCountSince(cutoffEpochMs)
-        .collectAsState(initial = 0)
-    val todayPlayTimeMs by database
-        .getTotalPlayTimeSince(cutoffEpochMs)
-        .collectAsState(initial = null)
     val librarySongCount by database
         .inLibrarySongsCount()
-        .collectAsState(initial = 0)
-    val totalEventCount by database
-        .eventCount()
         .collectAsState(initial = 0)
 
     // ── Dialog ────────────────────────────────────────────────────────────────
@@ -364,7 +348,7 @@ fun TrackUsageScreen(
                             "Traffic transferred by this app since launch. " +
                                 "Daily mobile/Wi-Fi totals require Android Usage Access permission.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = Color(0xFF9EACB9),
                         )
                     },
                 ),
@@ -372,30 +356,6 @@ fun TrackUsageScreen(
         )
 
         Spacer(Modifier.height(16.dp))
-
-        // Listening
-        Material3SettingsGroup(
-            title = "Listening (last 24 h)",
-            items = listOf(
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.history),
-                    title = { Text("Unique tracks listened") },
-                    description = { Text("$todaySongCount tracks") },
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.timer),
-                    title = { Text("Total listening time") },
-                    description = { Text(formatListenDuration(todayPlayTimeMs ?: 0L)) },
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.music_history),
-                    title = { Text("Recorded playback events") },
-                    description = { Text("$totalEventCount events logged") },
-                ),
-            )
-        )
-
-        Spacer(Modifier.height(24.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -417,7 +377,7 @@ fun TrackUsageScreen(
 
     TopAppBar(
         windowInsets = appTopBarWindowInsets(),
-        title = { Text("Track Usage") },
+        title = { Text("App Usage") },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
@@ -447,18 +407,4 @@ private fun UsageBar(used: Long, max: Long) {
             .padding(top = 4.dp),
         strokeCap = StrokeCap.Round,
     )
-}
-
-/** Converts milliseconds to a human-readable duration string, e.g. "1h 23m 45s". */
-private fun formatListenDuration(ms: Long): String {
-    if (ms <= 0L) return "0 s"
-    val totalSec = ms / 1000L
-    val h = totalSec / 3600
-    val m = (totalSec % 3600) / 60
-    val s = totalSec % 60
-    return buildString {
-        if (h > 0) append("${h}h ")
-        if (m > 0 || h > 0) append("${m}m ")
-        if (h == 0L) append("${s}s")
-    }.trim()
 }

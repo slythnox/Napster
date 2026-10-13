@@ -132,44 +132,19 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.beatwave.music.constants.IsFirstRunKey
-import com.beatwave.music.constants.DataSyncIdKey
-import com.beatwave.music.constants.InnerTubeCookieKey
-import com.beatwave.music.constants.VisitorDataKey
-import com.music.innertube.YouTube
 import com.beatwave.music.ui.theme.vivimusicTheme
-import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.ui.utils.safeOpenUri
 import com.beatwave.music.utils.dataStore
 import com.beatwave.music.utils.get
+import androidx.datastore.preferences.core.edit
+import androidx.compose.material.icons.rounded.MusicNote
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.absoluteValue
-import androidx.datastore.preferences.core.edit
-import android.graphics.Bitmap
-import android.view.ViewGroup
-import android.webkit.CookieManager
-import android.webkit.JavascriptInterface
-import android.webkit.WebChromeClient
-import android.webkit.WebResourceRequest
-import android.webkit.WebSettings
-import android.webkit.WebView
-import android.webkit.WebViewClient
-import androidx.compose.material.icons.rounded.MusicNote
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBar
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import androidx.webkit.WebSettingsCompat
-import androidx.webkit.WebViewFeature
 
 data class OnboardingPageInfo(
     val content: @Composable (onUpdateScrollState: (Boolean) -> Unit) -> Unit
@@ -283,11 +258,6 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                 runCatching { context.packageManager.canRequestPackageInstalls() }.getOrDefault(false)
             } else true
         )
-    }
-
-    var showYtLogin by remember { mutableStateOf(false) }
-    var isYtConnected by remember {
-        mutableStateOf(context.dataStore.get(InnerTubeCookieKey, "").isNotBlank())
     }
 
     var isLastPageScrolledToEnd by remember { mutableStateOf(true) }
@@ -512,55 +482,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                             iconTint = Color(0xFF255DCE),
                             title = "Favorites & Playlists",
                             description = "Create playlists, bookmark favorite albums, and view your local listening history.",
-                            shape = topCardShape
-                        )
-
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        PermissionCard(
-                            icon = rememberVectorPainter(Icons.Rounded.MusicNote),
-                            iconColor = if (isYtConnected) Color(0xFF80da88) else Color(0xFF255DCE).copy(alpha = 0.25f),
-                            iconTint = if (isYtConnected) Color(0xFF00522c) else Color(0xFF255DCE),
-                            title = "YouTube Music Account",
-                            description = if (isYtConnected) "Account connected! Your online playlists sync automatically." else "Optionally sign in to sync your YouTube Music playlists and liked songs.",
-                            shape = bottomCardShape,
-                            control = {
-                                if (isYtConnected) {
-                                    Surface(
-                                        shape = CircleShape,
-                                        color = Color(0xFF80da88).copy(alpha = 0.2f),
-                                        modifier = Modifier.padding(end = 4.dp)
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Rounded.Check,
-                                                contentDescription = null,
-                                                tint = Color(0xFF00522c),
-                                                modifier = Modifier.size(16.dp)
-                                            )
-                                            Spacer(modifier = Modifier.width(4.dp))
-                                            Text(
-                                                text = "Connected",
-                                                style = MaterialTheme.typography.labelSmall,
-                                                fontWeight = FontWeight.Bold,
-                                                color = Color(0xFF00522c)
-                                            )
-                                        }
-                                    }
-                                } else {
-                                    Icon(
-                                        imageVector = Icons.Rounded.ChevronRight,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            },
-                            onClick = {
-                                showYtLogin = true
-                            }
+                            shape = RoundedCornerShape(20.dp)
                         )
 
                         Spacer(modifier = Modifier.height(80.dp))
@@ -875,27 +797,6 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                 }
             }
         }
-
-        if (showYtLogin) {
-            WelcomeYouTubeLoginDialog(
-                onDismiss = { showYtLogin = false },
-                onLoginSuccess = { cookie, visitorData, dataSyncId ->
-                    showYtLogin = false
-                    scope.launch(Dispatchers.IO) {
-                        context.dataStore.edit { prefs ->
-                            prefs[InnerTubeCookieKey] = cookie
-                            if (visitorData.isNotBlank()) prefs[VisitorDataKey] = visitorData
-                            if (dataSyncId.isNotBlank()) prefs[DataSyncIdKey] = dataSyncId
-                        }
-                        YouTube.cookie = cookie
-                        if (visitorData.isNotBlank()) YouTube.visitorData = visitorData
-                        if (dataSyncId.isNotBlank()) YouTube.dataSyncId = dataSyncId.ifBlank { null }
-                        isYtConnected = true
-                    }
-                }
-            )
-        }
-
     }
 }
 
@@ -1135,158 +1036,3 @@ fun WelcomeExpressiveButton(
         }
     }
 }
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun WelcomeYouTubeLoginDialog(
-    onDismiss: () -> Unit,
-    onLoginSuccess: (cookie: String, visitorData: String, dataSyncId: String) -> Unit,
-) {
-    val context = LocalContext.current
-    var webView by remember { mutableStateOf<WebView?>(null) }
-    var pageProgress by remember { mutableStateOf(0) }
-    var isLoading by remember { mutableStateOf(true) }
-    var hasCompletedLogin by remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
-    val liveVisitorData = remember { AtomicReference("") }
-    val liveDataSyncId = remember { AtomicReference("") }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            webView?.stopLoading()
-            webView?.loadUrl("about:blank")
-            webView?.destroy()
-            webView = null
-        }
-    }
-
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-            decorFitsSystemWindows = false
-        )
-    ) {
-        Scaffold(
-            topBar = {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    TopAppBar(
-                        title = { Text("Log in to YouTube Music") },
-                        navigationIcon = {
-                            IconButton(onClick = onDismiss) {
-                                Icon(
-                                    painterResource(com.beatwave.music.R.drawable.close),
-                                    contentDescription = "Close"
-                                )
-                            }
-                        },
-                        actions = {
-                            IconButton(onClick = { webView?.reload() }) {
-                                Icon(
-                                    painterResource(com.beatwave.music.R.drawable.sync),
-                                    contentDescription = "Reload"
-                                )
-                            }
-                        },
-                        windowInsets = appTopBarWindowInsets()
-                    )
-                    if (isLoading || pageProgress in 1..99) {
-                        LinearProgressIndicator(
-                            progress = { pageProgress / 100f },
-                            modifier = Modifier.fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.primary,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    }
-                }
-            }
-        ) { paddingValues ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            ) {
-                AndroidView(
-                    modifier = Modifier.fillMaxSize(),
-                    factory = { webViewContext ->
-                        WebView(webViewContext).apply {
-                            layoutParams = ViewGroup.LayoutParams(
-                                ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.MATCH_PARENT
-                            )
-                            settings.apply {
-                                javaScriptEnabled = true
-                                domStorageEnabled = true
-                                databaseEnabled = true
-                                setSupportZoom(true)
-                                builtInZoomControls = true
-                                displayZoomControls = false
-                                userAgentString = userAgentString.replace("; wv", "")
-                            }
-                            if (WebViewFeature.isFeatureSupported(WebViewFeature.REQUESTED_WITH_HEADER_ALLOW_LIST)) {
-                                WebSettingsCompat.setRequestedWithHeaderOriginAllowList(settings, emptySet())
-                            }
-                            addJavascriptInterface(object {
-                                @JavascriptInterface
-                                fun onRetrieveVisitorData(newVisitorData: String?) {
-                                    if (!newVisitorData.isNullOrBlank() && newVisitorData != "null") {
-                                        val decoded = android.net.Uri.decode(newVisitorData)
-                                        liveVisitorData.set(decoded)
-                                    }
-                                }
-                                @JavascriptInterface
-                                fun onRetrieveDataSyncId(newDataSyncId: String?) {
-                                    if (!newDataSyncId.isNullOrBlank() && newDataSyncId != "null") {
-                                        liveDataSyncId.set(newDataSyncId)
-                                    }
-                                }
-                            }, "Android")
-
-                            webChromeClient = object : WebChromeClient() {
-                                override fun onProgressChanged(view: WebView?, newProgress: Int) {
-                                    pageProgress = newProgress
-                                    if (newProgress >= 100) isLoading = false
-                                }
-                            }
-
-                            webViewClient = object : WebViewClient() {
-                                override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                                    isLoading = true
-                                }
-                                override fun onPageFinished(view: WebView, url: String?) {
-                                    isLoading = false
-                                    loadUrl("javascript:Android.onRetrieveVisitorData(window.yt.config_.VISITOR_DATA)")
-                                    loadUrl("javascript:Android.onRetrieveDataSyncId(window.yt.config_.DATASYNC_ID)")
-
-                                    if (url?.startsWith("https://music.youtube.com") == true && !hasCompletedLogin) {
-                                        val cookie = CookieManager.getInstance().getCookie(url)
-                                        if (cookie.isNullOrBlank()) return
-                                        hasCompletedLogin = true
-                                        coroutineScope.launch {
-                                            var waitedMs = 0
-                                            while (liveVisitorData.get().isBlank() && waitedMs < 5000) {
-                                                delay(100)
-                                                waitedMs += 100
-                                            }
-                                            val newVisitorData = liveVisitorData.get()
-                                            val syncId = liveDataSyncId.get()
-                                            onLoginSuccess(cookie, newVisitorData, syncId)
-                                        }
-                                    }
-                                }
-                            }
-                            webView = this
-                            loadUrl("https://accounts.google.com/ServiceLogin?continue=https%3A%2F%2Fmusic.youtube.com")
-                        }
-                    },
-                    update = { view -> webView = view }
-                )
-            }
-        }
-    }
-
-    BackHandler(enabled = webView?.canGoBack() == true) {
-        webView?.goBack()
-    }
-}
-

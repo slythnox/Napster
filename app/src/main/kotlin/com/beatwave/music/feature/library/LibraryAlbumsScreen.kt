@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -80,6 +81,7 @@ import com.beatwave.music.ui.component.LibraryAlbumListItem
 import com.beatwave.music.ui.component.ListScrollRail
 import com.beatwave.music.ui.component.LocalMenuState
 import com.beatwave.music.ui.component.SortHeader
+import com.beatwave.music.ui.component.LibrarySortButton
 import com.beatwave.music.ui.component.buildAlphabetSectionIndex
 import com.beatwave.music.ui.utils.rememberGridColumns
 import com.beatwave.music.utils.rememberEnumPreference
@@ -188,9 +190,14 @@ fun LibraryAlbumsScreen(
     val headerContent = @Composable {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = AppleTokens.Gutter),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = AppleTokens.Gutter, vertical = 6.dp),
         ) {
-            SortHeader(
+            LibrarySortButton(
+                viewType = viewType,
+                onViewTypeChange = { viewType = it },
                 sortType = sortType,
                 sortDescending = sortDescending,
                 onSortTypeChange = onSortTypeChange,
@@ -208,42 +215,11 @@ fun LibraryAlbumsScreen(
                 },
             )
 
-            Spacer(Modifier.weight(1f))
-
             Text(
                 text = pluralStringResource(R.plurals.n_album, albums.size, albums.size),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.secondary,
             )
-
-            FlowRow(
-                modifier = Modifier.padding(start = 12.dp, end = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                LibraryViewType.entries.forEachIndexed { index, type ->
-                    ToggleButton(
-                        checked = viewType == type,
-                        onCheckedChange = { viewType = type },
-                        shapes = when (index) {
-                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                            LibraryViewType.entries.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                        },
-                        modifier = Modifier.semantics { role = Role.RadioButton },
-                    ) {
-                        Icon(
-                            painter = painterResource(
-                                when (type) {
-                                    LibraryViewType.LIST -> R.drawable.list
-                                    LibraryViewType.GRID -> R.drawable.grid_view
-                                }
-                            ),
-                            contentDescription = null,
-                        )
-                    }
-                }
-            }
         }
     }
 

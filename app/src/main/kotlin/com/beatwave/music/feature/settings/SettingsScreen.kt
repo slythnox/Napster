@@ -104,6 +104,13 @@ fun SettingsScreen(
                 },
                 singleLine = true,
                 shape = RoundedCornerShape(24.dp),
+                colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF3B82F6),
+                    unfocusedBorderColor = Color(0xFF252932),
+                    focusedLeadingIconColor = Color(0xFF60A5FA),
+                    unfocusedLeadingIconColor = Color(0xFF9EACB9),
+                    cursorColor = Color(0xFF3B82F6),
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -215,8 +222,8 @@ fun SettingsScreen(
                 SettingsNavItem(
                     icon = painterResource(R.drawable.graphic_eq),
                     iconTint = Color(0xFF30B0C7),
-                    title = "Track Usage",
-                    subtitle = "Storage, RAM, network and listening stats",
+                    title = "App Usage",
+                    subtitle = "Storage, RAM, and network metrics",
                     onClick = { navController.navigate("settings/track_usage") },
                 )
                 SettingsDivider()
@@ -312,7 +319,7 @@ private fun SettingsSectionHeader(title: String) {
         style = MaterialTheme.typography.labelLarge.copy(
             fontWeight = FontWeight.SemiBold,
         ),
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        color = Color(0xFF60A5FA),
         modifier = Modifier.padding(
             start = 20.dp,
             top = 8.dp,
@@ -382,7 +389,7 @@ private fun SettingsNavItem(
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color(0xFF9EACB9),
                 )
             }
         }
@@ -400,7 +407,7 @@ private fun SettingsNavItem(
         Icon(
             painter = painterResource(R.drawable.chevron_right_px),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+            tint = Color(0xFF9EACB9).copy(alpha = 0.4f),
             modifier = Modifier.size(14.dp),
         )
     }
@@ -410,7 +417,7 @@ private fun SettingsNavItem(
 private fun SettingsDivider() {
     HorizontalDivider(
         modifier = Modifier.padding(start = 64.dp),
-        color = MaterialTheme.colorScheme.outlineVariant,
+        color = Color(0xFF252932),
         thickness = 0.5.dp,
     )
 }

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Napster (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
@@ -118,7 +118,7 @@ fun WrappedIntro(onNext: () -> Unit) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // BeatWave Title with Layered Effect
+            // Napster Title with Layered Effect
             val manager = com.beatwave.music.feature.wrapped.LocalWrappedManager.current
             val periodTitle = manager?.state?.collectAsState()?.value?.periodTitle ?: stringResource(id = R.string.wrapped_intro_title)
 

@@ -33,6 +33,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -91,7 +92,7 @@ fun PreferenceEntry(
                 Text(
                     text = description,
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.secondary,
+                    color = Color(0xFF9EACB9),
                 )
             }
 
@@ -107,7 +108,7 @@ fun PreferenceEntry(
         // Flat-list hairline divider, matching the shared list-row style.
         HorizontalDivider(
             modifier = Modifier.padding(horizontal = 16.dp),
-            color = MaterialTheme.colorScheme.outlineVariant,
+            color = Color(0xFF252932),
             thickness = 0.5.dp,
         )
     }
@@ -351,7 +352,7 @@ fun PreferenceGroupTitle(
     Text(
         text = title.uppercase(),
         style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.primary,
+        color = Color(0xFF60A5FA),
         modifier = modifier.padding(16.dp),
     )
 }

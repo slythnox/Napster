@@ -69,7 +69,6 @@ import com.beatwave.music.ui.component.NewActionGrid
 import com.beatwave.music.ui.component.VolumeSlider
 import com.beatwave.music.ui.component.openCastPicker
 import com.beatwave.music.ui.theme.rememberGlobalAccentColors
-import com.beatwave.music.constants.EnableSaavnStreamingKey
 import com.beatwave.music.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -114,7 +113,6 @@ fun OldPlayerMenu(
     val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
     val repeatMode by playerConnection.repeatMode.collectAsState()
     val shuffleModeEnabled by playerConnection.shuffleModeEnabled.collectAsState()
-    val (saavnEnabled) = rememberPreference(EnableSaavnStreamingKey, defaultValue = false)
 
     val artists = remember(mediaMetadata.artists) {
         mediaMetadata.artists.filter { it.id != null }
@@ -452,10 +450,7 @@ fun OldPlayerMenu(
                             title = { Text(text = stringResource(R.string.retry_stream)) },
                             description = {
                                 Text(
-                                    text = if (saavnEnabled)
-                                        stringResource(R.string.retry_stream_desc_saavn)
-                                    else
-                                        stringResource(R.string.retry_stream_desc_yt)
+                                    text = stringResource(R.string.retry_stream_desc_yt)
                                 )
                             },
                             icon = {

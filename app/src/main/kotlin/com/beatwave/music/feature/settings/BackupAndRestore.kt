@@ -227,6 +227,13 @@ fun BackupAndRestore(
                     onClick = {
                         navController.navigate("settings/spotify")
                     }
+                ),
+                Material3SettingsItem(
+                    title = { Text(stringResource(R.string.import_from_youtube)) },
+                    icon = painterResource(R.drawable.music_note),
+                    onClick = {
+                        navController.navigate("settings/youtube_import")
+                    }
                 )
             )
         )

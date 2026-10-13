@@ -28,38 +28,22 @@ import com.materialkolor.dynamiccolor.ColorSpec
 import com.materialkolor.rememberDynamicColorScheme
 import com.materialkolor.score.Score
 
-val DefaultThemeColor = AppleTokens.AccentBlue
+val DefaultThemeColor = Color(0xFF3B82F6)
 
 /**
- * The user's chosen accent color, provided app-wide. ONLY the nav bar uses this
- * as an accent; the rest of the UI is contrast-based (white/black by luminance).
- * Kept separate from [ColorScheme.primary], which is neutralized to white in the
- * dark Apple theme so generic M3 controls don't render red.
+ * The user's chosen accent color, provided app-wide. Defaults to audio quality card blue.
  */
 val LocalAccentColor = androidx.compose.runtime.compositionLocalOf { DefaultThemeColor }
 
 /**
- * The accent tuned for readable body text: same hue, lightened on dark
- * backgrounds and darkened on light ones, but never pushed to near-white or
- * near-black — so it reads as "coloured text," legible on either theme.
- * Consume via [LocalAccentTextColor].
+ * The accent tuned for readable text — returns audio quality card bright blue (0xFF60A5FA).
  */
 fun accentTextColor(accent: Color, dark: Boolean): Color {
-    val blended = if (dark) {
-        androidx.compose.ui.graphics.lerp(accent, Color.White, 0.35f)
-    } else {
-        androidx.compose.ui.graphics.lerp(accent, Color.Black, 0.45f)
-    }
-    // A very dark or very pale accent can survive the blend and still be
-    // unreadable against the surface, so clamp lightness rather than trust it.
-    val hsl = FloatArray(3)
-    androidx.core.graphics.ColorUtils.colorToHSL(blended.toArgb(), hsl)
-    hsl[2] = if (dark) hsl[2].coerceAtLeast(0.72f) else hsl[2].coerceAtMost(0.32f)
-    return Color(androidx.core.graphics.ColorUtils.HSLToColor(hsl))
+    return Color(0xFF60A5FA)
 }
 
 /** Accent-contrast text color, provided app-wide from the current accent + theme. */
-val LocalAccentTextColor = androidx.compose.runtime.compositionLocalOf { DefaultThemeColor }
+val LocalAccentTextColor = androidx.compose.runtime.compositionLocalOf { Color(0xFF60A5FA) }
 
 @Composable
 fun vivimusicTheme(
@@ -259,30 +243,23 @@ fun ColorScheme.appleSurfaces() = copy(
  * calibration.
  */
 fun ColorScheme.accentText(accent: Color, dark: Boolean): ColorScheme {
-    val body = if (dark) {
-        androidx.compose.ui.graphics.lerp(accent, Color.White, 0.86f)
-    } else {
-        androidx.compose.ui.graphics.lerp(accent, Color.Black, 0.86f)
-    }
-    val secondary = accentTextColor(accent, dark)
+    val body = if (dark) Color(0xFFF1F5F9) else Color(0xFF0F172A)
+    val blueAccent = Color(0xFF60A5FA)
+    val bluePrimary = Color(0xFF3B82F6)
+    val slateSubtitle = Color(0xFF9EACB9)
     return copy(
         onSurface = body,
         onBackground = body,
-        onSurfaceVariant = secondary,
-        onSecondaryContainer = secondary,
-        onTertiaryContainer = secondary,
-        onPrimaryContainer = secondary,
-        onSecondary = secondary,
-        // The subtitle role: the artist name under a song or album title reads
-        // through this everywhere in the app.
-        secondary = secondary,
-        // `primary` is the app's second-largest text/icon role after
-        // onSurfaceVariant — links, selected states, section actions. appleSurfaces
-        // had pinned it to flat white in dark mode, which is most of what still
-        // read as untinted Material. It doubles as a fill (buttons, sliders), so
-        // onPrimary flips to the opposite extreme to keep those legible.
-        primary = secondary,
-        onPrimary = if (dark) Color.Black else Color.White,
+        onSurfaceVariant = slateSubtitle,
+        onSecondaryContainer = slateSubtitle,
+        onTertiaryContainer = slateSubtitle,
+        onPrimaryContainer = blueAccent,
+        onSecondary = slateSubtitle,
+        secondary = slateSubtitle,
+        primary = bluePrimary,
+        onPrimary = Color.White,
+        primaryContainer = Color(0xFF1E2634),
+        secondaryContainer = Color(0xFF16181D),
     )
 }
 

@@ -21,7 +21,6 @@ Welcome to the technical documentation suite for **Napster**, an open-source And
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Architectural invariants, code conventions, testing expectations, and contribution workflow. |
 | [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) | Build failure remedies, playback error resolution, and common runtime troubleshooting. |
 | [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) | Step-by-step pre-release verification protocol and artifact compilation guidance. |
-| [`CLEANUP_HISTORY.md`](CLEANUP_HISTORY.md) | Historical record of multi-phase refactoring, package migrations, and legacy feature excisions. |
 
 ---
 

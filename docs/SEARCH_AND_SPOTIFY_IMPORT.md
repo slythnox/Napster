@@ -1,6 +1,6 @@
-# Search and Spotify Playlist Import Pipeline
+# Search and Playlist Import Pipeline (Spotify & YouTube Music)
 
-This document describes the search architecture, query debouncing mechanisms, and the public Spotify playlist import pipeline.
+This document describes the search architecture, query debouncing mechanisms, and the public playlist import pipelines for Spotify and YouTube Music.
 
 ---
 
@@ -61,3 +61,24 @@ flowchart TD
    - Persists the resolved song entities and creates a new local `PlaylistEntity` within Room.
    - Maps track associations via `PlaylistSongMap` records in a single database transaction.
    - The imported playlist becomes fully playable offline and locally editable like any native playlist.
+
+---
+
+## 3. Public YouTube Music Playlist Import Pipeline
+
+Napster also supports importing public and unlisted YouTube and YouTube Music playlists directly without requiring account sign-in or OAuth tokens.
+
+```mermaid
+flowchart TD
+    YTURL["YouTube / YouTube Music Playlist URL"] --> YTParse["Extract Playlist ID (e.g. VLPL..., PL...)"]
+    YTParse --> YTEngine["YouTubePlaylistImporter / InnerTube"]
+    YTEngine -->|Fetch Metadata & Tracks| YTMeta["Playlist Title, Author, Track Items"]
+    YTMeta --> YTRoom["Batch Insert Songs & Playlist to Room Database"]
+    YTRoom --> YTDone["Import Complete"]
+```
+
+### Pipeline Characteristics
+1. **URL Validation & ID Normalisation:** Accepts various URL formats (`music.youtube.com/playlist?list=...`, `youtube.com/playlist?list=...`, `youtu.be/...`, or raw playlist IDs), stripping prefixes like `VL` when needed.
+2. **Unauthenticated InnerTube Extraction:** Directly queries YouTube Music's public browse endpoint with the playlist browse ID. All tracks, thumbnails, artist information, and durations are retrieved in batch.
+3. **Reactive UI & Error Handling:** `YouTubeImportViewModel` emits reactive import states (`Idle`, `Loading`, `Success`, `Error`) with real-time imported track count updates and a retry dialog upon network failures.
+4. **Relational Persistence:** Automatically creates the playlist record, saves all contained songs, and creates `PlaylistSongMap` bindings in a Room transaction.

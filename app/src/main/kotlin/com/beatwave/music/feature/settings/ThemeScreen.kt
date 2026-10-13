@@ -1,4 +1,4 @@
-﻿package com.beatwave.music.feature.settings
+package com.beatwave.music.feature.settings
 
 import com.beatwave.music.ui.utils.appTopBarWindowInsets
 import com.beatwave.music.ui.utils.appTopBarWindowInsets
@@ -203,7 +203,7 @@ fun ThemeScreen(
         SelectedThemeColorKey,
         DefaultThemeColor.toArgb()
     )
-    val (_, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = true)
+    val (_, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = false)
 
     val selectedThemeColor = Color(selectedThemeColorInt)
     val configuration = LocalConfiguration.current
@@ -212,9 +212,7 @@ fun ThemeScreen(
     // Helper function to handle color selection with dynamic theme toggle
     val handleColorSelection: (Color) -> Unit = { color ->
         onSelectedThemeColorChange(color.toArgb())
-        // Enable dynamic theme only when selecting the default/dynamic color
-        // Disable it when selecting any other color
-        val isDynamicColor = color == DefaultThemeColor
+        val isDynamicColor = false
         onDynamicThemeChange(isDynamicColor)
     }
 
@@ -225,7 +223,7 @@ fun ThemeScreen(
         onDarkModeChange(DarkMode.AUTO)
         onPureBlackChange(false)
         onSelectedThemeColorChange(DefaultThemeColor.toArgb())
-        onDynamicThemeChange(true)
+        onDynamicThemeChange(false)
     }
 
     if (isLandscape) {

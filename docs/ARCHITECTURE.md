@@ -130,8 +130,8 @@ The following were removed in Phases 7–8 and no longer exist in source or navi
 | AI lyrics translation / AI playlist modification | Completely removed |
 | Shazam / microphone recognition (UI) | Removed; DB entity retained |
 | Supabase / custom backend services | Completely removed |
-| BeatWave Account screen | Completely removed |
-| BeatWave Story page | Completely removed |
+| Legacy Account screen | Completely removed |
+| Legacy Story page | Completely removed |
 
 ---
 

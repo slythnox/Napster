@@ -77,8 +77,8 @@ import com.beatwave.music.feature.settings.DarkMode
 import com.beatwave.music.feature.settings.FontSelectionScreen
 import com.beatwave.music.feature.settings.GlassEffectSettings
 import com.beatwave.music.feature.settings.HomeFeedOrderScreen
-import com.beatwave.music.feature.settings.JioSettings
 import com.beatwave.music.feature.settings.LocalFoldersSettingsScreen
+
 import com.beatwave.music.feature.settings.ModuleDetailScreen
 import com.beatwave.music.feature.settings.ModuleSourceScreen
 import com.beatwave.music.feature.settings.PlayerSettings
@@ -89,6 +89,7 @@ import com.beatwave.music.feature.settings.ScanMusicScreen
 import com.beatwave.music.feature.settings.SettingsScreen
 import com.beatwave.music.feature.settings.StandbySettings
 import com.beatwave.music.feature.spotifyimport.SpotifyScreen
+import com.beatwave.music.feature.youtubeimport.YouTubeImportScreen
 import com.beatwave.music.feature.settings.StorageSettings
 import com.beatwave.music.feature.settings.TrackUsageScreen
 import com.beatwave.music.feature.settings.ThemeScreen
@@ -428,10 +429,6 @@ fun NavGraphBuilder.navigationBuilder(
         )
     }
 
-    sharedComposable("settings/player/jio") {
-        JioSettings(navController, scrollBehavior)
-    }
-
     sharedComposable("settings/scan_music") {
         ScanMusicScreen(navController, scrollBehavior)
     }
@@ -462,6 +459,10 @@ fun NavGraphBuilder.navigationBuilder(
 
     sharedComposable("settings/spotify") {
         SpotifyScreen(navController, scrollBehavior)
+    }
+
+    sharedComposable("settings/youtube_import") {
+        YouTubeImportScreen(navController, scrollBehavior)
     }
 
 

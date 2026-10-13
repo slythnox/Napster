@@ -104,6 +104,9 @@ import com.beatwave.music.ui.component.hasCustomHomeBackground
 import com.beatwave.music.ui.component.rememberAppBackgroundColor
 import com.beatwave.music.ui.component.PlaylistListItem
 import com.beatwave.music.ui.component.SortHeader
+import com.beatwave.music.ui.component.LibrarySortButton
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
 import com.beatwave.music.ui.component.backdrop.backdrops.rememberLayerBackdrop
 import com.beatwave.music.ui.component.rememberHeroSource
 import com.beatwave.music.ui.component.rememberHeroTint
@@ -320,9 +323,14 @@ fun LibraryMixScreen(
     val headerContent = @Composable {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = AppleTokens.Gutter),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = AppleTokens.Gutter, vertical = 6.dp),
         ) {
-            SortHeader(
+            LibrarySortButton(
+                viewType = viewType,
+                onViewTypeChange = { viewType = it },
                 sortType = sortType,
                 sortDescending = sortDescending,
                 onSortTypeChange = onSortTypeChange,
@@ -336,52 +344,19 @@ fun LibraryMixScreen(
                 },
             )
 
-            Spacer(Modifier.weight(1f))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(start = 12.dp, end = 12.dp),
+            IconButton(
+                onClick = { showCreatePlaylistDialog = true },
+                modifier = Modifier
+                    .size(38.dp)
+                    .background(Color(0xFF1E2634), CircleShape)
+                    .border(1.dp, Color(0xFF3B82F6).copy(alpha = 0.55f), CircleShape)
             ) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    LibraryViewType.entries.forEachIndexed { index, type ->
-                        ToggleButton(
-                            checked = viewType == type,
-                            onCheckedChange = { viewType = type },
-                            shapes = when (index) {
-                                0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                                LibraryViewType.entries.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                                else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                            },
-                            modifier = Modifier.semantics { role = Role.RadioButton },
-                        ) {
-                            Icon(
-                                painter = painterResource(
-                                    when (type) {
-                                        LibraryViewType.LIST -> R.drawable.list
-                                        LibraryViewType.GRID -> R.drawable.grid_view
-                                    }
-                                ),
-                                contentDescription = null,
-                            )
-                        }
-                    }
-                }
-
-                IconButton(
-                    onClick = { showCreatePlaylistDialog = true },
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.add),
-                        contentDescription = stringResource(R.string.create_playlist),
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                Icon(
+                    painter = painterResource(R.drawable.add),
+                    contentDescription = stringResource(R.string.create_playlist),
+                    tint = Color(0xFF60A5FA),
+                    modifier = Modifier.size(20.dp)
+                )
             }
         }
     }

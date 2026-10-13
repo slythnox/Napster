@@ -348,7 +348,7 @@ private val themeColorCache = android.util.LruCache<String, androidx.compose.ui.
 // Measured 2026-08-05 on SM-M346B, Home scroll p50: true => record 1.9ms / issue 4.6ms,
 // false => record 16.9ms / issue 19.7ms. The gap is the forced full-tree re-record in
 // LayerBackdropNode.draw(); the fix is to give the subtree RenderNodes, not to drop glass.
-private val TabRootRoutes = setOf(Screens.Home.route, Screens.Library.route, Screens.Settings.route)
+private val TabRootRoutes by lazy { setOf(Screens.Home.route, Screens.Library.route, Screens.Settings.route) }
 
 private const val DIAG_DISABLE_BACKDROP = false
 
@@ -581,7 +581,7 @@ class MainActivity : ComponentActivity() {
         downloadUtil: DownloadUtil,
         syncUtils: SyncUtils,
     ) {
-        val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
+        val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = false)
         val enableHighRefreshRate by rememberPreference(EnableHighRefreshRateKey, defaultValue = true)
         val context = LocalContext.current
 

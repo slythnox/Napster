@@ -10,6 +10,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.produceState
@@ -104,6 +105,10 @@ import com.beatwave.music.ui.component.LocalMenuState
 import com.beatwave.music.ui.component.PlaylistGridItem
 import com.beatwave.music.ui.component.PlaylistListItem
 import com.beatwave.music.ui.component.SortHeader
+import com.beatwave.music.ui.component.LibrarySortButton
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Color
 import com.beatwave.music.ui.component.buildAlphabetSectionIndex
 import com.beatwave.music.utils.rememberEnumPreference
 import com.beatwave.music.utils.rememberPreference
@@ -256,9 +261,14 @@ fun LibraryPlaylistsScreen(
     val headerContent = @Composable {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = AppleTokens.Gutter),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = AppleTokens.Gutter, vertical = 6.dp),
         ) {
-            SortHeader(
+            LibrarySortButton(
+                viewType = viewType,
+                onViewTypeChange = { viewType = it },
                 sortType = sortType,
                 sortDescending = sortDescending,
                 onSortTypeChange = onSortTypeChange,
@@ -273,62 +283,19 @@ fun LibraryPlaylistsScreen(
                 },
             )
 
-            Spacer(Modifier.weight(1f))
-
-            Text(
-                text = pluralStringResource(
-                    R.plurals.n_playlist,
-                    playlists.size,
-                    playlists.size
-                ),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.secondary,
-            )
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(start = 12.dp, end = 12.dp),
+            IconButton(
+                onClick = { showCreatePlaylistDialog = true },
+                modifier = Modifier
+                    .size(38.dp)
+                    .background(Color(0xFF1E2634), CircleShape)
+                    .border(1.dp, Color(0xFF3B82F6).copy(alpha = 0.55f), CircleShape)
             ) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    LibraryViewType.entries.forEachIndexed { index, type ->
-                        ToggleButton(
-                            checked = viewType == type,
-                            onCheckedChange = { viewType = type },
-                            shapes = when (index) {
-                                0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                                LibraryViewType.entries.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                                else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                            },
-                            modifier = Modifier.semantics { role = Role.RadioButton },
-                        ) {
-                            Icon(
-                                painter = painterResource(
-                                    when (type) {
-                                        LibraryViewType.LIST -> R.drawable.list
-                                        LibraryViewType.GRID -> R.drawable.grid_view
-                                    }
-                                ),
-                                contentDescription = null,
-                            )
-                        }
-                    }
-                }
-
-                IconButton(
-                    onClick = { showCreatePlaylistDialog = true },
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.add),
-                        contentDescription = stringResource(R.string.create_playlist),
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                Icon(
+                    painter = painterResource(R.drawable.add),
+                    contentDescription = stringResource(R.string.create_playlist),
+                    tint = Color(0xFF60A5FA),
+                    modifier = Modifier.size(20.dp)
+                )
             }
         }
     }

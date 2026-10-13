@@ -131,10 +131,11 @@ android {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
             storePassword = "android"
-            storeFile = if (file("persistent-debug.keystore").exists()) {
-                file("persistent-debug.keystore")
-            } else {
-                file("${System.getProperty("user.home")}/.android/debug.keystore")
+            val homeKeystore = file("${System.getProperty("user.home")}/.android/debug.keystore")
+            if (file("persistent-debug.keystore").exists()) {
+                storeFile = file("persistent-debug.keystore")
+            } else if (homeKeystore.exists()) {
+                storeFile = homeKeystore
             }
         }
     }
@@ -195,6 +196,7 @@ android {
         warningsAsErrors = false
         abortOnError = false
         checkDependencies = false
+        checkReleaseBuilds = false
     }
 
     androidResources {

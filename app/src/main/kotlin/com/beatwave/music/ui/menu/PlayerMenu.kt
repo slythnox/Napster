@@ -103,7 +103,6 @@ import com.beatwave.music.ui.component.NewAction
 import com.beatwave.music.ui.component.NewActionGrid
 import com.beatwave.music.ui.component.VolumeSlider
 import com.beatwave.music.ui.theme.rememberGlobalAccentColors
-import com.beatwave.music.constants.EnableSaavnStreamingKey
 import com.beatwave.music.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -143,7 +142,6 @@ fun PlayerMenu(
     
     val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
-    val (saavnEnabled) = rememberPreference(EnableSaavnStreamingKey, defaultValue = false)
 
     val downloadUtil = LocalDownloadUtil.current
     val download by downloadUtil.getDownload(mediaMetadata.id)
@@ -377,10 +375,7 @@ fun PlayerMenu(
                             title = { Text(text = stringResource(R.string.retry_stream)) },
                             description = {
                                 Text(
-                                    text = if (saavnEnabled)
-                                        stringResource(R.string.retry_stream_desc_saavn)
-                                    else
-                                        stringResource(R.string.retry_stream_desc_yt)
+                                    text = stringResource(R.string.retry_stream_desc_yt)
                                 )
                             },
                             icon = {

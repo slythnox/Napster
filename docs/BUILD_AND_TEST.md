@@ -72,18 +72,30 @@ LASTFM_SECRET=your_secret
 
 Last.fm keys are optional; the build succeeds without them (the keys default to empty strings and Last.fm features are disabled at runtime if unconfigured).
 
-### Signing
+### Release Keystore Signing (Free)
 
-Release builds require a signing configuration. The `app/build.gradle.kts` reads signing parameters from `local.properties` or environment variables:
+Release APKs require a signing configuration. Android signing keys are free and can be generated locally with `keytool`:
 
-```properties
-STORE_FILE=path/to/keystore.jks
-STORE_PASSWORD=...
-KEY_ALIAS=...
-KEY_PASSWORD=...
+```bash
+keytool -genkeypair -v -keystore release.keystore -alias napster -keyalg RSA -keysize 2048 -validity 10000 -storepass YourPassword -keypass YourPassword -dname "CN=Napster,O=Napster,C=US"
 ```
 
-Alternatively, set the equivalent environment variables in CI.
+Place `release.keystore` in `app/keystore/release.keystore` and add credentials to `local.properties`:
+
+```properties
+STORE_PASSWORD=YourPassword
+KEY_ALIAS=napster
+KEY_PASSWORD=YourPassword
+```
+
+**For GitHub Actions Automated Releases:**
+Add the following repository secrets under **Repository Settings > Secrets and variables > Actions**:
+- `RELEASE_KEYSTORE_BASE64`: Base64 encoded `release.keystore` (PowerShell: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("release.keystore"))` | Linux: `base64 -w 0 release.keystore`)
+- `STORE_PASSWORD`: Keystore password
+- `KEY_ALIAS`: Keystore key alias
+- `KEY_PASSWORD`: Key password
+
+If these secrets are not configured, GitHub Actions automatically falls back to a generated debug keystore so builds and workflows always succeed.
 
 ---
 

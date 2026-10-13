@@ -49,7 +49,7 @@ Modern mobile streaming clients increasingly prioritise algorithmic promotional 
 - **Serverless Operation:** Runs 100% on-device. No central server stores your listening history, account identifiers, or playback queries.
 - **Resilient Media Pipeline:** Decouples playback logic from proprietary client locks by consuming open stream streams via a cascading, multi-client InnerTube resolver.
 - **Tactile Material 3 Interface:** Employs Jetpack Compose with custom liquid-glass backdrop shaders, adaptive palette matching, and dedicated landscape/tablet adaptations.
-- **Universal Bridge:** Enables users to import public Spotify playlists directly into their local on-device database without requiring a Spotify login or API token.
+- **Universal Bridge:** Enables users to import public Spotify and YouTube Music playlists directly into their local on-device database without requiring account credentials or API tokens.
 
 ### Application Identity vs Architecture Namespace
 The client is published with the application identifier `com.napster.music`. Within the source tree, the root Kotlin namespace is intentionally maintained as `com.beatwave.music`. This design decision preserves binary compatibility across 37 sequential Room database migrations (`1.json` through `37.json`), AndroidX DataStore preferences, and serialized disk caches without risking data loss for existing installations.
@@ -75,7 +75,7 @@ The client is published with the application identifier `com.napster.music`. Wit
 
 ### Discovery & Integrations
 - **Multi-Endpoint InnerTube Search:** Search songs, albums, artists, community playlists, and mood stations with instant client-side debouncing (300 ms).
-- **Public Spotify Import:** Resolve and import any public Spotify playlist URL into native Room playlists using client-side scrapers without Spotify account credentials.
+- **Public Spotify & YouTube Music Import:** Resolve and import any public Spotify or YouTube Music playlist URL into native Room playlists using client-side scrapers and InnerTube resolution without account credentials.
 - **Audioscrobbling:** Native asynchronous scrobbling support for **Last.fm** and **ListenBrainz** via official REST endpoints.
 - **Backup & Portability:** One-click encrypted JSON/SQLite database export and restoration for library entries, custom playlists, and playback settings.
 
@@ -218,6 +218,9 @@ Users can paste any public Spotify playlist URL (e.g. `https://open.spotify.com/
         ▼ (Relational Insertion)
 [Insert Resolved Songs into Local Room Playlist]
 ```
+
+### Public YouTube Music Playlist Importer
+Users can paste any public or unlisted YouTube / YouTube Music playlist URL (or playlist ID). Napster parses the playlist ID, fetches track metadata directly via InnerTube without account credentials, and inserts the playlist and songs into the local Room database with real-time import progress.
 
 ---
 
@@ -379,7 +382,6 @@ For exhaustive technical references, inspect the comprehensive engineering docum
 | [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) | Code styling guidelines, pull request protocols, and review standards |
 | [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | Common compilation issues, audio focus bugs, and runtime diagnostics |
 | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | Quality assurance, automated test verification, and APK signing steps |
-| [`docs/CLEANUP_HISTORY.md`](docs/CLEANUP_HISTORY.md) | Historical record of deprecated module removals and architectural refactoring |
 
 ---
 
