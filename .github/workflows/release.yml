@@ -62,9 +62,9 @@ jobs:
       - name: Build Universal GMS Release APK
         env:
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx3584M -Dkotlin.daemon.jvm.options=-Xmx1536M -XX:+UseParallelGC"
-          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD || secrets.RELEASE_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS || secrets.RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || secrets.RELEASE_KEY_PASSWORD }}
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
         run: |
