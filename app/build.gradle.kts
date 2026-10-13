@@ -35,6 +35,10 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+base {
+    archivesName.set("Napster")
+}
+
 android {
     namespace = "com.beatwave.music"
     compileSdk = 37
