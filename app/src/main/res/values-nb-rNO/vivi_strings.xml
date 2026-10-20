@@ -80,7 +80,6 @@
     <string name="show_downloaded_playlist">Vis «Nedlastet»-spilleliste</string>
     <string name="show_top_playlist">Vis «Topp»-spilleliste</string>
     <string name="show_cached_playlist">Vis «Hurtiglagret»-spilleliste</string>
-    <string name="discord">Discord</string>
     <string name="advanced_login">Avansert innlogging (med token)</string>
     <string name="token_shown">Klikk igjen for å kopiere eller redigere tokenen</string>
     <string name="ytm_sync">Synkroniser automatisk med YouTube Music-kontoen din</string>

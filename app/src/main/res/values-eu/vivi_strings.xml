@@ -94,7 +94,6 @@
     <string name="show_top_playlist">\"Top\" zerrenda ikusi</string>
     <string name="show_cached_playlist">\"Cache-an\" zerrenda ikusi</string>
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="advanced_login">Token-arekin saioa hasi</string>
     <string name="token_hidden">Sakatu \"token\"-a ikusteko</string>
     <string name="token_shown">Sakatu berriro kopiatu edo editatzeko</string>

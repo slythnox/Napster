@@ -220,7 +220,7 @@ fun AboutScreen(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.license_vivi),
                     title = { Text("Upstream Attribution") },
-                    description = { Text("Built upon foundational work from CONVX, InnerTune, and vivi-music under GPL-3.0.") },
+                    description = { Text("Built upon foundational work from BeatWave, InnerTune, and vivi-music under GPL-3.0.") },
                     onClick = { uriHandler.safeOpenUri(context, "https://github.com/slythnox/Napster/blob/main/LICENSE") }
                 ),
                 Material3SettingsItem(

@@ -1,5 +1,5 @@
 /**
- * Convx Project (C) 2026
+ * Napster (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
 // Apple Music player UI ported from vivizzz007/vivi-music (https://github.com/vivizzz007/vivi-music), GPL-3.0.
@@ -273,12 +273,21 @@ fun PlayerV2(
         }
     }
     
-    LaunchedEffect(Unit) {
-        while (isActive) {
-            val rawDuration = playerConnection.player.duration
+    LaunchedEffect(isPlaying, mediaMetadata?.id) {
+        val rawDuration = playerConnection.player.duration
+        duration = if (rawDuration == C.TIME_UNSET || rawDuration < 0) 0L else rawDuration
+        if (sliderPosition == null) {
             position = playerConnection.player.currentPosition.coerceAtLeast(0L)
-            duration = if (rawDuration == C.TIME_UNSET || rawDuration < 0) 0L else rawDuration
-            delay(50)
+        }
+        if (isPlaying) {
+            while (isActive) {
+                delay(100)
+                if (sliderPosition == null) {
+                    val rawDur = playerConnection.player.duration
+                    position = playerConnection.player.currentPosition.coerceAtLeast(0L)
+                    duration = if (rawDur == C.TIME_UNSET || rawDur < 0) 0L else rawDur
+                }
+            }
         }
     }
 

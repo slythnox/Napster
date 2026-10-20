@@ -170,7 +170,6 @@
     <string name="skip_silence_instant_desc">Şarkı hızını arttırmadan şarkının sessiz kısımları atla</string>
 
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="advanced_login">Token ile giriş yap</string>
     <string name="token_hidden">Tokeni göstermek için dokunun</string>
     <string name="token_shown">Kopyalamak veya düzenlemek için tekrar dokunun</string>
@@ -203,8 +202,6 @@
     <string name="proxy_username">Proxy kullanıcı adı</string>
     <string name="proxy_password">Proxy şifresi</string>
     <string name="enable_authentication">Kimlik doğrulamayı etkinleştir</string>
-    <string name="discord_use_details">Durum yerine ayrıntıları kullan</string>
-    <string name="discord_use_details_description">Sanatçı adları yerine şarkı adını belirgin şekilde göster</string>
 
     <string name="audio_quality_max">Maksimum (beta)</string>
     <string name="enable_similar_content">Benzer içeriği etkinleştir</string>
@@ -701,36 +698,12 @@
     <string name="csv_import_failed">CSV dosyasını içe aktarırken sorun oluştur</string>
     <string name="csv_preview_failed">CSV dosyasını önizlerken sorun oluştu</string>
 
-    <!-- Discord Integration Redesign -->
-    <string name="discord_integration_settings">Discord entegrasyonu</string>
-    <string name="discord_status">Durum bilgisi</string>
-    <string name="discord_status_online">Çevrim içi</string>
-    <string name="discord_status_idle">Boşta</string>
-    <string name="discord_status_dnd">Rahatsız etme</string>
-    <string name="discord_buttons">Butonlar</string>
-    <string name="discord_button_1">1. tuş</string>
-    <string name="discord_button_2">2. tuş</string>
     <string name="button_text">Buton yazısı</string>
     <string name="button_visible">Görünür</string>
     <string name="login_successful">Giriş başarılı!</string>
-    <string name="discord_information_warning">Bu özellik Discord ile veri paylaşmak ve durumunuzu belirtmek için KizzyRPC kütüphanesini kullanır. Şu anlık hesabın askıya alınması gibi bir durum gözlenmese bile Discord tarafından resmi olarak desteklenmemekte ve Kullanım Sözleşmesi\'ne aykırı olabilir. Tokeniniz sadece kendi cihazınızda olmakla beraber 3. Parti servislerle de paylaşılmamaktadır. Bunu kullanmak sizin kararınıza bırakılmıştır.</string>
-    <string name="discord_activity_type">Aktivite şekli</string>
-    <string name="discord_activity_playing">Oynatılıyor</string>
-    <string name="discord_activity_listening">Dinleniliyor</string>
-    <string name="discord_activity_watching">İzleniyor</string>
-    <string name="discord_activity_competing">Rekabet</string>
-    <string name="discord_customization">Özelleştirme</string>
-    <string name="discord_button_text_variables">Değişkenler: {song_name}, {artist_name}, {album_name}</string>
-    <string name="discord_rpc_preview">Zengin Görünüm Önizlemesi</string>
-    <string name="discord_presence">Görünüm</string>
-    <string name="discord_connect_description">Ne dinlediğini paylaşmak için Discord\'a giriş yap</string>
     Napster oynatılıyor
     Napster izlenliyor
     \'te yarış
-    <string name="discord_activity_name">Aktivite adı</string>
-    <string name="discord_activity_name_description">Aktivite için özel ad (boş bırakılırsa varsayılan kullanılır)</string>
-    <string name="discord_advanced_mode">Gelişmiş seçenekler</string>
-    <string name="discord_advanced_mode_description">Zengin özelleştirme içeriklerini ayarlarda göster</string>
     <string name="speed_dial">Hızlı arama</string>
     <string name="pin_to_speed_dial">Hızlı aramaya sabitle</string>
     <string name="unpin_from_speed_dial">Hızlı aramadan kaldır</string>

@@ -100,7 +100,6 @@
     <string name="show_top_playlist">Zobraziť playlist „Najlepší“</string>
     <string name="show_cached_playlist">Zobraziť playlist „Uložený vo vyrovnávacej pamäti“</string>
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="advanced_login">Prihlásenie pomocou tokenu</string>
     <string name="token_hidden">Klepnutím zobrazíte token</string>
     <string name="token_shown">Klepnite znova pre kopírovanie alebo úpravu</string>
@@ -216,8 +215,6 @@
     <string name="audio_offload_description">Na prehrávanie zvuku použite cestu pre odľahčenie zvuku. Zakázanie tejto funkcie môže zvýšiť spotrebu energie, ale môže byť užitočné, ak máte problémy s prehrávaním zvuku alebo následným spracovaním</string>
     <string name="lyrics_romanize_macedonian">Romanizovať macedónske texty</string>
     <string name="swipe_song_to_remove">Prejdením prstom odstráňte skladbu zo zoznamu skladieb</string>
-    <string name="discord_use_details">Použite podrobnosti namiesto štátu</string>
-    <string name="discord_use_details_description">Zobrazovať názov skladby výrazne namiesto mien interpretov</string>
     <string name="integrations">Integrácie</string>
     <string name="username">Používateľské meno</string>
     <string name="password">Heslo</string>

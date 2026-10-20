@@ -79,7 +79,6 @@
     <string name="backup_create_success">Rezervna kopija je uspješno sagrađena</string>
     <string name="backup_create_failed">Nije moguće napraviti rezervnu kopiju</string>
     <string name="restore_failed">Neuspješan povratak rezervne kopije</string>
-    <string name="discord_integration">Integracija sa Discord-om</string>
     <string name="dismiss">Odbaci</string>
     <string name="home">Početna</string>
     <string name="undo">Vrati</string>
@@ -274,11 +273,9 @@
     <string name="action_backup">Rezervna kopija</string>
     <string name="action_restore">Povratak</string>
     <string name="imported_playlist">Spiska je uvezena</string>
-    Napster koristi KizzyRPC biblioteku kako bi stavio tvoj Discord status. Ovo uključuje korištenje Discord Gateway spajanja, što bi se moglo smatrati prekršajem Discord-ovog TOS-a. Međutim nema poznatih slučajeva gdje su korisnički nalozi bili suspendovani zbog ovoga razloga. Korisite na svoju štetu.\n\n će samo izvesti vaš žeton, i sve drugo je lokalno sklađeno.
     <string name="login_failed">Neuspješno upisivanje</string>
     <string name="options">Opcije</string>
     <string name="preview">Pregled</string>
-    <string name="enable_discord_rpc">Omogući Bogatu Prisutnost</string>
     <string name="app_version">Verzija aplikacije</string>
     <string name="action_logout">Izpiši se</string>
     O -u

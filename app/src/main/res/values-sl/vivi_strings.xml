@@ -85,7 +85,6 @@
     <string name="show_top_playlist">Prikaži seznam predvajanja \"Top\"</string>
     <string name="show_cached_playlist">Prikaži seznam predvajanja \"Predpomnjeno\"</string>
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="advanced_login">Prijava s tokenom</string>
     <string name="token_hidden">Tapnite za prikaz tokena</string>
     <string name="token_shown">Ponovno tapnite za kopiranje ali urejanje</string>
@@ -214,8 +213,6 @@
     <string name="settings_section_ui">Vmesnik</string>
     <string name="settings_section_privacy">Zasebnost in varnost</string>
     <string name="update_channel_desc">Obvestila o novih različicah</string>
-    <string name="discord_use_details">Uporabi podrobnosti namesto statusa</string>
-    <string name="discord_use_details_description">Izpostavi naslov pesmi namesto izvajalca</string>
     <string name="integrations">Integracije</string>
     <string name="username">Uporabniško ime</string>
     <string name="password">Geslo</string>

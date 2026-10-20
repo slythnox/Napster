@@ -2,7 +2,6 @@
 <resources>
     <string name="lyrics_auto_scroll">Letras sincronizadas</string>
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="advanced_login">Inicio de sesión con token</string>
     <string name="token_hidden">Presiona para mostrar el token</string>
     <string name="token_shown">Presiona de nuevo para copiar o editar</string>
@@ -203,7 +202,6 @@
     <string name="show_uploaded_playlist">Mostrar listas de reproducción \"Subidas\"</string>
     <string name="choose_from_library">Elija de la biblioteca</string>
     <string name="remove_custom_image">Eliminar imagen personalizada</string>
-    <string name="discord_use_details">Usar detalles en lugar de estado</string>
     <string name="top_result">Mejor resultado</string>
     <string name="other_results">Otro</string>
     <string name="filter_uploaded">Subido</string>
@@ -223,7 +221,6 @@
     <string name="shuffle_playlist_first">Aleatorizar lista de reproducción/álbum primero</string>
     <string name="shuffle_playlist_first_desc">Al aleatorizar, reproducir primero todas las canciones de la lista de reproducción/álbum original, luego el contenido similar</string>
     <string name="show_wrapped_card">Mostrar tarjeta de Recap</string>
-    <string name="discord_use_details_description">Mostrar resaltado el título de la canción en lugar de los nombres de los artistas</string>
     <string name="lyrics_romanize_chinese">Romanizar letras chinas</string>
     <string name="updater">Actualizador</string>
     <string name="check_for_updates">Buscar actualizaciones automáticamente</string>
@@ -604,33 +601,10 @@
     <string name="column_label">Columna %d</string>
     <string name="csv_import_failed">Falló la importación del archivo CSV</string>
     <string name="csv_preview_failed">No se pudo previsualizar el archivo CSV</string>
-    <string name="discord_integration_settings">Integración con Discord</string>
-    <string name="discord_status">Estado</string>
-    <string name="discord_status_online">En línea</string>
-    <string name="discord_status_idle">Inactivo</string>
-    <string name="discord_status_dnd">No Molestar</string>
-    <string name="discord_buttons">Botones</string>
-    <string name="discord_button_1">Botón 1</string>
-    <string name="discord_button_2">Botón 2</string>
     <string name="button_text">Botón de texto</string>
     <string name="button_visible">Visible</string>
     <string name="login_successful">¡Inicio de sesión exitoso!</string>
-    <string name="discord_information_warning">Esta función utiliza la biblioteca KizzyRPC para conectarse a la puerta de enlace de Discord y configurar tu estado de presencia enriquecida. Aunque no se conoce ningún caso de suspensión de cuentas por un uso similar, este método no está oficialmente respaldado por Discord y puede considerarse una infracción de los Términos de servicio. Tu token se extrae localmente y nunca se envía a servidores de terceros. Procede bajo tu propia responsabilidad.</string>
-    <string name="discord_activity_type">Tipo de actividad</string>
-    <string name="discord_activity_playing">Reproduciendo</string>
-    <string name="discord_activity_listening">Escuchando</string>
-    <string name="discord_activity_watching">Viendo</string>
-    <string name="discord_activity_competing">Compitiendo</string>
-    <string name="discord_customization">Personalización</string>
-    <string name="discord_button_text_variables">Variables: {nombre_de_la_canción}, {nombre_del_artista}, {nombre_del_álbum}</string>
-    <string name="discord_rpc_preview">Previsualizar Presencia</string>
-    <string name="discord_presence">Presencia</string>
-    <string name="discord_connect_description">Inicia sesión con Discord para compartir lo que estás escuchando</string>
     Reproduciendo en Napster
     Viendo en Napster
     Compitiendo en 
-    <string name="discord_activity_name">Nombre de la actividad</string>
-    <string name="discord_activity_name_description">Nombre personalizado para la actividad (déjelo vacío para usar el nombre predeterminado)</string>
-    <string name="discord_advanced_mode">Modo avanzado</string>
-    <string name="discord_advanced_mode_description">Mostrar opciones de personalización adicionales para la Presencia Enriquecida</string>
 </resources>

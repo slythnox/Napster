@@ -24,7 +24,6 @@
     <string name="slim">Schmal</string>
     <string name="slim_navbar">Dünne untere Navigationsleiste</string>
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="advanced_login">Mit Token anmelden</string>
     <string name="token_hidden">Tippen, um Token anzuzeigen</string>
     <string name="token_shown">Tippen, um zu kopieren oder zu bearbeiten</string>
@@ -202,8 +201,6 @@
     <string name="uploaded_playlist">Hochgeladen</string>
     <string name="filter_uploaded">Hochgeladen</string>
     <string name="show_uploaded_playlist">\"Hochgeladen\"-Playlist anzeigen</string>
-    <string name="discord_use_details">Verwende Details anstelle von Statusangaben</string>
-    <string name="discord_use_details_description">Songtitel anstelle von Künstlernamen prominent anzeigen</string>
     <string name="updater">Updater</string>
     <string name="check_for_updates">Automatisch nach Updates prüfen</string>
     <string name="update_notifications">Benachrichtigungen zu Updates erhalten</string>

@@ -132,7 +132,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.beatwave.music.constants.IsFirstRunKey
-import com.beatwave.music.ui.theme.vivimusicTheme
+import com.beatwave.music.ui.theme.NapsterTheme
 import com.beatwave.music.ui.utils.safeOpenUri
 import com.beatwave.music.utils.dataStore
 import com.beatwave.music.utils.get
@@ -165,7 +165,7 @@ class WelcomeActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            vivimusicTheme(
+            NapsterTheme(
                 pureBlack = true,
                 themeColor = Color(0xFF255DCE)
             ) {

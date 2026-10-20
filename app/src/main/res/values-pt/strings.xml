@@ -229,11 +229,9 @@
     <string name="imported_playlist">Lista de reprodução importada</string>
     <string name="backup_create_success">Cópia de segurança criada com sucesso</string>
     <string name="restore_failed">Não foi possível restaurar a cópia de segurança</string>
-    <string name="discord_integration">Integração Discord</string>
     <string name="dismiss">Ignorar</string>
     <string name="login_failed">Autenticação falhou</string>
     <string name="action_logout">Terminar sessão</string>
-    <string name="enable_discord_rpc">Ativar Rich Presence</string>
     <string name="about">Sobre</string>
     <string name="app_version">Versão da Aplicação</string>
     <string name="new_version_available">Disponível nova versão</string>
@@ -284,7 +282,6 @@
     <string name="auto_skip_next_on_error_desc">Garante um experiência contínua de reprodução</string>
     <string name="auto_skip_next_on_error">Avançar automaticamente para a música seguinte se ocorrer algum erro</string>
     <string name="stop_music_on_task_clear">Parar ao limpar a tarefa</string>
-    Napster utiliza a biblioteca KizzyRPC para definir o estado da sua conta Discord. Isto envolve uma ligação ao Discord Gateway, que pode ser considerada uma violação dos termos do serviço Discord. Contudo ,não há casos conhecidos de contas suspensas por este motivo. Utilize por sua conta e risco.\n\n apenas irá extrair o seu token e tudo o resto é armazenado localmente.
     <string name="use_login_for_browse">Inicie a sessão para ver o conteúdo de navegação</string>
     <string name="use_login_for_browse_desc">Isto influencia o conteúdo visível, e por exemplo, mostra apenas álbuns Premium, se estiver autenticado com uma conta Premium</string>
     <string name="action_login">Iniciar sessão</string>

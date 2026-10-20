@@ -110,7 +110,6 @@
     <string name="app_language">زبان برنامه</string>
     <string name="configure_app_language">پیکربندی زبان برنامه</string>
     <string name="audio_quality_max">حداکثر (آزمایشی)</string>
-    <string name="discord">دیسکورد</string>
     <string name="advanced_login">ورود پیشرفته (توکن)</string>
     <string name="token_hidden">ضربه برای نمایش توکن</string>
     <string name="set_quick_picks">تنظیم انتخاب سریع</string>

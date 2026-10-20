@@ -352,7 +352,7 @@ class MusicService :
     private lateinit var audioQuality: com.beatwave.music.constants.AudioQuality
     private lateinit var ipVersion: IpVersion
 
-    private var currentQueue: Queue = EmptyQueue
+    internal var currentQueue: Queue = EmptyQueue
     var queueTitle: String? = null
 
     val currentMediaMetadata = MutableStateFlow<com.beatwave.music.models.MediaMetadata?>(null)
@@ -465,6 +465,14 @@ class MusicService :
     // URL cache for stream URLs - class-level so it can be invalidated on errors
     private val songUrlCache = ConcurrentHashMap<String, Pair<String, Long>>()
 
+    private fun cacheSongUrl(key: String, url: String, expiresInSeconds: Int) {
+        val now = System.currentTimeMillis()
+        if (songUrlCache.size > 100) {
+            songUrlCache.entries.removeIf { it.value.second <= now }
+        }
+        songUrlCache[key] = url to (now + expiresInSeconds * 1000L)
+    }
+
     // Flag to bypass cache when quality changes - forces fresh stream fetch
     private val bypassCacheForQualityChange = mutableSetOf<String>()
 
@@ -563,27 +571,8 @@ class MusicService :
                     NotificationManager.IMPORTANCE_LOW
                 )
             )
-            val pending = PendingIntent.getActivity(
-                this,
-                0,
-                Intent(this, MainActivity::class.java),
-                PendingIntent.FLAG_IMMUTABLE
-            )
-            val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle(getString(R.string.music_player))
-                .setContentText("")
-                .setSmallIcon(R.drawable.ic_notification_napster)
-                .setContentIntent(pending)
-                .setOngoing(true)
-                .build()
-            ServiceCompat.startForeground(
-                this,
-                NOTIFICATION_ID,
-                notification,
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK,
-            )
         } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Failed to create foreground notification")
+            Timber.tag(TAG).e(e, "Failed to create notification channel")
             reportException(e)
         }
 
@@ -611,6 +600,7 @@ class MusicService :
         setupAudioFocusRequest()
 
         mediaLibrarySessionCallback.apply {
+            service = this@MusicService
             toggleLike = ::toggleLike
             toggleStartRadio = ::toggleStartRadio
             toggleLibrary = ::toggleLibrary
@@ -1041,20 +1031,10 @@ class MusicService :
             }
         }
 
-        // Save queue periodically to prevent queue loss from crash or force kill
+        // Save queue periodically when playing to ensure state is preserved in case of force kill
         scope.launch {
             while (isActive) {
-                delay(30.seconds)
-                if (dataStore.get(PersistentQueueKey, true)) {
-                    saveQueueToDisk()
-                }
-            }
-        }
-
-        // Save queue more frequently when playing to ensure state is preserved
-        scope.launch {
-            while (isActive) {
-                delay(10.seconds)
+                delay(60.seconds)
                 if (dataStore.get(PersistentQueueKey, true) && player.isPlaying) {
                     saveQueueToDisk()
                 }
@@ -1529,8 +1509,7 @@ class MusicService :
                         } else {
                             losslessStreamMediaIds.remove(mediaId)
                         }
-                        songUrlCache[effKey] =
-                            streamUrl to System.currentTimeMillis() + (playbackData.streamExpiresInSeconds * 1000L)
+                        cacheSongUrl(effKey, streamUrl, playbackData.streamExpiresInSeconds)
 
                         val format = playbackData.format
                         val loudnessDb = playbackData.audioConfig?.loudnessDb
@@ -2116,7 +2095,7 @@ class MusicService :
         )
         // Force Repeat One if the player ignored it and auto-advanced
         if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
-            val repeatMode = cachedRepeatMode
+            val repeatMode = player.repeatMode
             if (repeatMode == REPEAT_MODE_ONE &&
                 previousMediaItemIndex != C.INDEX_UNSET &&
                 previousMediaItemIndex != player.currentMediaItemIndex) {
@@ -2349,6 +2328,7 @@ class MusicService :
     }
 
     override fun onRepeatModeChanged(repeatMode: Int) {
+        cachedRepeatMode = repeatMode
         updateNotification()
         scope.launch {
             dataStore.edit { settings ->
@@ -3336,8 +3316,7 @@ class MusicService :
                     losslessStreamMediaIds.remove(mediaId)
                 }
 
-                songUrlCache[effKey] =
-                    streamUrl to System.currentTimeMillis() + (nonNullPlayback.streamExpiresInSeconds * 1000L)
+                cacheSongUrl(effKey, streamUrl, nonNullPlayback.streamExpiresInSeconds)
 
                 // Tidal/Spine hand back one direct static file URL, not a segmented
                 // YouTube-style itag CDN, and their proxies can't be trusted to return

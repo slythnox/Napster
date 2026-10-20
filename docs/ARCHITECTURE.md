@@ -143,4 +143,3 @@ The following files are intentionally large and are not candidates for refactori
 - `DatabaseDao.kt` — single DAO for the entire Room database; reflects a deliberate monolithic DAO design for query locality.
 - `YTPlayerUtils.kt` — InnerTube stream resolution with 12-client fallback, SABR/cipher deobfuscation, po-token generation.
 - `MainActivity.kt` — Compose host, navigation, global state, and many integration hooks.
-- `vivimusicupdater.kt` — in-app update flow with download, progress, install, and UI.

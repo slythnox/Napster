@@ -36,7 +36,6 @@
     <string name="slim">Dạng mỏng</string>
     <string name="slim_navbar">Thanh điều hướng mỏng phía dưới</string>
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="advanced_login">Đăng nhập bằng token</string>
     <string name="token_hidden">Chạm để xem Token</string>
     <string name="token_shown">Chạm lần nữa để sao chép hoặc chỉnh sửa</string>
@@ -218,8 +217,6 @@
     <string name="shuffle_playlist_first">Phát đảo trộn danh sách phát / Album</string>
     <string name="shuffle_playlist_first_desc">Khi kích hoạt phát đảo trộn, nó sẽ phát tất cả các bài hát từ danh sách phát / Album trước, sau đó sẽ phát nội dung tương tự</string>
     <string name="show_wrapped_card">Hiển thị thẻ Wrapped</string>
-    <string name="discord_use_details">Dùng chi tiết thay vì trạng thái</string>
-    <string name="discord_use_details_description">Hiện tên bài hát chính thay vì tên nghệ sĩ</string>
     <string name="lyrics_romanize_chinese">Lời Romanize Chinese</string>
     <string name="updater">Trình cập nhật</string>
     <string name="check_for_updates">Tự động kiểm tra cập nhật</string>

@@ -1,7 +1,7 @@
-﻿@file:OptIn(ExperimentalSharedTransitionApi::class)
+@file:OptIn(ExperimentalSharedTransitionApi::class)
 
 /**
- * Convx Project (C) 2026
+ * Napster (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
 package com.beatwave.music.ui.utils

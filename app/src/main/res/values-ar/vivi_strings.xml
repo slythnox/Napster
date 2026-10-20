@@ -86,7 +86,6 @@
     <string name="secondary_text_color">لون النص الثانوي</string>
     <string name="background_color">لون الخلفية</string>
     <string name="google">جوجل</string>
-    <string name="discord">ديسكورد</string>
     <string name="advanced_login">تسجيل الدخول باستخدام token</string>
     <string name="token_hidden">اضغط لعرض ال Token</string>
     <string name="token_shown">اضغط مرة أخرى للنسخ أو التعديل</string>
@@ -214,8 +213,6 @@
     <string name="uploaded_playlist">المرفوعه</string>
     <string name="filter_uploaded">المرفوعه</string>
     <string name="show_uploaded_playlist">إظهار قائمة التشغيل \"المرفوعه\"</string>
-    <string name="discord_use_details">استخدم التفاصيل بدلاً من الحالة</string>
-    <string name="discord_use_details_description">إظهار عنوان الأغنية بشكل بارز بدلاً من أسماء الفنانين</string>
     <string name="updater">التحديثات</string>
     <string name="check_for_updates">التحقق تلقائيًا من التحديثات</string>
     <string name="update_notifications">تمكين إشعارات التحديث</string>
@@ -328,9 +325,9 @@
     <string name="wrapped_playlist_saved">تم حفظ قائمة التشغيل</string>
     <string name="casting_to">التحويل إلى %s</string>
     <string name="progress_percent">التقدم %s%%</string>
-    <string name="listening_to_vivimusic">الاستماع إلى متروليست</string>
+    <string name="listening_to_vivimusic">الاستماع إلى Napster</string>
     <string name="listen_on_youtube_music">استمع عبر يوتيوب ميوزك</string>
-    قم بزيارة 
+    <string name="visit_vivimusic">قم بزيارة Napster</string>
     <string name="open">فتح</string>
     <string name="failed_to_create_image">فشل إنشاء الصورة: %s</string>
     <string name="failed_to_parse_proxy">فشل تحليل عنوان URL للوكيل.</string>
@@ -619,33 +616,10 @@
     <string name="ai_deepl_formality_default">افتراضي</string>
     <string name="ai_deepl_formality_more">أكثر رسمية</string>
     <string name="ai_deepl_formality_less">أقل رسمية</string>
-    <string name="discord_integration_settings">تكامل ديسكورد</string>
-    <string name="discord_status">الحالة</string>
-    <string name="discord_status_online">أونلاين</string>
-    <string name="discord_status_idle">خامل</string>
-    <string name="discord_status_dnd">ممنوع الإزعاج</string>
-    <string name="discord_buttons">أزرار</string>
-    <string name="discord_button_1">الزر 1</string>
-    <string name="discord_button_2">الزر 2</string>
     <string name="button_text">نص الزر</string>
     <string name="button_visible">مرئي</string>
     <string name="login_successful">تم تسجيل الدخول بنجاح!</string>
-    <string name="discord_information_warning">تستخدم هذه الميزة مكتبة KizzyRPC للاتصال ببوابة ديسكورد وتعيين حالة حضورك الغني. على الرغم من عدم وجود حالات تعليق حسابات معروفة ناتجة عن استخدام مماثل، إلا أن هذه الطريقة غير مدعومة رسميًا من قبل ديسكورد وقد تُعتبر انتهاكًا لشروط الخدمة. يتم استخراج رمزك محليًا ولا يتم إرساله أبدًا إلى خوادم جهات خارجية. تابع على مسؤوليتك الخاصة.</string>
-    <string name="discord_activity_type">نوع النشاط</string>
-    <string name="discord_activity_playing">جارٍ التشغيل</string>
-    <string name="discord_activity_listening">الاستماع</string>
-    <string name="discord_activity_watching">مشاهدة</string>
-    <string name="discord_activity_competing">التنافس</string>
-    <string name="discord_customization">تخصيص</string>
-    <string name="discord_button_text_variables">{song_name} → اسم الأغنية\n{artist_name} → اسم الفنان\n{album_name} → اسم الألبوم</string>
-    <string name="discord_rpc_preview">معاينة الحالة الغنية</string>
-    <string name="discord_presence">التواجد</string>
-    <string name="discord_connect_description">سجّل الدخول باستخدام Discord للمشاركة ما تستمع إليه</string>
     تشغيل Napster
     مشاهدة Napster
     التنافس في 
-    <string name="discord_activity_name">اسم النشاط</string>
-    <string name="discord_activity_name_description">اسم مخصص للنشاط (اتركه فارغًا للافتراضي)</string>
-    <string name="discord_advanced_mode">الوضع المتقدم</string>
-    <string name="discord_advanced_mode_description">عرض خيارات تخصيص إضافية لـ Rich Presence</string>
 </resources>

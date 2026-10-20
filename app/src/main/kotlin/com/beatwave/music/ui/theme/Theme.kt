@@ -46,6 +46,14 @@ fun accentTextColor(accent: Color, dark: Boolean): Color {
 val LocalAccentTextColor = androidx.compose.runtime.compositionLocalOf { Color(0xFF60A5FA) }
 
 @Composable
+fun NapsterTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    pureBlack: Boolean = true,
+    themeColor: Color = DefaultThemeColor,
+    content: @Composable () -> Unit,
+) = vivimusicTheme(darkTheme, pureBlack, themeColor, content)
+
+@Composable
 fun vivimusicTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     pureBlack: Boolean = true,

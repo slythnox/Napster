@@ -131,7 +131,6 @@
     <string name="skip_silence_instant_desc">กระโดดข้ามช่วงเงียบแทนการเร่งความเร็วการเล่น</string>
     <string name="google">Google</string>
     <string name="show_top_playlist">แสดงเพลย์ลิสต์ \"เพลงที่คุณฟังบ่อยที่สุด\"</string>
-    <string name="discord">Discord</string>
     <string name="advanced_login">เข้าสู่ระบบด้วยโทเค็น</string>
     <string name="token_hidden">แตะเพื่อแสดงโทเค็น</string>
     <string name="token_shown">แตะอีกครั้งเพื่อคัดลอกหรือแก้ไข</string>
@@ -160,8 +159,6 @@
     <string name="proxy_username">ชื่อผู้ใช้พร็อกซี</string>
     <string name="proxy_password">รหัสผ่านพร็อกซี</string>
     <string name="enable_authentication">เปิดใช้งานการยืนยันตัวตน</string>
-    <string name="discord_use_details">ใช้รายละเอียดแทนสถานะ</string>
-    <string name="discord_use_details_description">แสดงชื่อเพลงอย่างเด่นชัดแทนชื่อศิลปิน</string>
     <string name="audio_quality_max">สูงสุด (เบต้า)</string>
     <string name="enable_similar_content">เปิดใช้งานเนื้อหาที่คล้ายกัน</string>
     <string name="similar_content_desc">เพิ่มเพลงที่คล้ายกันโดยอัตโนมัติเมื่อถึงท้ายคิว</string>
@@ -589,35 +586,12 @@
     <string name="ai_deepl_formality_default">ค่าเริ่มต้น</string>
     <string name="ai_deepl_formality_more">ทางการมากขึ้น</string>
     <string name="ai_deepl_formality_less">ทางการน้อยลง</string>
-    <string name="discord_integration_settings">การเชื่อมต่อกับ Discord</string>
-    <string name="discord_status">สถานะ</string>
-    <string name="discord_status_online">ออนไลน์</string>
-    <string name="discord_status_dnd">ห้ามรบกวน</string>
-    <string name="discord_buttons">ปุ่ม</string>
-    <string name="discord_button_1">ปุ่มที่ 1</string>
-    <string name="discord_button_2">ปุ่มที่ 2</string>
     <string name="button_text">ข้อความบนปุ่ม</string>
     <string name="button_visible">แสดงปุ่ม</string>
     <string name="login_successful">เข้าสู่ระบบสำเร็จ!</string>
-    <string name="discord_information_warning">ฟีเจอร์นี้ใช้ไลบรารี KizzyRPC เพื่อเชื่อมต่อกับ Discord Gateway และตั้งค่า Rich Presence ของคุณ แม้ยังไม่มีรายงานว่าบัญชีถูกระงับจากการใช้งานลักษณะนี้ แต่วิธีนี้ไม่ได้รับการสนับสนุนอย่างเป็นทางการจาก Discord และอาจเข้าข่ายละเมิดข้อกำหนดการให้บริการ โทเคนของคุณจะถูกดึงและใช้งานภายในเครื่องเท่านั้น และจะไม่ถูกส่งไปยังเซิร์ฟเวอร์ของบุคคลที่สาม โปรดพิจารณาและตัดสินใจใช้งานด้วยความระมัดระวัง</string>
-    <string name="discord_status_idle">ไม่อยู่</string>
-    <string name="discord_activity_type">ประเภทกิจกรรม</string>
-    <string name="discord_activity_playing">กำลังเล่น</string>
-    <string name="discord_activity_listening">กำลังฟัง</string>
-    <string name="discord_activity_watching">กำลังรับชม</string>
-    <string name="discord_activity_competing">กำลังแข่งขัน</string>
-    <string name="discord_customization">การปรับแต่ง</string>
-    <string name="discord_button_text_variables">ตัวแปร: {song_name}, {artist_name}, {album_name}</string>
-    <string name="discord_rpc_preview">ตัวอย่าง Rich Presence</string>
-    <string name="discord_presence">สถานะการแสดงตัว</string>
-    <string name="discord_connect_description">เข้าสู่ระบบด้วย Discord เพื่อแชร์สิ่งที่คุณกำลังฟัง</string>
     กำลังเล่น Napster
     กำลังรับชม Napster
     กำลังแข่งขันใน 
-    <string name="discord_activity_name">ชื่อกิจกรรม</string>
-    <string name="discord_activity_name_description">กำหนดชื่อกิจกรรมเอง (เว้นว่างเพื่อใช้ค่าเริ่มต้น)</string>
-    <string name="discord_advanced_mode">โหมดขั้นสูง</string>
-    <string name="discord_advanced_mode_description">แสดงตัวเลือกการปรับแต่งเพิ่มเติมสำหรับ Rich Presence</string>
     <string name="player_background_solid">สีทึบ</string>
     <string name="resume_on_bluetooth_connect">เล่นต่อเมื่อเชื่อมต่อบลูทูธ</string>
     <string name="lyrics_romanize_hindi">ถอดเสียงเนื้อเพลงภาษาฮินดี</string>

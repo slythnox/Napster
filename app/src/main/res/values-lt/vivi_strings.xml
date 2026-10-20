@@ -101,7 +101,6 @@
     <string name="show_cached_playlist">Rodyti grojaraštį \"Saugykloje\"</string>
     <string name="show_uploaded_playlist">Rodyti grojaraštį \"Įkėlimai\"</string>
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="advanced_login">Prisijungti naudojant žetoną</string>
     <string name="token_hidden">Prilieskite kad matytumėte žetoną</string>
     <string name="token_shown">Prilieskite dar kartą, kad kopijuoti ar redaguoti</string>
@@ -332,8 +331,6 @@
     <string name="edit_playlist_cover_note_wait">Pasirinkę paveikslėlį, palaukite, kol naujas viršelis pasirodys jūsų grojaraštyje.</string>
     <string name="choose_from_library">Pasirinkti iš bibliotekos</string>
     <string name="proxy">Proxy</string>
-    <string name="discord_use_details">Naudoti detalesnę informaciją, vietoje būsenos</string>
-    <string name="discord_use_details_description">Aiškiai matyti dainos pavadinimą, o ne atlikėjo vardą</string>
     <string name="audio_quality_max">Max (beta)</string>
     <string name="enable_similar_content">Įjungti panašų turinį</string>
     <string name="similar_content_desc">Automatiškai pridėti daugiau panašių dainų, kai pasiekiama eilės pabaiga</string>

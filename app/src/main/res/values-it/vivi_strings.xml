@@ -67,7 +67,6 @@
     <string name="show_top_playlist">Mostra la playlist dei migliori brani</string>
     <string name="show_cached_playlist">Mostra la playlist dei brani in cache</string>
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="advanced_login">Accedi con il token</string>
     <string name="token_hidden">Tocca per mostrare il token</string>
     <string name="token_shown">Tocca ancora per copiarlo o modificarlo</string>
@@ -205,8 +204,6 @@
     <string name="filter_uploaded">Caricato</string>
     <string name="uploaded_playlist">Caricato</string>
     <string name="show_uploaded_playlist">Mostra la playlist dei brani caricati</string>
-    <string name="discord_use_details">Usa i dettagli al posto dello stato</string>
-    <string name="discord_use_details_description">Mostra il titolo della canzone prominente al posto dei nomi degli artisti</string>
     <string name="updater">Aggiornamenti</string>
     <string name="check_for_updates">Controlla automaticamente se ci sono aggiornamenti</string>
     <string name="update_notifications">Attiva le notifiche sugli aggiornamenti</string>
@@ -597,37 +594,14 @@
     <string name="ai_deepl_formality_default">Predefinito</string>
     <string name="ai_deepl_formality_more">Più formale</string>
     <string name="ai_deepl_formality_less">Meno formale</string>
-    <string name="discord_integration_settings">Integrazione con Discord</string>
-    <string name="discord_status">Stato</string>
-    <string name="discord_status_online">Online</string>
-    <string name="discord_status_idle">Inattivo</string>
-    <string name="discord_status_dnd">Non disturbare</string>
-    <string name="discord_buttons">Pulsanti</string>
-    <string name="discord_button_1">Pulsante 1</string>
-    <string name="discord_button_2">Pulsante 2</string>
     <string name="button_text">Testo del pulsante</string>
     <string name="button_visible">Visibile</string>
     <string name="login_successful">Accesso eseguito con successo!</string>
-    <string name="discord_activity_type">Tipo di attività</string>
     <string name="prevent_duplicate_tracks_in_queue">Previeni tracce duplicate in coda</string>
     <string name="prevent_duplicate_tracks_in_queue_desc">Quando una traccia viene aggiunta nella coda, rimuovila dalle posizioni precedenti se è già presente</string>
-    <string name="discord_advanced_mode_description">Mostra opzioni di personalizzazione aggiuntive per Rich Presence</string>
-    <string name="discord_advanced_mode">Modalità avanzata</string>
-    <string name="discord_activity_name_description">Nome personalizzato per l\'attività (lascia vuoto per predefinito)</string>
-    <string name="discord_activity_name">Nome dell\'attività</string>
     Competendo su Napster
     Guardando video su Napster
     Riproducendo musica su 
-    <string name="discord_connect_description">Accedi con Discord per condividere ciò che stai ascoltando</string>
-    <string name="discord_presence">Presenza</string>
-    <string name="discord_rpc_preview">Anteprima della Rich Presence</string>
-    <string name="discord_button_text_variables">Variabili: {song_name} per il nome del brano, {artist_name} per il nome dell\'artista, {album_name} per il nome dell\'album</string>
-    <string name="discord_customization">Personalizzazione</string>
-    <string name="discord_activity_competing">Competere</string>
-    <string name="discord_activity_watching">Guardando</string>
-    <string name="discord_activity_listening">Ascoltando</string>
-    <string name="discord_activity_playing">Riproducendo</string>
-    <string name="discord_information_warning">Questa funzione utilizza la libreria KizzyRPC per connettersi al gateway di Discord e impostare il tuo stato di Rich Presence. Sebbene non si siano verificate sospensioni di account note a causa di un utilizzo simile, questo metodo non è ufficialmente supportato da Discord e potrebbe essere considerato una violazione dei Termini di Servizio. Il tuo token viene estratto localmente e non viene mai inviato a server di terze parti. Procedi a tua discrezione.</string>
     <string name="player_background_solid">Solido</string>
     <string name="resume_on_bluetooth_connect">Riprendi con la connessione via Bluetooth</string>
     <string name="lyrics_romanize_hindi">Romanizza testo in hindi</string>

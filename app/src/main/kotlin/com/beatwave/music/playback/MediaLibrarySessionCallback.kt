@@ -113,9 +113,40 @@ constructor(
     @Deprecated("Deprecated in MediaLibrarySession.Callback")
     override fun onPlaybackResumption(
         mediaSession: MediaSession,
-        controller: MediaSession.ControllerInfo
+        controller: MediaSession.ControllerInfo,
     ): ListenableFuture<MediaItemsWithStartPosition> {
-        return SettableFuture.create<MediaItemsWithStartPosition>()
+        val player = mediaSession.player
+        val count = player.mediaItemCount
+        if (count > 0) {
+            val items = (0 until count).map { player.getMediaItemAt(it) }
+            val index = player.currentMediaItemIndex.coerceIn(0, count - 1)
+            val pos = player.currentPosition.coerceAtLeast(0L)
+            return Futures.immediateFuture(
+                MediaItemsWithStartPosition(items, index, pos)
+            )
+        }
+        return Futures.immediateFailedFuture(UnsupportedOperationException("No items to resume"))
+    }
+
+    override fun onSubscribe(
+        session: MediaLibrarySession,
+        browser: MediaSession.ControllerInfo,
+        parentId: String,
+        params: MediaLibraryService.LibraryParams?,
+    ): ListenableFuture<LibraryResult<Void>> {
+        return Futures.immediateFuture(LibraryResult.ofVoid())
+    }
+
+    override fun onAddMediaItems(
+        mediaSession: MediaSession,
+        controller: MediaSession.ControllerInfo,
+        mediaItems: MutableList<MediaItem>,
+    ): ListenableFuture<MutableList<MediaItem>> {
+        return scope.future(Dispatchers.IO) {
+            mediaItems.map { item ->
+                getMediaItem(item.mediaId) ?: item
+            }.toMutableList()
+        }
     }
 
     override fun onGetLibraryRoot(
@@ -180,11 +211,12 @@ constructor(
                         val likedSongCount = database.likedSongsCount().first()
                         val downloadedSongCount = downloadUtil.downloads.value.size
                         val youtubePlaylists = try {
-                            YouTube.home().getOrNull()?.sections
-                                ?.flatMap { it.items }
-                                ?.filterIsInstance<PlaylistItem>()
-                                ?.take(10)
-                                ?: emptyList()
+                            kotlinx.coroutines.withTimeoutOrNull(1500L) {
+                                YouTube.home().getOrNull()?.sections
+                                    ?.flatMap { it.items }
+                                    ?.filterIsInstance<PlaylistItem>()
+                                    ?.take(10)
+                            } ?: emptyList()
                         } catch (e: Exception) {
                             reportException(e)
                             emptyList()
@@ -394,7 +426,7 @@ constructor(
             val path = mediaItems.firstOrNull()?.mediaId?.split("/")
                 ?: return@future defaultResult
 
-            when (path.firstOrNull()) {
+            val result = when (path.firstOrNull()) {
                 MusicService.SONG -> {
                     val songId = path.getOrNull(1) ?: return@future defaultResult
                     val allSongs = database.songsByCreateDateAsc().first()
@@ -406,30 +438,32 @@ constructor(
                 }
 
                 MusicService.ARTIST -> {
-                    val songId = path.getOrNull(2) ?: return@future defaultResult
                     val artistId = path.getOrNull(1) ?: return@future defaultResult
+                    val songId = path.getOrNull(2)
                     val songs = database.artistSongsByCreateDateAsc(artistId).first()
+                    val targetIndex = if (songId != null) songs.indexOfFirst { it.id == songId }.takeIf { it != -1 } ?: 0 else 0
                     MediaItemsWithStartPosition(
                         songs.map { it.toMediaItem() },
-                        songs.indexOfFirst { it.id == songId }.takeIf { it != -1 } ?: 0,
+                        targetIndex,
                         startPositionMs
                     )
                 }
 
                 MusicService.ALBUM -> {
-                    val songId = path.getOrNull(2) ?: return@future defaultResult
                     val albumId = path.getOrNull(1) ?: return@future defaultResult
+                    val songId = path.getOrNull(2)
                     val albumWithSongs = database.albumWithSongs(albumId).first() ?: return@future defaultResult
+                    val targetIndex = if (songId != null) albumWithSongs.songs.indexOfFirst { it.id == songId }.takeIf { it != -1 } ?: 0 else 0
                     MediaItemsWithStartPosition(
                         albumWithSongs.songs.map { it.toMediaItem() },
-                        albumWithSongs.songs.indexOfFirst { it.id == songId }.takeIf { it != -1 } ?: 0,
+                        targetIndex,
                         startPositionMs
                     )
                 }
 
                 MusicService.PLAYLIST -> {
-                    val songId = path.getOrNull(2) ?: return@future defaultResult
                     val playlistId = path.getOrNull(1) ?: return@future defaultResult
+                    val songId = path.getOrNull(2)
                     val songs = when (playlistId) {
                         PlaylistEntity.LIKED_PLAYLIST_ID -> database.likedSongs(SongSortType.CREATE_DATE, descending = true)
                         PlaylistEntity.DOWNLOADED_PLAYLIST_ID -> {
@@ -461,17 +495,18 @@ constructor(
                             C.TIME_UNSET
                         )
                     } else {
+                        val targetIndex = if (songId != null) songs.indexOfFirst { it.id == songId }.takeIf { it != -1 } ?: 0 else 0
                         MediaItemsWithStartPosition(
                             songs.map { it.toMediaItem() },
-                            songs.indexOfFirst { it.id == songId }.takeIf { it != -1 } ?: 0,
+                            targetIndex,
                             startPositionMs
                         )
                     }
                 }
 
                 MusicService.YOUTUBE_PLAYLIST -> {
-                    val songId = path.getOrNull(2) ?: return@future defaultResult
                     val playlistId = path.getOrNull(1) ?: return@future defaultResult
+                    val songId = path.getOrNull(2)
 
                     val songs = try {
                         YouTube.playlist(playlistId).getOrNull()?.songs?.map {
@@ -490,9 +525,10 @@ constructor(
                             C.TIME_UNSET
                         )
                     } else {
+                        val targetIndex = if (songId != null) songs.indexOfFirst { it.mediaId.endsWith(songId) }.takeIf { it != -1 } ?: 0 else 0
                         MediaItemsWithStartPosition(
                             songs,
-                            songs.indexOfFirst { it.mediaId.endsWith(songId) }.takeIf { it != -1 } ?: 0,
+                            targetIndex,
                             C.TIME_UNSET
                         )
                     }
@@ -575,8 +611,32 @@ constructor(
                     )
                 }
 
-                else -> defaultResult
+                else -> {
+                    if (mediaItems.size > 1) {
+                        MediaItemsWithStartPosition(mediaItems, startIndex, startPositionMs)
+                    } else if (mediaItems.isNotEmpty()) {
+                        val singleItem = mediaItems.first()
+                        val rawId = singleItem.mediaId.substringAfterLast('/')
+                        val song = database.song(rawId).first()
+                        if (song != null) {
+                            MediaItemsWithStartPosition(listOf(song.toMediaItem()), 0, startPositionMs)
+                        } else {
+                            MediaItemsWithStartPosition(mediaItems, startIndex, startPositionMs)
+                        }
+                    } else {
+                        defaultResult
+                    }
+                }
             }
+
+            if (result.mediaItems.isNotEmpty() && this@MediaLibrarySessionCallback::service.isInitialized) {
+                service.currentQueue = com.beatwave.music.playback.queue.ListQueue(
+                    items = result.mediaItems,
+                    startIndex = result.startIndex,
+                    position = if (result.startPositionMs != C.TIME_UNSET) result.startPositionMs else 0L
+                )
+            }
+            result
         }
 
     private fun drawableUri(

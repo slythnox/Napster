@@ -360,12 +360,9 @@
     <string name="backup_create_failed">Impossible de créer une sauvegarde</string>
     <string name="restore_failed">Échec de la restauration de la sauvegarde</string>
 
-    <string name="discord_integration">Intégration Discord</string>
-    Napster utilise la bibliothèque KizzyRPC pour définir le statut de votre compte Discord. Cela implique l\'utilisation de la passerelle Discord, ce qui peut être considéré comme une violation des conditions d\'utilisation de Discord. Cependant, aucun cas de suspension de compte utilisateur pour cette raison n\'a été recensé. Utilisez ce service à vos risques et périls. \n\ extraira uniquement votre jeton ; toutes les autres données sont stockées localement.
     <string name="dismiss">Rejeter</string>
     <string name="options">Options</string>
     <string name="preview">Aperçu</string>
-    <string name="enable_discord_rpc">Activer la présence enrichie</string>
 
     <string name="about">À propos</string>
     <string name="app_version">Version de l\'application</string>

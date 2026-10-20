@@ -42,7 +42,6 @@
     <string name="remove_from_cache">Hapus dari cache</string>
     <string name="select">Pilih semua</string>
     <string name="cancel">Batal</string>
-    <string name="discord">Discord</string>
     <string name="advanced_login">Login dengan token</string>
     <string name="token_hidden">Ketuk untuk menampilkan token</string>
     <string name="token_shown">Ketuk lagi untuk menyalin atau mengubah</string>
@@ -199,8 +198,6 @@
     <string name="uploaded_playlist">Diunggah</string>
     <string name="filter_uploaded">Diunggah</string>
     <string name="show_uploaded_playlist">Tampilkan playlist \"Diunggah\"</string>
-    <string name="discord_use_details">Gunakan detail alih-alih status</string>
-    <string name="discord_use_details_description">Tampilkan judul lagu secara menonjol alih-alih nama artis</string>
     <string name="updater">Pembaruan</string>
     <string name="check_for_updates">Periksa pembaruan secara otomatis</string>
     <string name="update_notifications">Aktifkan notifikasi pembaruan</string>
@@ -586,35 +583,12 @@
     <string name="column_label">Kolom %d</string>
     <string name="csv_import_failed">Gagal mengimpor file CSV</string>
     <string name="csv_preview_failed">Gagal melihat pratinjau file CSV</string>
-    <string name="discord_integration_settings">Integrasi Discord</string>
-    <string name="discord_status">Status</string>
-    <string name="discord_status_online">Online</string>
-    <string name="discord_status_idle">Idle</string>
-    <string name="discord_status_dnd">Jangan Ganggu</string>
-    <string name="discord_buttons">Tombol</string>
-    <string name="discord_button_1">Tombol 1</string>
-    <string name="discord_button_2">Tombol 2</string>
     <string name="button_text">Teks tombol</string>
     <string name="button_visible">Terlihat</string>
     <string name="login_successful">Login berhasil!</string>
-    <string name="discord_information_warning">Fitur ini menggunakan pustaka KizzyRPC untuk terhubung ke Gateway Discord dan mengatur status Rich Presence Anda. Meskipun tidak ada penangguhan akun yang diketahui dari penggunaan serupa, metode ini tidak didukung secara resmi oleh Discord dan dapat dianggap sebagai pelanggaran Ketentuan Layanan. Token Anda diekstrak secara lokal dan tidak pernah dikirim ke server pihak ketiga. Lanjutkan dengan pertimbangan Anda sendiri.</string>
-    <string name="discord_activity_type">Jenis aktivitas</string>
-    <string name="discord_activity_playing">Bermain</string>
-    <string name="discord_activity_listening">Mendengarkan</string>
-    <string name="discord_activity_watching">Menonton</string>
-    <string name="discord_activity_competing">Berkompetisi</string>
-    <string name="discord_customization">Kustomisasi</string>
-    <string name="discord_button_text_variables">Variabel: {song_name}, {artist_name}, {album_name}</string>
-    <string name="discord_rpc_preview">Pratinjau Rich Presence</string>
-    <string name="discord_presence">Kehadiran</string>
-    <string name="discord_connect_description">Masuk dengan Discord untuk membagikan apa yang Anda dengarkan</string>
     Bermain Napster
     Menonton Napster
     Berkompetisi di 
-    <string name="discord_activity_name">Nama aktivitas</string>
-    <string name="discord_activity_name_description">Nama kustom untuk aktivitas (biarkan kosong untuk default)</string>
-    <string name="discord_advanced_mode">Mode lanjutan</string>
-    <string name="discord_advanced_mode_description">Tampilkan opsi kustomisasi tambahan untuk Rich Presence</string>
     <string name="enable">Aktifkan</string>
     <string name="prevent_duplicate_tracks_in_queue">Cegah lagu yang sama di antrean</string>
     <string name="prevent_duplicate_tracks_in_queue_desc">Saat menambahkan lagu ke antrean, hapus kemunculannya sebelumnya jika lagu tersebut sudah ada dalam antrean</string>

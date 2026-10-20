@@ -21,6 +21,7 @@ Welcome to the technical documentation suite for **Napster**, an open-source And
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Architectural invariants, code conventions, testing expectations, and contribution workflow. |
 | [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) | Build failure remedies, playback error resolution, and common runtime troubleshooting. |
 | [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) | Step-by-step pre-release verification protocol and artifact compilation guidance. |
+| [`APK_UPDATE_AND_SIGNING.md`](APK_UPDATE_AND_SIGNING.md) | Release signing lifecycle, keystore security, certificate fingerprint verification, and safe in-place APK upgrades. |
 
 ---
 

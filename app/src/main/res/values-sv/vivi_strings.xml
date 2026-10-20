@@ -126,7 +126,6 @@
     <string name="show_top_playlist">Visa spellistan \"Topp\"</string>
     <string name="show_cached_playlist">Visa spellista \"Cachade\"</string>
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="advanced_login">Avancerad inloggning (token)</string>
     <string name="token_hidden">Tryck för att visa token</string>
     <string name="default_links">Öppna supporterade länkar</string>

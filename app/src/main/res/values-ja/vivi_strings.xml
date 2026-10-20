@@ -56,7 +56,6 @@
     <string name="similar_content">似た曲</string>
     <string name="show_cached_playlist">キャッシュ済みのプレイリストを表示</string>
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="auto_playlists">自動プレイリスト</string>
     <string name="show_liked_playlist">高評価した曲のプレイリストを表示</string>
     <string name="show_downloaded_playlist">ダウンロード済みの曲のプレイリストを表示</string>
@@ -176,8 +175,6 @@
     <string name="proxy_username">プロキシのユーザー名</string>
     <string name="proxy_password">プロキシのパスワード</string>
     <string name="enable_authentication">認証を有効化</string>
-    <string name="discord_use_details">曲名を強調して表示</string>
-    <string name="discord_use_details_description">アーティスト名より曲名を目立つように表示します</string>
     <string name="lyrics_romanization_cyrillic">キリル文字</string>
     <string name="lyrics_romanize_title">ローマ字</string>
     <string name="lyrics_romanization">歌詞にローマ字を追加</string>
@@ -589,35 +586,12 @@
     <string name="ai_deepl_formality_default">デフォルト</string>
     <string name="ai_deepl_formality_more">より丁寧</string>
     <string name="ai_deepl_formality_less">よりカジュアル</string>
-    <string name="discord_integration_settings">Discordと連携</string>
-    <string name="discord_status">ステータス</string>
-    <string name="discord_status_online">オンライン</string>
-    <string name="discord_status_idle">退席中</string>
-    <string name="discord_status_dnd">取り込み中</string>
-    <string name="discord_buttons">ボタン</string>
-    <string name="discord_button_1">ボタン 1</string>
-    <string name="discord_button_2">ボタン 2</string>
     <string name="button_text">ボタンのテキスト</string>
     <string name="button_visible">表示する</string>
     <string name="login_successful">ログインに成功しました！</string>
-    <string name="discord_information_warning">この機能は、KizzyRPCライブラリを使用してDiscordのゲートウェイに接続し、リッチプレゼンスステータスを設定します。同様の使用方法によるアカウント停止は現在まで報告されていませんが、この方法はDiscordによって公式にサポートされておらず、利用規約違反とみなされる可能性があります。トークンはデバイス内でのみ取得され、第三者のサーバーに送信されることはありません。自己責任で使用してください。</string>
-    <string name="discord_activity_type">アクティビティの種類</string>
-    <string name="discord_activity_playing">プレイ中</string>
-    <string name="discord_activity_listening">再生中</string>
-    <string name="discord_activity_watching">視聴中</string>
-    <string name="discord_activity_competing">大会に参加中</string>
-    <string name="discord_customization">カスタマイズ</string>
-    <string name="discord_button_text_variables">利用可能な変数：{song_name}, {artist_name}, {album_name}</string>
-    <string name="discord_rpc_preview">リッチプレゼンスのプレビュー</string>
-    <string name="discord_presence">プレゼンス</string>
-    <string name="discord_connect_description">Discordにサインインして、再生中の内容を共有しよう</string>
     Napsterで再生中
     Napsterで視聴中
     で大会に参加中
-    <string name="discord_activity_name">アクティビティ名</string>
-    <string name="discord_activity_name_description">アクティビティのカスタム名（空欄の場合はデフォルトを使用）</string>
-    <string name="discord_advanced_mode">詳細設定</string>
-    <string name="discord_advanced_mode_description">リッチプレゼンスの追加のカスタマイズオプションを表示します</string>
     <string name="player_background_solid">単色</string>
     <string name="resume_on_bluetooth_connect">Bluetooth接続時に再生を再開</string>
     <string name="lyrics_romanize_hindi">ヒンディー語の歌詞にローマ字を追加</string>

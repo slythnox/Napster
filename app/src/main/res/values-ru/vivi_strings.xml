@@ -18,7 +18,6 @@
     <string name="swipe_song_to_add">Свайп песни влево - добавить её в очередь, свайп песни вправо - воспроизвести её следующей</string>
     <string name="slim">Тонкий</string>
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="token_hidden">Нажмите, чтобы показать токен</string>
     <string name="token_shown">Нажмите еще раз, чтобы скопировать или изменить</string>
     <string name="ytm_sync">Авто-синхронизация с аккаунтом YouTube Music</string>
@@ -215,8 +214,6 @@
     <string name="update_available_title">Доступно обновление</string>
     <string name="update_channel_name">Обновления приложения</string>
     <string name="update_channel_desc">Уведомления о новых версиях</string>
-    <string name="discord_use_details">Использовать подробности вместо статуса</string>
-    <string name="discord_use_details_description">Показывать в заголовке название трека вместо исполнителя</string>
     <string name="integrations">Интеграции</string>
     <string name="username">Имя пользователя</string>
     <string name="password">Пароль</string>
@@ -588,16 +585,6 @@
     <string name="hide_youtube_shorts">Скрыть YouTube Shorts</string>
     <string name="listen_together_in_top_bar">Совместное прослушивание в верхней панели</string>
     <string name="listen_together_in_top_bar_desc">Показывать «Совместное прослушивание» на верхней панели вместо панели навигации</string>
-    <string name="discord_advanced_mode_description">Показать дополнительные параметры настройки Rich Presence</string>
-    <string name="discord_activity_playing">Играет</string>
-    <string name="discord_activity_listening">Слушает</string>
-    <string name="discord_activity_watching">Смотрит</string>
-    <string name="discord_activity_competing">Соревнуется</string>
-    <string name="discord_customization">Настройка</string>
-    <string name="discord_button_text_variables">Переменные: {song_name}, {artist_name}, {album_name}</string>
-    <string name="discord_rpc_preview">Предпросмотр Rich Presence</string>
-    <string name="discord_presence">Присутствие</string>
-    <string name="discord_connect_description">Войдите через Discord, чтобы поделиться тем, что вы слушаете</string>
     Играет в 
     <string name="prevent_duplicate_tracks_in_queue">Исключать дубликаты в очереди</string>
     <string name="prevent_duplicate_tracks_in_queue_desc">При добавлении трека в очередь удалять его из предыдущей позиции, если он уже присутствует</string>
@@ -615,24 +602,11 @@
     <string name="ai_deepl_formality_default">По умолчанию</string>
     <string name="ai_deepl_formality_more">Более формально</string>
     <string name="ai_deepl_formality_less">Менее формально</string>
-    <string name="discord_integration_settings">Интеграция с Discord</string>
-    <string name="discord_status">Статус</string>
-    <string name="discord_status_online">В сети</string>
-    <string name="discord_status_idle">Неактивен</string>
-    <string name="discord_status_dnd">Не беспокоить</string>
-    <string name="discord_buttons">Кнопки</string>
-    <string name="discord_button_1">Кнопка 1</string>
-    <string name="discord_button_2">Кнопка 2</string>
     <string name="button_text">Текст кнопки</string>
     <string name="button_visible">Отображать</string>
     <string name="login_successful">Вход выполнен успешно!</string>
-    <string name="discord_information_warning">Эта функция использует библиотеку KizzyRPC для подключения к шлюзу Discord и установки статуса Rich Presence. Хотя случаев блокировки аккаунтов при подобном использовании не зафиксировано, данный метод официально не поддерживается Discord и может считаться нарушением Условий использования. Ваш токен извлекается локально и никогда не отправляется на сторонние серверы. Используйте на свой страх и риск.</string>
-    <string name="discord_activity_type">Тип активности</string>
     Смотрит Napster
     Соревнуется в 
-    <string name="discord_activity_name">Название активности</string>
-    <string name="discord_activity_name_description">Пользовательское название активности (оставьте пустым для значения по умолчанию)</string>
-    <string name="discord_advanced_mode">Расширенный режим</string>
     <string name="player_background_solid">Сплошной</string>
     <string name="resume_on_bluetooth_connect">Возобновлять при подключении Bluetooth</string>
     <string name="lyrics_romanize_hindi">Романизировать тексты на хинди</string>

@@ -54,7 +54,6 @@
     <string name="default_style">Standaard</string>
     <string name="secondary_color_style">Secundaire kleur</string>
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="advanced_login">Login met token</string>
     <string name="token_hidden">Klik om token te tonen</string>
     <string name="token_shown">Klik opnieuw om te kopiëren of te wijzigen</string>
@@ -255,7 +254,6 @@
     <string name="enable_simpmusic_desc">Gebruik SimpMusic songtekst provider voor gesynchroniseerde teksten</string>
     <string name="skip_silence_instant">Stilte direct overslaan</string>
     <string name="skip_silence_instant_desc">Spoel tijdens stille momenten vooruit in plaats van het afspelen te versnellen</string>
-    <string name="discord_use_details_description">Toon de titel van het nummer duidelijk in plaats van de naam van de artiest</string>
     <string name="audio_quality_max">Max (bèta)</string>
     <string name="min_playback_duration_description">De minimale hoeveelheid van een nummer die moet worden afgespeeld voordat het als “afgespeeld” wordt geregistreerd</string>
     <string name="percentage_format">%d%%</string>

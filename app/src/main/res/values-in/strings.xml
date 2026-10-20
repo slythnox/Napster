@@ -262,11 +262,8 @@
     <string name="disable_screenshot">Nonaktifkan tangkapan layar</string>
     <string name="disable_screenshot_desc">Ketika pilihan ini diaktifkan, tangkapan layar dan tampilan aplikasi di Terkini dinonaktifkan.</string>
     <string name="enable_lrclib">Aktifkan penyedia lirik LrcLib</string>
-    <string name="discord_integration">Integrasi Discord</string>
-    Napster menggunakan pustaka KizzyRPC untuk mengatur status akun Discord Anda. Hal ini melibatkan penggunaan sambungan Discord Gateway, yang dapat dianggap sebagai pelanggaran TOS Discord. Namun, tidak ada kasus yang diketahui tentang akun pengguna yang ditangguhkan karena alasan ini. Gunakan dengan risiko Anda sendiri.\n\n hanya akan mengekstrak token Anda, dan yang lainnya disimpan secara lokal.
     <string name="dismiss">Singkirkan</string>
     <string name="preview">Pratinjau</string>
-    <string name="enable_discord_rpc">Aktifkan Rich Presence</string>
     <string name="use_login_for_browse">Masuk untuk menjelajahi konten</string>
     <string name="use_login_for_browse_desc">Hal ini dapat memengaruhi konten yang Anda lihat dan misalnya menampilkan album khusus premium jika Anda masuk dengan akun Premium</string>
     <string name="action_login">Masuk</string>

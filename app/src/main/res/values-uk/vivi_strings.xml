@@ -42,7 +42,6 @@
     <string name="lyrics_click_change">Змінити текст пісні при натисканні</string>
     <string name="slim_navbar">Тонка нижня панель навігації</string>
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="advanced_login">Вхід через токен</string>
     <string name="token_hidden">Натисніть для показу токену</string>
     <string name="token_shown">Повторно натисніть, щоб скопіювати або редагувати</string>
@@ -215,8 +214,6 @@
     <string name="update_available_title">Доступне оновлення</string>
     <string name="update_channel_name">Оновлення програм</string>
     <string name="update_channel_desc">Сповіщення про нові версії</string>
-    <string name="discord_use_details">Використовуйте деталі замість штату</string>
-    <string name="discord_use_details_description">Помітно показувати назву пісні замість імен виконавців</string>
     <string name="integrations">Інтеграції</string>
     <string name="username">Ім\'я користувача</string>
     <string name="password">Пароль</string>

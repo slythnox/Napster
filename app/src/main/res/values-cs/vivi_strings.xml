@@ -66,7 +66,6 @@
     <string name="show_top_playlist">Zobrazit playlist „Nejlepší“</string>
     <string name="show_cached_playlist">Zobrazit playlist „V mezipaměti“</string>
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="advanced_login">Přihlásit se pomocí tokenu</string>
     <string name="token_hidden">Klepněte pro zobrazení tokenu</string>
     <string name="token_shown">Klepněte znovu pro kopírování nebo úpravu</string>
@@ -215,8 +214,6 @@
     <string name="update_available_title">Je dostupná aktualizace</string>
     <string name="update_channel_name">Aktualizace aplikací</string>
     <string name="update_channel_desc">Oznámení o nových verzích</string>
-    <string name="discord_use_details">Použít podrobnosti namísto stavu</string>
-    <string name="discord_use_details_description">Zobrazit jako hlavní název skladby namísto jména interpreta</string>
     <string name="integrations">Integrace</string>
     <string name="username">Uživatelské jméno</string>
     <string name="password">Heslo</string>
@@ -609,33 +606,10 @@
     <string name="ai_deepl_formality_default">Výchozí</string>
     <string name="ai_deepl_formality_more">Formálnější</string>
     <string name="ai_deepl_formality_less">Méně formální</string>
-    <string name="discord_integration_settings">Integrace s Discordem</string>
-    <string name="discord_status">Stav</string>
-    <string name="discord_status_online">Online</string>
-    <string name="discord_status_idle">Nečinný</string>
-    <string name="discord_status_dnd">Nerušit</string>
-    <string name="discord_buttons">Tlačítka</string>
-    <string name="discord_button_1">Tlačítko 1</string>
-    <string name="discord_button_2">Tlačítko 2</string>
     <string name="button_text">Text tlačítka</string>
     <string name="button_visible">Viditelné</string>
     <string name="login_successful">Přihlášení bylo úspěšné!</string>
-    <string name="discord_information_warning">Tato funkce využívá knihovnu KizzyRPC k připojení k bráně Discordu a nastavení vašeho stavu na něm. Ačkoli nejsou známy žádné případy zrušení účtu v důsledku podobného použití, není tato metoda oficiálně podporována společností Discord a může být považována za porušení podmínek služby. Váš token je extrahován lokálně a nikdy není odesílán na servery třetích stran. Postupujte podle vlastního uvážení.</string>
-    <string name="discord_activity_type">Typ aktivity</string>
-    <string name="discord_activity_playing">Hraje</string>
-    <string name="discord_activity_listening">Poslouchá</string>
-    <string name="discord_activity_watching">Sleduje</string>
-    <string name="discord_activity_competing">Soupeří</string>
-    <string name="discord_customization">Přizpůsobit</string>
-    <string name="discord_button_text_variables">Proměnné: {song_name}, {artist_name}, {album_name}</string>
-    <string name="discord_rpc_preview">Náhled stavu na Discordu</string>
-    <string name="discord_presence">Stav</string>
-    <string name="discord_connect_description">Přihlaste se k Discordu pro sdílení hudby, kterou posloucháte</string>
     Hraje Napster
     Sleduje Napster
     Soupeří v 
-    <string name="discord_activity_name">Název aktivity</string>
-    <string name="discord_activity_name_description">Vlastní název aktivity (ponechte prázdné pro výchozí)</string>
-    <string name="discord_advanced_mode">Pokročilý režim</string>
-    <string name="discord_advanced_mode_description">Zobrazit dodatečné možnosti přizpůsobení pro stav na Discordu</string>
 </resources>

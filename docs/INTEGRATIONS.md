@@ -60,10 +60,7 @@ The player UI supports dynamic background video loops and canvas animations:
 
 ---
 
-## 6. GitHub Release Updater (`vivimusicupdater.kt`)
+## 6. Release Distribution
 
-- **Endpoints:**
-  - Stable releases: `api.github.com/repos/slythnox/Napster/releases`
-  - Nightly builds: `api.github.com/repos/slythnox/Napster/actions/workflows/nightly.yml/runs`
-- **Functionality:** Polls release tags, downloads changelog manifests (`changelog.json`), and presents update prompt dialogues.
-- **Package Installation:** On GMS build variants, enqueues background downloads via `WorkManager` (`UpdateDownloadWorker`) and triggers the system package installer via `FileProvider`.
+- **GitHub Releases:** Official releases and APK artifacts are distributed via `github.com/slythnox/Napster/releases`.
+- **Packaging:** Builds are produced as signed APKs via automated GitHub Actions CI workflows. In-app self-updating was removed in favour of standard platform installation and package managers (F-Droid / Obtainium / direct APK).

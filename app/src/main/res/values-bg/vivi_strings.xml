@@ -71,7 +71,6 @@
     <string name="show_top_playlist">Покажи плейлист \"Топ\"</string>
     <string name="show_cached_playlist">Покажи плейлист \"Кеширани\"</string>
     <string name="google">Гугъл</string>
-    <string name="discord">Дискорд</string>
     <string name="advanced_login">Вход с токен</string>
     <string name="token_hidden">Натисни за показване на токен</string>
     <string name="token_shown">Натисни отново за копиране или редакция</string>
@@ -172,8 +171,6 @@
     <string name="proxy_username">Потребителско име на прокси</string>
     <string name="proxy_password">Парола на прокси</string>
     <string name="enable_authentication">Активиране на удостоверяване</string>
-    <string name="discord_use_details">Използвайте подробности вместо статус</string>
-    <string name="discord_use_details_description">Показване заглавията на песните вместо имената на изпълнителите</string>
     <string name="disable_load_more_when_repeat_all">Деактивиране на автоматичното изтегляне при повтаряне на всички песни</string>
     <string name="disable_load_more_when_repeat_all_desc">Не изтегляйте автоматично още песни и подобно съдържание, когато е активирано „Повтаряне на всички“</string>
     <string name="lyrics_romanization_cyrillic">Кирилица</string>

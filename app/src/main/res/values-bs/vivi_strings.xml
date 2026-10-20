@@ -2,7 +2,6 @@
 <resources>
     <string name="lyrics_auto_scroll">Automatsko pomjeranje stihova</string>
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="show_cached_playlist">Prikaži \"Keširanu\" plejlistu</string>
     <string name="explore">Istraži</string>
     <string name="remote_history">Udaljen</string>

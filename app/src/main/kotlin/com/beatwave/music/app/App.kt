@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Napster (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
@@ -328,10 +328,10 @@ class App : Application(), SingletonImageLoader.Factory {
                 // size they are drawn at, so a custom icon never goes soft when scaled up.
                 add(SvgDecoder.Factory())
             }
-            // Memory cache for fast image loading (prevents network requests on recomposition)
+            // Memory cache for fast image loading (capped at 20% of app heap to leave headroom for audio buffers and shaders)
             memoryCache {
                 MemoryCache.Builder()
-                    .maxSizePercent(context, 0.35)
+                    .maxSizePercent(context, 0.20)
                     .build()
             }
             if (cacheSize == 0) {

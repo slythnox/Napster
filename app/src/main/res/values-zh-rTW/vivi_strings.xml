@@ -42,7 +42,6 @@
     <string name="slim">細</string>
     <string name="slim_navbar">隱藏底部導覽列標籤</string>
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="advanced_login">透過 token 登入</string>
     <string name="token_hidden">點擊以顯示 token</string>
     <string name="token_shown">再次點擊以複製或編輯</string>
@@ -199,8 +198,6 @@
     <string name="filter_uploaded">已上傳</string>
     <string name="choose_from_library">從媒體庫選擇</string>
     <string name="remove_custom_image">移除自定義圖片</string>
-    <string name="discord_use_details">使用詳細內容而非狀態</string>
-    <string name="discord_use_details_description">強化顯示曲名而非作曲家</string>
     <string name="updater">更新器</string>
     <string name="check_for_updates">自動檢查更新</string>
     <string name="update_notifications">開啟更新通知</string>

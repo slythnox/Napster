@@ -86,7 +86,6 @@
     <string name="show_top_playlist">Mostrar lista de top</string>
     <string name="show_cached_playlist">Mostrar lista de músicas em cache</string>
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="advanced_login">Login com token</string>
     <string name="token_hidden">Toque para mostrar o token</string>
     <string name="token_shown">Toque novamente para copiar ou editar</string>
@@ -194,8 +193,6 @@
     <string name="proxy_username">Nome de utilizador proxy</string>
     <string name="proxy_password">Palavra-passe proxy</string>
     <string name="enable_authentication">Habilitar autenticação</string>
-    <string name="discord_use_details">Usar detalhes em vez de estado</string>
-    <string name="discord_use_details_description">Mostrar titulo da música proeminentemente em vez de nome do artista</string>
     <string name="lyrics_romanization_cyrillic">Cirílica</string>
     <string name="line_by_line_option_title">EXPERIMENTAL: Detetar língua linha por linha</string>
     <string name="line_by_line_dialog_title">Tens a certeza?</string>

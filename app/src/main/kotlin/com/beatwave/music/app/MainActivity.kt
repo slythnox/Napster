@@ -304,7 +304,7 @@ import com.beatwave.music.ui.theme.LocalAccentTextColor
 import com.beatwave.music.ui.theme.extractThemeColor
 import com.beatwave.music.ui.theme.extractThemeColorFromVideoFrame
 import com.beatwave.music.ui.theme.rememberBrandFontFamily
-import com.beatwave.music.ui.theme.vivimusicTheme
+import com.beatwave.music.ui.theme.NapsterTheme
 import com.beatwave.music.ui.utils.appBarScrollBehavior
 import com.beatwave.music.ui.utils.rememberIosOverscrollFactory
 import com.beatwave.music.ui.utils.resetHeightOffset
@@ -712,7 +712,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        vivimusicTheme(
+        NapsterTheme(
             darkTheme = useDarkTheme,
             pureBlack = pureBlack,
             themeColor = themeColor,

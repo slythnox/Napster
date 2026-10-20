@@ -553,9 +553,12 @@ fun Lyrics(
         selectedIndices.clear()
     }
 
-    LaunchedEffect(lyrics) {
+    LaunchedEffect(lyrics, isAppMinimized) {
         if (lyrics.isNullOrEmpty() || !lyrics.startsWith("[")) {
             currentLineIndex = -1
+            return@LaunchedEffect
+        }
+        if (isAppMinimized) {
             return@LaunchedEffect
         }
         while (isActive) {

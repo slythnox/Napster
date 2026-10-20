@@ -65,7 +65,6 @@
     <string name="show_top_playlist">Εμφάνιση Κορυφαίων Λιστών</string>
     <string name="show_cached_playlist">Εμφάνιση Λιστών στην Κρυφή Μνήμη</string>
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="advanced_login">Σύνθετη σύνδεση (token)</string>
     <string name="token_hidden">Πατήστε για να εμφανιστεί το token</string>
     <string name="token_shown">Πατήστε ξανά για αντιγραφή ή επεξεργασία</string>
@@ -173,8 +172,6 @@
     <string name="proxy_username">Όνομα χρήστη διακομιστή μεσολάβησης</string>
     <string name="proxy_password">Κωδικός πρόσβασης διακομιστή μεσολάβησης</string>
     <string name="enable_authentication">Ενεργοποίηση ελέγχου ταυτότητας</string>
-    <string name="discord_use_details">Χρήση λεπτομερειών αντί πολιτείας</string>
-    <string name="discord_use_details_description">Προβολή τίτλου τραγουδιού με έμφαση αντί για ονόματα καλλιτεχνών</string>
     <string name="playlist_not_found">Η λίστα αναπαραγωγής δεν βρέθηκε</string>
     <string name="playlist_not_found_desc">Η ζητούμενη λίστα αναπαραγωγής δεν μπόρεσε να φορτωθεί</string>
     <string name="empty_playlist">Άδεια λίστα αναπαραγωγής</string>

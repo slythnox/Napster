@@ -226,6 +226,9 @@
         <meta-data
             android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc" />
+        <meta-data
+            android:name="com.google.android.gms.car.notification.SmallIcon"
+            android:resource="@drawable/ic_notification_napster" />
         <!-- Napster Dot Player (Widget A - Compact 2x2) -->
         <receiver
             android:name=".widget.MusicWidgetReceiver"

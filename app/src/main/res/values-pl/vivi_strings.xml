@@ -53,7 +53,6 @@
     <string name="retry_button">Spróbuj ponownie</string>
     <string name="local_history">Lokalna</string>
     <string name="charts">Wykresy</string>
-    <string name="discord">Discord</string>
     <string name="google">Google</string>
     <string name="description">Opis</string>
     <string name="background_color">Kolor tła</string>
@@ -208,8 +207,6 @@
     <string name="uploaded_playlist">Przesłane</string>
     <string name="filter_uploaded">Przesłane</string>
     <string name="show_uploaded_playlist">Pokaż playlistę \"Przesłane\"</string>
-    <string name="discord_use_details">Używaj detali zamiast stanu</string>
-    <string name="discord_use_details_description">Pokaż wyraźnie nazwy utworów zamiast artystów</string>
     <string name="updater">Aktualizacje</string>
     <string name="check_for_updates">Automatycznie sprawdzaj dostępność aktualizacji</string>
     <string name="update_notifications">Włącz powiadomienia o aktualizacjach</string>

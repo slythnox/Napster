@@ -177,7 +177,6 @@
     <string name="skip_silence_instant_desc">Passez les moments silencieux au lieu d\'accélérer la lecture</string>
 
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="advanced_login">Connexion avec jeton</string>
     <string name="token_hidden">Appuyez pour afficher le jeton</string>
     <string name="token_shown">Appuyez à nouveau pour copier ou modifier</string>
@@ -210,8 +209,6 @@
     <string name="proxy_username">Nom d\'utilisateur du proxy</string>
     <string name="proxy_password">Mot de passe proxy</string>
     <string name="enable_authentication">Activer l\'authentification</string>
-    <string name="discord_use_details">Utilisez les détails plutôt que l\'état</string>
-    <string name="discord_use_details_description">Afficher le titre de la chanson bien en évidence plutôt que le nom de l\'artiste</string>
 
     <string name="audio_quality_max">Maximale</string>
     <string name="enable_similar_content">Activer le contenu similaire</string>
@@ -713,36 +710,12 @@ est irréversible.
     <string name="csv_import_failed">Échec de l\'importation du fichier CSV</string>
     <string name="csv_preview_failed">Impossible d\'afficher l\'aperçu du fichier CSV</string>
 
-    <!-- Discord Integration Redesign -->
-    <string name="discord_integration_settings">Intégration à Discord</string>
-    <string name="discord_status">Statut</string>
-    <string name="discord_status_online">En ligne</string>
-    <string name="discord_status_idle">Inactif</string>
-    <string name="discord_status_dnd">Ne pas déranger</string>
-    <string name="discord_buttons">Boutons</string>
-    <string name="discord_button_1">Bouton 1</string>
-    <string name="discord_button_2">Bouton 2</string>
     <string name="button_text">Texte du bouton</string>
     <string name="button_visible">Visible</string>
     <string name="login_successful">Connexion réussie !</string>
-    <string name="discord_information_warning">Cette fonctionnalité utilise la bibliothèque KizzyRPC pour se connecter à la passerelle Discord et définir votre statut « Rich Presence ». Bien qu\'aucune suspension de compte n\'ait été signalée suite à une utilisation similaire, cette méthode n\'est pas officiellement prise en charge par Discord et peut être considérée comme une violation des conditions d\'utilisation. Votre jeton est extrait localement et n\'est jamais envoyé à des serveurs tiers. Procédez à votre entière discrétion.</string>
-    <string name="discord_activity_type">Type d\'activité</string>
-    <string name="discord_activity_playing">Lire</string>
-    <string name="discord_activity_listening">Écouter</string>
-    <string name="discord_activity_watching">Regarder</string>
-    <string name="discord_activity_competing">En compétition</string>
-    <string name="discord_customization">Personnalisation</string>
-    <string name="discord_button_text_variables">Variables: {song_name}, {artist_name}, {album_name}</string>
-    <string name="discord_rpc_preview">Aperçu de Rich Presence</string>
-    <string name="discord_presence">Présence</string>
-    <string name="discord_connect_description">Connectez-vous avec Discord pour partager ce que vous écoutez.</string>
     Écouter Napster
     Regarder Napster
     En compétition sur 
-    <string name="discord_activity_name">Nom de l\'activité</string>
-    <string name="discord_activity_name_description">Nom personnalisé de l\'activité (laissez vide pour utiliser le nom par défaut)</string>
-    <string name="discord_advanced_mode">Mode avancé</string>
-    <string name="discord_advanced_mode_description">Afficher les options de personnalisation supplémentaires pour Rich Presence</string>
     <string name="speed_dial">Accès Rapide</string>
     <string name="pin_to_speed_dial">Épingler à l\'Accès Rapide</string>
     <string name="unpin_from_speed_dial">Détacher de l\'Accès Rapide</string>

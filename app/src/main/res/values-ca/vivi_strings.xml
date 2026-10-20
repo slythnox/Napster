@@ -115,7 +115,6 @@
     <string name="show_cached_playlist">Mostrar llista \"En memòria cau\"</string>
     <string name="show_uploaded_playlist">Mostrar llista \"Pujades\"</string>
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="advanced_login">Inicia sessió amb un token</string>
     <string name="show_wrapped_card">Mostrar targeta Recopilació</string>
     <string name="shuffle_playlist_first">Mescla llista/àlbum primer</string>
@@ -147,8 +146,6 @@
     <string name="proxy_username">Usuari de proxy</string>
     <string name="proxy_password">Contrasenya de proxy</string>
     <string name="enable_authentication">Habilitar autentificació</string>
-    <string name="discord_use_details">Utilitza els detalls en lloc de l\'estat</string>
-    <string name="discord_use_details_description">Mostra el nom de la cançó de manera destacada en lloc dels noms dels artistes</string>
     <string name="audio_quality_max">Màxima (beta)</string>
     <string name="enable_similar_content">Habilitar contingut similar</string>
     <string name="similar_content_desc">Afegir automàticament més cançons similars quan s\'aplegue a la fi de la cua</string>
@@ -599,38 +596,15 @@
     <string name="column_label">Col %d</string>
     <string name="csv_import_failed">S\'ha produït un error en importar l\'arxiu CSV</string>
     <string name="csv_preview_failed">No s\'ha pogut visualitzar l\'arxiu CSV</string>
-    <string name="discord_integration_settings">Integració amb Discord</string>
-    <string name="discord_status">Estat</string>
-    <string name="discord_status_online">En línia</string>
-    <string name="discord_status_idle">Inactiu</string>
-    <string name="discord_status_dnd">No molestar</string>
-    <string name="discord_buttons">Botons</string>
-    <string name="discord_button_1">Botó 1</string>
-    <string name="discord_button_2">Botó 2</string>
     <string name="button_text">Text del botó</string>
     <string name="button_visible">Visible</string>
     <string name="login_successful">Sessió iniciada amb èxit!</string>
-    <string name="discord_activity_type">Tipus d\'activitat</string>
-    <string name="discord_activity_playing">Reproduint</string>
-    <string name="discord_activity_listening">Escoltant</string>
-    <string name="discord_activity_watching">Veient</string>
-    <string name="discord_activity_competing">Competint</string>
-    <string name="discord_customization">Personalització</string>
-    <string name="discord_button_text_variables">Variables: {nom_cançó}, {nom_artista}, {nom_album}</string>
-    <string name="discord_rpc_preview">Previsualització de la Rich Presence</string>
-    <string name="discord_presence">Presència</string>
-    <string name="discord_connect_description">Inicia sessió a Discord per compartir el que estàs escoltant</string>
     Reproduint Napster
     Veient Napster
     Competint a 
-    <string name="discord_activity_name">Nom de l\'activitat</string>
-    <string name="discord_activity_name_description">Nom personalitzat per a l\'activitat (buit de manera predeterminada)</string>
-    <string name="discord_advanced_mode">Mode avançat</string>
-    <string name="discord_advanced_mode_description">Mostra opcions de personalització avançades per a Rich Presence</string>
     <string name="player_background_solid">Sòlid</string>
     <string name="resume_on_bluetooth_connect">Reprèn la connexió Bluetooth</string>
     <string name="lyrics_romanize_hindi">Romanitza lletra en Hindi</string>
     <string name="lyrics_romanize_punjabi">Romanitza lletra en Panjabi</string>
     <string name="lyrics_romanize_as_main">Mostra lletres romanitzades principalment</string>
-    <string name="discord_information_warning">Aquesta funcionalitat utilitza la llibreria KizzyRPC per a connectar-se als ports de Discord i configurar el vostre estatus de Rich Presence. Encara que no s\'ha informat de cap suspensió de comptes per aquest tipus d\'ús, aquest mètode no està oficialment acceptat per Discord i es podria considerar una violació dels seus Termes d\'ús. El vostre token s\'extrau localment i mai s\'envia a servidors de terceres parts. Actue sota la seua pròpia consideració.</string>
 </resources>

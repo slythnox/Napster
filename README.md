@@ -379,6 +379,7 @@ For exhaustive technical references, inspect the comprehensive engineering docum
 | [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) | Third-party service configuration, API keys, and graceful degradation |
 | [`docs/PRIVACY_AND_PERMISSIONS.md`](docs/PRIVACY_AND_PERMISSIONS.md) | Comprehensive audit of device permissions, network calls, and data flows |
 | [`docs/BRANDING_AND_ATTRIBUTION.md`](docs/BRANDING_AND_ATTRIBUTION.md) | Detailed lineage, trademark notices, and upstream open-source attribution |
+| [`docs/APK_UPDATE_AND_SIGNING.md`](docs/APK_UPDATE_AND_SIGNING.md) | Release signing lifecycle, keystore security, certificate fingerprint verification, and safe in-place APK upgrades |
 | [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) | Code styling guidelines, pull request protocols, and review standards |
 | [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | Common compilation issues, audio focus bugs, and runtime diagnostics |
 | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | Quality assurance, automated test verification, and APK signing steps |

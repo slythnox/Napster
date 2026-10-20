@@ -36,7 +36,6 @@
     <string name="slim">Pequeno</string>
     <string name="slim_navbar">Barra de navegação inferior pequena</string>
     <string name="google">Google</string>
-    <string name="discord">Discord</string>
     <string name="general">Geral</string>
     <string name="proxy">Proxy</string>
     <string name="default_lib_chips">Alterar tela da biblioteca padrão</string>
@@ -212,8 +211,6 @@
     <string name="update_available_title">Atualização disponível</string>
     <string name="update_channel_name">Atualizações do aplicativo</string>
     <string name="update_channel_desc">Notificações sobre novas versões</string>
-    <string name="discord_use_details">Usar detalhes ao invés do estado</string>
-    <string name="discord_use_details_description">Mostrar o título da música destacadamente em vez do nome do artista</string>
     <string name="integrations">Integrações</string>
     <string name="username">Nome do usuário</string>
     <string name="password">Senha</string>
@@ -599,35 +596,12 @@
     <string name="ai_deepl_formality_default">Padrão</string>
     <string name="ai_deepl_formality_more">Mais formal</string>
     <string name="ai_deepl_formality_less">Menos formal</string>
-    <string name="discord_integration_settings">Integração de Discord</string>
-    <string name="discord_status">Status</string>
-    <string name="discord_status_online">Online</string>
-    <string name="discord_status_idle">Ocioso</string>
-    <string name="discord_status_dnd">Não perturbar</string>
-    <string name="discord_buttons">Botões</string>
-    <string name="discord_button_1">Botão 1</string>
-    <string name="discord_button_2">Botão 2</string>
     <string name="button_text">Texto do botão</string>
     <string name="button_visible">Visível</string>
     <string name="login_successful">Login bem sucedido!</string>
-    <string name="discord_activity_type">Tipo de atividade</string>
-    <string name="discord_activity_playing">Jogando</string>
-    <string name="discord_activity_listening">Ouvindo</string>
-    <string name="discord_activity_watching">Assistindo</string>
-    <string name="discord_activity_competing">Competindo</string>
-    <string name="discord_customization">Personalização</string>
-    <string name="discord_button_text_variables">Variáveis: {song_name}, {artist_name}, {album_name}</string>
-    <string name="discord_information_warning">Esse recurso usa a biblioteca KizzyRPC para se conectar ao Gateway do Discord e definir seu status de Rich Presence. Embora nenhuma suspensão de conta conhecida tenha ocorrido a partir de uso semelhante, este método não é oficialmente suportado pela Discord e pode ser considerado uma violação de Termos de Serviço. Seu token é extraído localmente e nunca enviado para servidores de terceiros. Prossiga a seu próprio critério.</string>
-    <string name="discord_rpc_preview">Visualização de rich presence</string>
-    <string name="discord_presence">Presença</string>
-    <string name="discord_connect_description">Entre com o Discord para compartilhar o que você está ouvindo</string>
     Jogando Napster
     Assistindo Napster
     Competindo no 
-    <string name="discord_activity_name">Nome da atividade</string>
-    <string name="discord_activity_name_description">Nome personalizado para a atividade (deixe vazio para padrão)</string>
-    <string name="discord_advanced_mode">Modo avançado</string>
-    <string name="discord_advanced_mode_description">Mostrar opções de personalização adicionais para a Rich Presence</string>
     <string name="player_background_solid">Sólido</string>
     <string name="resume_on_bluetooth_connect">Retomar ao conectar com bluetooth</string>
     <string name="lyrics_romanize_hindi">Romanizar letras em Hindi</string>
