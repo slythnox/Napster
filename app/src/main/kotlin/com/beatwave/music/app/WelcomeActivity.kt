@@ -252,14 +252,6 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
         )
     }
 
-    var canInstallPackages by remember {
-        mutableStateOf(
-            if (BuildConfig.FLAVOR.contains("gms") && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                runCatching { context.packageManager.canRequestPackageInstalls() }.getOrDefault(false)
-            } else true
-        )
-    }
-
     var isLastPageScrolledToEnd by remember { mutableStateOf(true) }
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -271,9 +263,6 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                         context,
                         Manifest.permission.POST_NOTIFICATIONS
                     ) == PackageManager.PERMISSION_GRANTED
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    canInstallPackages = runCatching { context.packageManager.canRequestPackageInstalls() }.getOrDefault(false)
                 }
             }
         }
@@ -287,14 +276,6 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
             hasNotificationPermission = isGranted
         }
     )
-
-    val installParamsLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            canInstallPackages = runCatching { context.packageManager.canRequestPackageInstalls() }.getOrDefault(false)
-        }
-    }
 
     val pages = listOf(
         // PAGE 0: Discover music and explore recommendations

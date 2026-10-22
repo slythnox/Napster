@@ -443,7 +443,7 @@ class FloatingTabBarScrollConnection(
 fun rememberFloatingTabBarScrollConnection(
     initialIsInline: Boolean = false,
     scrollThreshold: Dp = 50.dp,
-    expandThreshold: Dp = 8.dp,
+    expandThreshold: Dp = 16.dp,
     inlineBehavior: FloatingTabBarInlineBehavior = FloatingTabBarInlineBehavior.OnScrollDown
 ): FloatingTabBarScrollConnection = with(LocalDensity.current) {
     val scrollThresholdPx = scrollThreshold.toPx()

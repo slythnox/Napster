@@ -106,7 +106,6 @@ import com.beatwave.music.ui.utils.morphContainer
 import com.beatwave.music.utils.rememberEnumPreference
 import com.beatwave.music.utils.rememberPreference
 import com.beatwave.music.feature.spotifyimport.SpotifyImportViewModel
-import com.beatwave.music.feature.settings.changelog.ChangelogScreen
 import com.beatwave.music.feature.settings.commits.CommitScreen
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -506,9 +505,6 @@ fun NavGraphBuilder.navigationBuilder(
         EqScreen(navController = navController)
     }
 
-    sharedComposable("settings/changelog") {
-        ChangelogScreen(navController,scrollBehavior)
-    }
     sharedComposable("settings/commits") {
         CommitScreen(navController, scrollBehavior)
     }

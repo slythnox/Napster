@@ -125,7 +125,15 @@ constructor(
                 MediaItemsWithStartPosition(items, index, pos)
             )
         }
-        return Futures.immediateFailedFuture(UnsupportedOperationException("No items to resume"))
+        return scope.future(Dispatchers.IO) {
+            val recentSongs = database.songsByCreateDateAsc().first().take(50)
+            if (recentSongs.isNotEmpty()) {
+                val items = recentSongs.map { it.toMediaItem() }
+                MediaItemsWithStartPosition(items, 0, 0L)
+            } else {
+                throw UnsupportedOperationException("No items to resume")
+            }
+        }
     }
 
     override fun onSubscribe(
@@ -279,7 +287,11 @@ constructor(
                                         }
                                 }.first()
 
-                                listOf(shuffleMediaItem(parentId)) + songs.map { it.toMediaItem(parentId) }
+                                if (songs.isNotEmpty()) {
+                                    listOf(shuffleMediaItem(parentId)) + songs.map { it.toMediaItem(parentId) }
+                                } else {
+                                    emptyList()
+                                }
                             }
 
                             parentId.startsWith("${MusicService.YOUTUBE_PLAYLIST}/") -> {
@@ -291,7 +303,11 @@ constructor(
                                         ?.filterVideoSongs(context.dataStore.get(HideVideoSongsKey, false) || context.dataStore.get(DataSaverEnabledKey, false))
                                         ?: emptyList()
 
-                                    listOf(shuffleMediaItem(parentId)) + songs.map { it.toMediaItem(parentId) }
+                                    if (songs.isNotEmpty()) {
+                                        listOf(shuffleMediaItem(parentId)) + songs.map { it.toMediaItem(parentId) }
+                                    } else {
+                                        emptyList()
+                                    }
                                 } catch (e: Exception) {
                                     reportException(e)
                                     emptyList()
@@ -659,6 +675,19 @@ constructor(
                 .setIsPlayable(false)
                 .setIsBrowsable(true)
                 .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_MIXED)
+                .setExtras(
+                    Bundle().apply {
+                        putBoolean("android.media.browse.CONTENT_STYLE_SUPPORTED", true)
+                        putInt(
+                            MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE,
+                            MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM,
+                        )
+                        putInt(
+                            MediaConstants.EXTRAS_KEY_CONTENT_STYLE_PLAYABLE,
+                            MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM,
+                        )
+                    }
+                )
                 .build(),
         ).build()
 
@@ -924,6 +953,9 @@ constructor(
         return MediaItem
             .Builder()
             .setMediaId("$path/$id")
+            .setUri(id)
+            .setCustomCacheKey(id)
+            .setTag(toMediaMetadata())
             .setMediaMetadata(
                 MediaMetadata
                     .Builder()
@@ -941,6 +973,9 @@ constructor(
 
     private fun SongItem.toMediaItem(path: String) = MediaItem.Builder()
         .setMediaId("$path/$id")
+        .setUri(id)
+        .setCustomCacheKey(id)
+        .setTag(toMediaMetadata())
         .setMediaMetadata(
             MediaMetadata.Builder()
                 .setTitle(title)
@@ -957,6 +992,7 @@ constructor(
 
     private fun MediaLibraryService.LibraryParams?.withContentStyleHints(): MediaLibraryService.LibraryParams {
         val extras = Bundle(this?.extras ?: Bundle()).apply {
+            putBoolean("android.media.browse.CONTENT_STYLE_SUPPORTED", true)
             putInt(
                 MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE,
                 MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM
@@ -984,6 +1020,7 @@ constructor(
         playableStyle: Int? = null,
         singleItemStyle: Int? = null,
     ) = Bundle().apply {
+        putBoolean("android.media.browse.CONTENT_STYLE_SUPPORTED", true)
         browsableStyle?.let {
             putInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE, it)
         }

@@ -112,6 +112,7 @@ import com.beatwave.music.constants.MediaSessionConstants.CommandToggleShuffle
 import com.beatwave.music.constants.MediaSessionConstants.CommandToggleStartRadio
 import com.beatwave.music.constants.PauseListenHistoryKey
 import com.beatwave.music.constants.PauseOnMute
+import com.beatwave.music.constants.LocalOnlyModeKey
 import com.beatwave.music.constants.PersistentQueueKey
 import com.beatwave.music.constants.PersistentShuffleAcrossQueuesKey
 import com.beatwave.music.constants.PlayerVolumeKey
@@ -1311,7 +1312,27 @@ class MusicService :
          * too many errors come up too quickly. Pause to show player "stopped" state
          */
         consecutivePlaybackErr += 2
-        val nextWindowIndex = player.nextMediaItemIndex
+        // If repeat-one is enabled, nextMediaItemIndex returns the same index.
+        // Advance to next distinct index to prevent infinite retry loops on a failed track.
+        var nextWindowIndex = if (player.repeatMode == Player.REPEAT_MODE_ONE) {
+            if (player.currentMediaItemIndex + 1 < player.mediaItemCount) {
+                player.currentMediaItemIndex + 1
+            } else {
+                C.INDEX_UNSET
+            }
+        } else {
+            player.nextMediaItemIndex
+        }
+
+        // Skip any upcoming tracks that were already marked as failed
+        while (nextWindowIndex != C.INDEX_UNSET && nextWindowIndex < player.mediaItemCount) {
+            val nextMediaId = player.getMediaItemAt(nextWindowIndex).mediaId
+            if (recentlyFailedSongs.contains(nextMediaId)) {
+                nextWindowIndex = if (nextWindowIndex + 1 < player.mediaItemCount) nextWindowIndex + 1 else C.INDEX_UNSET
+            } else {
+                break
+            }
+        }
 
         if (consecutivePlaybackErr <= MAX_CONSECUTIVE_ERR && nextWindowIndex != C.INDEX_UNSET) {
             player.seekTo(nextWindowIndex, C.TIME_UNSET)
@@ -1651,9 +1672,10 @@ class MusicService :
                     queueTitle = initialStatus.title
                 }
 
-                // Filter radio items to exclude current media item
+                val existingIds = (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId }.toSet()
+                // Filter radio items to exclude current media item, existing queue tracks, and recently failed songs
                 val radioItems = initialStatus.items.filter { item ->
-                    item.mediaId != currentMediaId
+                    item.mediaId != currentMediaId && item.mediaId !in existingIds && item.mediaId !in recentlyFailedSongs
                 }
 
                 if (radioItems.isNotEmpty()) {
@@ -1682,8 +1704,9 @@ class MusicService :
                             YouTube.related(relatedEndpoint).getOrNull()
                         }
                         relatedPage?.songs?.let { songs ->
+                            val existingIds = (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId }.toSet()
                             val radioItems = songs
-                                .filter { it.id != currentMediaId }
+                                .filter { it.id != currentMediaId && it.id !in existingIds && it.id !in recentlyFailedSongs }
                                 .map { it.toMediaItem() }
                                 .filterExplicit(dataStore.get(HideExplicitKey, false))
                                 .filterVideoSongs(dataStore.get(HideVideoSongsKey, false) || dataStore.get(DataSaverEnabledKey, false))
@@ -2148,25 +2171,35 @@ class MusicService :
             }
         }
 
-        // Auto load more songs from queue
+        // Auto load more songs from queue or start radio continuation at end of queue
         if (cachedAutoLoadMore &&
             reason != Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT &&
-            player.mediaItemCount - player.currentMediaItemIndex <= 5 &&
-            currentQueue.hasNextPage() &&
-            !(cachedDisableLoadMoreWhenRepeatAll && player.repeatMode == REPEAT_MODE_ALL)
+            !(cachedDisableLoadMoreWhenRepeatAll && player.repeatMode == REPEAT_MODE_ALL) &&
+            player.repeatMode != REPEAT_MODE_ONE
         ) {
-            scope.launch(SilentHandler) {
-                val mediaItems = withContext(Dispatchers.IO) {
-                    currentQueue.nextPage()
-                        .filterExplicit(dataStore.get(HideExplicitKey, false))
-                        .filterVideoSongs(dataStore.get(HideVideoSongsKey, false) || dataStore.get(DataSaverEnabledKey, false))
-                }
-                if (player.playbackState != STATE_IDLE && mediaItems.isNotEmpty()) {
-                    player.addMediaItems(mediaItems)
-                    if (player.shuffleModeEnabled) {
-                        val shufflePlaylistFirst = dataStore.get(ShufflePlaylistFirstKey, false)
-                        applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, shufflePlaylistFirst)
+            if (player.mediaItemCount - player.currentMediaItemIndex <= 3) {
+                if (currentQueue.hasNextPage()) {
+                    scope.launch(SilentHandler) {
+                        val mediaItems = withContext(Dispatchers.IO) {
+                            currentQueue.nextPage()
+                                .filterExplicit(dataStore.get(HideExplicitKey, false))
+                                .filterVideoSongs(dataStore.get(HideVideoSongsKey, false) || dataStore.get(DataSaverEnabledKey, false))
+                        }
+                        if (player.playbackState != STATE_IDLE && mediaItems.isNotEmpty()) {
+                            val existingIds = (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId }.toSet()
+                            val freshItems = mediaItems.filter { it.mediaId !in existingIds && it.mediaId !in recentlyFailedSongs }
+                            if (freshItems.isNotEmpty()) {
+                                player.addMediaItems(freshItems)
+                                if (player.shuffleModeEnabled) {
+                                    val shufflePlaylistFirst = dataStore.get(ShufflePlaylistFirstKey, false)
+                                    applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, shufflePlaylistFirst)
+                                }
+                            }
+                        }
                     }
+                } else if (!dataStore.get(LocalOnlyModeKey, false) && player.repeatMode == REPEAT_MODE_OFF) {
+                    // Queue reached near end without more pages: seamlessly continue via radio recommendations
+                    startRadioSeamlessly()
                 }
             }
         }

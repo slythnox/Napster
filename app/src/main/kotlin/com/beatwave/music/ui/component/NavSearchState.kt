@@ -39,6 +39,7 @@ data class NavSearchState(
     // Tap the search circle in normal mode -> plays the shrink-to-pill
     // animation, then navigates to search_input once it's done.
     val onTapSearchIcon: () -> Unit = {},
+    val onDoubleTapSearchIcon: () -> Unit = {},
     // Tap on the pre-keyboard search bar (search-expanded/search-inline) -> request focus.
     val onTapBar: () -> Unit = {},
     // Back arrow / shrunk-icon / system back (any exit path) -> plays the

@@ -411,7 +411,7 @@ private class TopBarChromeVisibility {
 
     private companion object {
         /** Ignore sub-pixel jitter so the strip doesn't flicker while settling. */
-        const val ScrollSlopPx = 1.5f
+        const val ScrollSlopPx = 12f
     }
 }
 
@@ -1430,6 +1430,19 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
+                val enterSearchWithKeyboard: () -> Unit = remember(navController, coroutineScope) {
+                    {
+                        searchVisualOverride = true
+                        searchKeyboardActive = true
+                        coroutineScope.launch {
+                            if (navController.currentDestination?.route !in TabRootRoutes) {
+                                navController.popBackStack(navController.graph.startDestinationId, inclusive = false)
+                            }
+                            searchOverlayOpen = true
+                            searchVisualOverride = null
+                        }
+                    }
+                }
                 val exitSearch: () -> Unit = remember(navController, coroutineScope) {
                     {
                         searchKeyboardActive = false
@@ -1465,6 +1478,7 @@ class MainActivity : ComponentActivity() {
                     },
                     canToggleSource = !localOnlyMode,
                     onTapSearchIcon = enterSearch,
+                    onDoubleTapSearchIcon = enterSearchWithKeyboard,
                     onTapBar = {
                         searchKeyboardActive = true
                     },
@@ -1548,7 +1562,7 @@ class MainActivity : ComponentActivity() {
                                         val scrimColor = rememberAppBackgroundTint(
                                             MaterialTheme.colorScheme.background
                                         )
-                                        if (chromeAlpha > 0.01f) {
+                                        // Animate alpha purely in graphicsLayer without if-check so composition never re-runs
                                             // Replaces the blur that used to sit here: one drawn
                                             // rect, no capture, no layer of its own beyond the
                                             // alpha fade. Weighted toward the top and held near
@@ -1573,7 +1587,6 @@ class MainActivity : ComponentActivity() {
                                                         )
                                                     )
                                             )
-                                        }
                                         TopAppBar(
                                         title = {
                                              val isHome = effectiveRoute == Screens.Home.route
@@ -1675,9 +1688,10 @@ class MainActivity : ComponentActivity() {
                             }
                         },
                         bottomBar = {
-                            val onNavItemClick: (Screens, Boolean) -> Unit = remember(navController, coroutineScope, topAppBarScrollBehavior, playerBottomSheetState, enterSearch) {
+                            val onNavItemClick: (Screens, Boolean) -> Unit = remember(navController, coroutineScope, topAppBarScrollBehavior, playerBottomSheetState, enterSearch, enterSearchWithKeyboard) {
                                 var lastNavRoute: String? = null
                                 var lastNavTimeMs = 0L
+                                var lastSearchTapTime = 0L
                                 { screen: Screens, isSelected: Boolean ->
                                     if (playerBottomSheetState.isExpanded) {
                                         playerBottomSheetState.collapseSoft()
@@ -1689,7 +1703,14 @@ class MainActivity : ComponentActivity() {
                                     // Search as an item, so this cannot live only on the phone
                                     // bar's search circle.
                                     if (screen == Screens.Search) {
-                                        enterSearch()
+                                        val now = SystemClock.elapsedRealtime()
+                                        if (now - lastSearchTapTime <= 350L) {
+                                            lastSearchTapTime = 0L
+                                            enterSearchWithKeyboard()
+                                        } else {
+                                            lastSearchTapTime = now
+                                            enterSearch()
+                                        }
                                     } else if (isSelected) {
                                         navController.currentBackStackEntry?.savedStateHandle?.set("scrollToTop", true)
                                         coroutineScope.launch {
@@ -1870,9 +1891,10 @@ class MainActivity : ComponentActivity() {
                             .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
                     ) {
                         Box(Modifier.fillMaxSize()) {
-                            val onRailItemClick: (Screens, Boolean) -> Unit = remember(navController, coroutineScope, topAppBarScrollBehavior, playerBottomSheetState, enterSearch) {
+                            val onRailItemClick: (Screens, Boolean) -> Unit = remember(navController, coroutineScope, topAppBarScrollBehavior, playerBottomSheetState, enterSearch, enterSearchWithKeyboard) {
                                 var lastNavRoute: String? = null
                                 var lastNavTimeMs = 0L
+                                var lastSearchTapTime = 0L
                                 { screen: Screens, isSelected: Boolean ->
                                     if (playerBottomSheetState.isExpanded) {
                                         playerBottomSheetState.collapseSoft()
@@ -1884,7 +1906,14 @@ class MainActivity : ComponentActivity() {
                                     // Search as an item, so this cannot live only on the phone
                                     // bar's search circle.
                                     if (screen == Screens.Search) {
-                                        enterSearch()
+                                        val now = SystemClock.elapsedRealtime()
+                                        if (now - lastSearchTapTime <= 350L) {
+                                            lastSearchTapTime = 0L
+                                            enterSearchWithKeyboard()
+                                        } else {
+                                            lastSearchTapTime = now
+                                            enterSearch()
+                                        }
                                     } else if (isSelected) {
                                         navController.currentBackStackEntry?.savedStateHandle?.set("scrollToTop", true)
                                         coroutineScope.launch {

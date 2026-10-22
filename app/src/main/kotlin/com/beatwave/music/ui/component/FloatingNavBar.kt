@@ -8,6 +8,8 @@
 package com.beatwave.music.ui.component
 
 import androidx.activity.compose.BackHandler
+import android.os.SystemClock
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.beatwave.music.constants.AppBackgroundColorKey
 import com.beatwave.music.constants.AppTextColorKey
 import com.beatwave.music.utils.rememberPreference
@@ -334,6 +336,7 @@ private fun AppFloatingNavBarChrome(
     // phone the bar read as oversized with a shrunken search icon beside it.
     // Fitting the tabs to the width actually available fixes both at once, and
     // the ceiling keeps wider phones pixel-identical to what they render today.
+    var lastSearchTapTime by remember { mutableStateOf(0L) }
     BoxWithConstraints(modifier) {
         val tabWidth = if (tabScreens.isEmpty()) {
             FloatingTabBarDefaults.TabWidth
@@ -449,10 +452,17 @@ private fun AppFloatingNavBarChrome(
                         )
                     },
                     onClick = {
-                        if (searchModeActive) {
-                            navSearch.onTapBar()
+                        val now = SystemClock.elapsedRealtime()
+                        if (now - lastSearchTapTime <= 350L) {
+                            lastSearchTapTime = 0L
+                            navSearch.onDoubleTapSearchIcon()
                         } else {
-                            navSearch.onTapSearchIcon()
+                            lastSearchTapTime = now
+                            if (searchModeActive) {
+                                navSearch.onTapBar()
+                            } else {
+                                navSearch.onTapSearchIcon()
+                            }
                         }
                     },
                 )
@@ -566,9 +576,11 @@ fun NavBarSearchInputBar(
     // Let the mini player/icon finish sliding down and out (the AnimatedContent
     // transition in AppFloatingNavBar) before pulling the keyboard up â€” opening
     // it immediately made the two animations fight for the same screen space.
+    val keyboardController = LocalSoftwareKeyboardController.current
     LaunchedEffect(Unit) {
         delay(KeyboardOpenDelayMs)
         state.focusRequester.requestFocus()
+        keyboardController?.show()
     }
 
     Row(

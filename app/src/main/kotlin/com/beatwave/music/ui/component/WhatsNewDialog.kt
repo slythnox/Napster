@@ -48,8 +48,8 @@ import com.beatwave.music.ui.theme.AppleTokens
 import com.beatwave.music.utils.rememberPreference
 
 /**
- * Automatically prompts the user with a "What's New" changelog summary
- * when they install Napster or update to a new version.
+ * Silently updates the last seen version state upon app installation or upgrade,
+ * preserving version update state without showing obsolete changelog popups.
  */
 @Composable
 fun WhatsNewPromptHost(
@@ -58,132 +58,11 @@ fun WhatsNewPromptHost(
     var lastSeenVersion by rememberPreference(LastSeenChangelogVersionKey, "")
     val currentVersion = BuildConfig.VERSION_NAME
 
-    var visible by remember(lastSeenVersion, currentVersion) {
-        // On a fresh install, lastSeenVersion is empty. Do not show changelog.
-        // Only show when upgrading from a previous version (lastSeenVersion is non-empty and differs from current).
-        mutableStateOf(lastSeenVersion.isNotEmpty() && lastSeenVersion != currentVersion)
-    }
-
     androidx.compose.runtime.LaunchedEffect(lastSeenVersion, currentVersion) {
-        if (lastSeenVersion.isEmpty()) {
+        if (lastSeenVersion != currentVersion) {
             lastSeenVersion = currentVersion
         }
     }
-
-    if (!visible) return
-
-    fun dismiss() {
-        visible = false
-        lastSeenVersion = currentVersion
-    }
-
-    AlertDialog(
-        onDismissRequest = ::dismiss,
-        shape = RoundedCornerShape(AppleTokens.CardCornerLarge),
-        icon = {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.update),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(26.dp)
-                )
-            }
-        },
-        title = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "Welcome to Napster",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                val edition = if (BuildConfig.FLAVOR.contains("gms", ignoreCase = true)) "XO//GMS Edition" else "XO//FOSS Edition"
-                Text(
-                    text = "$edition • v$currentVersion",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        },
-        text = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                ChangelogHighlightItem(
-                    icon = painterResource(R.drawable.speed),
-                    iconTint = MaterialTheme.colorScheme.primary,
-                    title = "Instant Playback & Fast Lyrics",
-                    description = "0ms song switching with background stream prefetching and ultra-fast parallel lyrics fetching."
-                )
-
-                ChangelogHighlightItem(
-                    icon = painterResource(R.drawable.sync),
-                    iconTint = Color(0xFF67D4FF),
-                    title = "Library & Account Sync",
-                    description = "Seamless background synchronization for your favorite tracks, artists, albums, and playlists with YouTube Music."
-                )
-
-                ChangelogHighlightItem(
-                    icon = painterResource(R.drawable.palette),
-                    iconTint = Color(0xFFADC6FF),
-                    title = "Revamped Liquid Glass Home",
-                    description = "Dynamic time-of-day greeting, frosted glass cards, fluid animations, and high-density recommendation shelves."
-                )
-
-                ChangelogHighlightItem(
-                    icon = painterResource(R.drawable.spotify),
-                    iconTint = Color(0xFF1ED760),
-                    title = "Spotify Recommendation Engine",
-                    description = "Smart algorithmic discovery feeds delivering real-time trending tracks, curated mixes, and verified regional playlists."
-                )
-
-                ChangelogHighlightItem(
-                    icon = painterResource(R.drawable.equalizer),
-                    iconTint = Color(0xFF82A9FF),
-                    title = "Audio Presets & Custom Themes",
-                    description = "Tailored equalizer presets (SoundCloud style, Bass Boost) and OLED / Liquid Glass theme color presets."
-                )
-
-                ChangelogHighlightItem(
-                    icon = painterResource(R.drawable.cast),
-                    iconTint = Color(0xFF90CAF9),
-                    title = "Google Cast & Library Covers",
-                    description = "One-tap Chromecast audio streaming directly from the player and dynamic cover art across library playlists."
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = ::dismiss,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("Let's Explore!")
-            }
-        },
-        dismissButton = {
-            if (navController != null) {
-                TextButton(
-                    onClick = {
-                        dismiss()
-                        navController.navigate("settings/changelog")
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("View Full Changelog")
-                }
-            }
-        }
-    )
 }
 
 @Composable
