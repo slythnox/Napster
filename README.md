@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/Licence-GPL--3.0-E50914?style=for-the-badge&labelColor=0E1015" alt="Licence GPL-3.0" /></a>
-  <a href="version.properties"><img src="https://img.shields.io/badge/Version-1.0.0--XO-E50914?style=for-the-badge&labelColor=0E1015" alt="Version 1.0.0" /></a>
+  <a href="version.properties"><img src="https://img.shields.io/badge/Version-1.0.2--XO-E50914?style=for-the-badge&labelColor=0E1015" alt="Version 1.0.2" /></a>
   <a href="docs/BUILD_AND_TEST.md"><img src="https://img.shields.io/badge/Platform-Android%208.0%2B%20(API%2026%E2%80%9336)-E50914?style=for-the-badge&labelColor=0E1015" alt="Android 8.0+" /></a>
   <a href="docs/ARCHITECTURE.md"><img src="https://img.shields.io/badge/Architecture-Clean%20%2F%20MVI%20%2B%20Media3-E50914?style=for-the-badge&labelColor=0E1015" alt="Architecture Clean Media3" /></a>
   <a href="docs/PRIVACY_AND_PERMISSIONS.md"><img src="https://img.shields.io/badge/Telemetry-Zero%20Tracking-E50914?style=for-the-badge&labelColor=0E1015" alt="Zero Telemetry" /></a>
@@ -52,7 +52,7 @@ Modern mobile streaming clients increasingly prioritise algorithmic promotional 
 - **Universal Bridge:** Enables users to import public Spotify and YouTube Music playlists directly into their local on-device database without requiring account credentials or API tokens.
 
 ### Application Identity vs Architecture Namespace
-The client is published with the application identifier `com.napster.music`. Within the source tree, the root Kotlin namespace is intentionally maintained as `com.beatwave.music`. This design decision preserves binary compatibility across 37 sequential Room database migrations (`1.json` through `37.json`), AndroidX DataStore preferences, and serialized disk caches without risking data loss for existing installations.
+The client is published with the application identifier `com.napster.music`. Within the source tree, the legacy package namespace `com.beatwave.music` is intentionally retained to preserve binary compatibility across 37 sequential Room database migrations (`1.json` through `37.json`), AndroidX DataStore preferences, and serialized disk caches without risking data loss for existing installations.
 
 ---
 
@@ -60,6 +60,7 @@ The client is published with the application identifier `com.napster.music`. Wit
 
 ### Core Audio & Playback
 - **AndroidX Media3 / ExoPlayer Engine:** Built upon ExoPlayer 1.5.1 with customized audio sinks, continuous buffer management, and automatic audio focus handling.
+- **Seamless Autoplay & Radio Continuation:** Intelligent queue continuation that automatically fetches and transitions to algorithmic radio recommendations when approaching the end of playlists, with automatic error avoidance and deduplication.
 - **Audio Equalisation & DSP Effects:** Integrated 5-band / 10-band graphic equaliser, bass boost, virtualiser, and system DSP intent forwarding.
 - **DJ Mode & Beat-Matched Transitions:** Gapless playback, configurable crossfade durations, and automated beat-matching energy transitions.
 - **Off-Screen & Background Playback:** Fully decoupled Android Foreground Service (`MusicService`) managing hardware media buttons, lock-screen notifications, and Bluetooth transport controls.
@@ -70,7 +71,9 @@ The client is published with the application identifier `com.napster.music`. Wit
 - **Liquid Glass & Dynamic Blur:** Source-integrated hardware-accelerated backdrop blur (`Kyant0/backdrop`) creating frosted glass aesthetics behind playback bars and navigation headers.
 - **Synchronised Lyrics:** Multi-source lyrics engine querying LRCLIB, KuGou, Paxsenix, Better Lyrics, and local embedded LRC/TTML tags with word-level and line-level karaoke synchronisation.
 - **Visual Canvas:** High-definition animated album canvas rendering supporting Apple Music canvas streams, Tidal canvas streams, and artist video loops.
-- **Multiple Form Factors:** Dedicated responsive layouts for smartphones, tablets, foldables, and Android Auto dashboard displays.
+- **Android Auto Integration:** First-class vehicle media browsing and dashboard playback support, including cold-start playlist resumption, styled content lists, and vehicle transport controls via AndroidX Media3.
+- **Multiple Form Factors:** Dedicated responsive layouts for smartphones, tablets, foldables, and car displays with smooth 120Hz scrolling and zero-recomposition chrome animations.
+- **Quick Search Gesture:** Double-tap shortcut on the navigation bar search icon to immediately focus the search field and deploy the software keyboard.
 - **Home Screen Widgets:** Redesigned interactive widgets including the minimalist Napster Dot Player (2×2), split-panel Napster Lyrics Player (4×2), and animated Napster Vinyl Deck (4×2).
 
 ### Discovery & Integrations
@@ -393,7 +396,6 @@ Napster is licensed under the **GNU General Public Licence v3.0 (GPL-3.0)**. Per
 
 ### Upstream Open-Source Lineage
 This application represents the evolution of notable open-source music players within the Android ecosystem:
-- **BeatWave:** Upstream foundation, design direction, and feature integrations.
 - **vivi-music** *(by Vividh P Ashokan)*: Foundational Android architecture and Apple Music-inspired presentation style.
 - **CONVX:** Media player layout optimizations and user experience contributions.
 - **InnerTune** *(by Malopieds)*: Original InnerTube API reverse-engineering implementation and Room schema foundation.
