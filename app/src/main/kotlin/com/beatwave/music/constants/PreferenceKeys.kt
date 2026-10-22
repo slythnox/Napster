@@ -171,6 +171,7 @@ enum class AudioQuality {
     AUTO,
     HIGH,
     LOW,
+    LOSSLESS,
 }
 
 val AudioOffload = booleanPreferencesKey("enableOffload")
@@ -720,6 +721,13 @@ val ModuleSourcesKey = stringPreferencesKey("moduleSources")
 val EnabledModulesKey = stringPreferencesKey("enabledModules")
 val ModuleSettingsKey = stringPreferencesKey("moduleSettings")
 val FetchedModulesKey = stringPreferencesKey("fetchedModules")
+
+// HTTP Streaming Add-ons
+val HttpAddonSourcesKey = stringPreferencesKey("httpAddonSources")
+
+// Per-network audio quality preferences
+val WifiAudioQualityKey = stringPreferencesKey("wifiAudioQuality")
+val MobileAudioQualityKey = stringPreferencesKey("mobileAudioQuality")
 
 
 val LyricsAnimationStyleKey = stringPreferencesKey("lyricsAnimationStyle")

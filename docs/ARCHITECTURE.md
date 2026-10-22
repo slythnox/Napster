@@ -54,9 +54,12 @@ com.beatwave.music/
 │   ├── history/
 │   ├── spotify/   – Spotify public playlist import
 │   └── wrapped/
+├── download/      – FLAC file metadata tagging (FlacTagger) and offline export
 ├── integration/   – Last.fm, ListenBrainz, updater, Cast, Tidal, JioSaavn, Spine
 ├── models/        – Shared data models (MediaMetadata, QueueData, etc.)
-├── playback/      – MusicService, PlayerConnection, queue, resolver, events, DJ
+├── playback/      – MusicService, PlayerConnection, queue, events, DJ
+│   ├── audio/     – Audio diagnostics, output route tracking, Bluetooth A2DP telemetry
+│   └── resolver/  – Stream resolution pipeline & HTTP add-on sources (AddonClient, TrackMatcher)
 ├── ui/
 │   ├── component/ – Reusable Compose components
 │   ├── navigation/
@@ -108,9 +111,17 @@ No Spotify account login, WebView cookie harvesting, or private API access is in
 
 Room exports its schema under the fully-qualified class name of `InternalDatabase`. All 37 migrations in `app/schemas/com.beatwave.music.db.InternalDatabase/` would become stale if the namespace were renamed without a corresponding schema migration. DataStore preference files are also keyed by this namespace. Renaming without a full migration audit would silently corrupt or lose user data on upgrade.
 
-### Optional integrations must not break core playback
+### Optional integrations and add-ons must not break core playback
 
-Every optional provider (Spine, Tidal, JioSaavn, canvas providers, lyrics sources) is wired to fail silently. `ExternalStreamProviderResolver` falls back to YouTube if all external providers fail. `PlaybackEventDispatcher` catches exceptions from scrobbling clients individually.
+Every optional provider (HTTP add-ons, Spine, Tidal, JioSaavn, canvas providers, lyrics sources) is wired to fail silently. `ExternalStreamProviderResolver` falls back to YouTube if all external providers fail. `PlaybackEventDispatcher` catches exceptions from scrobbling clients individually. HTTP add-ons enforce client-side cooldowns (HTTP 429 Retry-After) and deduplicate in-flight requests (`SharedCalls`) to prevent cascading failures.
+
+### Truth-first audio telemetry without unverified bit-perfect claims
+
+Audio diagnostics monitor the actual decoder format via Media3 `AnalyticsListener.onAudioInputFormatChanged()` and physical routes via Android `AudioManager` and `BluetoothProfile`. Telemetry highlights downstream downgrades honestly. The app avoids unsupported promises of "bit-perfect" playback, acknowledging that audio output routes through standard Android AudioTrack/AudioFlinger system pipelines.
+
+### Non-destructive FLAC tagging and export
+
+`FlacTagger` manipulates FLAC metadata blocks (Vorbis comments, pictures, padding) while copying raw audio frames byte-for-byte untouched. Non-FLAC sources are exported as M4A/AAC rather than falsely relabeled as FLAC.
 
 ### Recognition history retained despite feature removal
 

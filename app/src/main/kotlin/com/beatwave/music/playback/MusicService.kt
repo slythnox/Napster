@@ -209,6 +209,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -508,6 +509,10 @@ class MusicService :
     /** BPM / key / tier readout for the UI, owned by the engine. */
     val djState get() = djEngine.state
 
+    val outputRouteTracker by lazy { com.beatwave.music.playback.audio.OutputRouteTracker(this) }
+    private val _audioDiagnostics = MutableStateFlow(com.beatwave.music.playback.audio.AudioDiagnostics())
+    val audioDiagnostics: kotlinx.coroutines.flow.StateFlow<com.beatwave.music.playback.audio.AudioDiagnostics> = _audioDiagnostics.asStateFlow()
+
     // Track failed songs to prevent infinite retry loops
     private val recentlyFailedSongs = mutableSetOf<String>()
     private var failedSongsClearJob: Job? = null
@@ -638,6 +643,12 @@ class MusicService :
         connectivityObserver = NetworkConnectivityObserver(this)
 
         audioManager.registerAudioDeviceCallback(audioDeviceCallback, null)
+        outputRouteTracker.start()
+        scope.launch {
+            outputRouteTracker.routeState.collect { route ->
+                _audioDiagnostics.update { it.copy(outputRoute = route) }
+            }
+        }
 
         audioQuality = dataStore.get(AudioQualityKey).toEnum(com.beatwave.music.constants.AudioQuality.AUTO)
         ipVersion = dataStore.get(IpVersionKey).toEnum(IpVersion.AUTO)
@@ -675,22 +686,29 @@ class MusicService :
             }
         }
 
-        // Watch for audio quality setting changes
+        // Watch for audio quality setting changes and network transitions
         var isFirstQualityEmit = true
         scope.launch {
-            dataStore.data
-                .map { prefs ->
-                    if (prefs[DataSaverEnabledKey] ?: false) {
-                        com.beatwave.music.constants.AudioQuality.LOW
-                    } else {
-                        prefs[AudioQualityKey]?.let { value ->
-                            com.beatwave.music.constants.AudioQuality.entries.find { it.name == value }
-                        } ?: com.beatwave.music.constants.AudioQuality.AUTO
+            combine(dataStore.data, connectivityObserver.networkStatus) { prefs, _ ->
+                if (prefs[DataSaverEnabledKey] ?: false) {
+                    com.beatwave.music.constants.AudioQuality.LOW
+                } else {
+                    val actNet = runCatching { connectivityManager.activeNetwork }.getOrNull()
+                    val caps = actNet?.let { runCatching { connectivityManager.getNetworkCapabilities(it) }.getOrNull() }
+                    val isCellular = caps?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) == true ||
+                        (caps?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) != true && runCatching { connectivityManager.isActiveNetworkMetered }.getOrDefault(false))
+                    val targetKey = if (isCellular) com.beatwave.music.constants.MobileAudioQualityKey else com.beatwave.music.constants.WifiAudioQualityKey
+                    val perNet = prefs[targetKey]?.let { value ->
+                        com.beatwave.music.constants.AudioQuality.entries.find { it.name == value }
                     }
+                    perNet ?: prefs[AudioQualityKey]?.let { value ->
+                        com.beatwave.music.constants.AudioQuality.entries.find { it.name == value }
+                    } ?: com.beatwave.music.constants.AudioQuality.AUTO
                 }
-                .distinctUntilChanged()
-                .collect { newQuality ->
-                    val oldQuality = audioQuality
+            }
+            .distinctUntilChanged()
+            .collect { newQuality ->
+                    val oldQuality = if (::audioQuality.isInitialized) audioQuality else null
                     audioQuality = newQuality
 
                     // Skip reload on first emit (app startup)
@@ -699,6 +717,9 @@ class MusicService :
                         Timber.tag("MusicService").i("QUALITY INIT: $newQuality")
                         return@collect
                     }
+
+                    if (oldQuality == newQuality) return@collect
+                    if (player.playbackState == androidx.media3.common.Player.STATE_IDLE || player.currentMediaItem == null) return@collect
 
                     Timber.tag("MusicService").i("QUALITY CHANGED: $oldQuality -> $newQuality")
 
@@ -1119,6 +1140,29 @@ class MusicService :
                 setOffloadEnabled(cachedOffloadEnabled)
                 skipSilenceEnabled = cachedSkipSilence
                 addAnalyticsListener(PlaybackStatsListener(false, this@MusicService))
+                addAnalyticsListener(object : androidx.media3.exoplayer.analytics.AnalyticsListener {
+                    override fun onAudioInputFormatChanged(
+                        eventTime: androidx.media3.exoplayer.analytics.AnalyticsListener.EventTime,
+                        format: androidx.media3.common.Format,
+                        decoderReuseEvaluation: androidx.media3.exoplayer.DecoderReuseEvaluation?
+                    ) {
+                        val measured = com.beatwave.music.playback.audio.AudioFormatMeasurer.measure(format)
+                        _audioDiagnostics.update { it.copy(inputFormat = measured) }
+                    }
+
+                    override fun onAudioDecoderInitialized(
+                        eventTime: androidx.media3.exoplayer.analytics.AnalyticsListener.EventTime,
+                        decoderName: String,
+                        initializedTimestampMs: Long,
+                        initializationDurationMs: Long
+                    ) {
+                        _audioDiagnostics.update {
+                            it.copy(
+                                decoderPcm = it.decoderPcm.copy(decoderName = decoderName)
+                            )
+                        }
+                    }
+                })
 
                 // Cleanup handled manually in onDestroy/release
             }
@@ -1501,7 +1545,7 @@ class MusicService :
                 val mediaId = item.mediaId
                 if (mediaId.isBlank()) continue
 
-                val losslessOn = dataStore.get(EnableTidalStreamingKey, false)
+                val losslessOn = audioQuality == com.beatwave.music.constants.AudioQuality.LOSSLESS || dataStore.get(EnableTidalStreamingKey, false)
                 val spineEnabled = dataStore.get(EnabledModulesKey, "[]") != "[]"
                 val effKey = when {
                     losslessOn || spineEnabled -> "$mediaId#flac"
@@ -3208,7 +3252,7 @@ class MusicService :
             // for the same video never collide across a toggle. Streaming only:
             // offline downloads live in the plain (Opus) namespace.
             // Spine streams also use lossless namepacing to avoid cache collisions.
-            val losslessOn = dataStore.get(EnableTidalStreamingKey, false)
+            val losslessOn = audioQuality == com.beatwave.music.constants.AudioQuality.LOSSLESS || dataStore.get(EnableTidalStreamingKey, false)
             val spineEnabled = dataStore.get(EnabledModulesKey, "[]") != "[]"
             val effKey = when {
                 losslessOn || spineEnabled -> "$mediaId#flac"
@@ -3308,6 +3352,22 @@ class MusicService :
                 PlaybackException.ERROR_CODE_IO_UNSPECIFIED
             )
             run {
+                val isLosslessClaim = nonNullPlayback.isSpineStream || nonNullPlayback.isTidalStream ||
+                    (nonNullPlayback.isAddonStream && nonNullPlayback.format.mimeType.contains("flac", ignoreCase = true))
+                val claim = com.beatwave.music.playback.audio.ProviderClaim(
+                    sourceName = when {
+                        nonNullPlayback.isAddonStream -> nonNullPlayback.addonName ?: "Add-on"
+                        nonNullPlayback.isSpineStream -> "Spine"
+                        nonNullPlayback.isTidalStream -> "Tidal"
+                        nonNullPlayback.isSaavnStream -> "JioSaavn"
+                        else -> "YouTube"
+                    },
+                    claimedFormat = nonNullPlayback.format.mimeType.split(";")[0],
+                    claimedBitrateKbps = nonNullPlayback.format.bitrate.takeIf { it > 0 }?.let { it / 1000 },
+                    claimedSampleRateHz = nonNullPlayback.format.audioSampleRate,
+                    isLosslessClaim = isLosslessClaim,
+                )
+                _audioDiagnostics.update { it.copy(providerClaim = claim) }
                 val format = nonNullPlayback.format
                 val loudnessDb = nonNullPlayback.audioConfig?.loudnessDb
                 val perceptualLoudnessDb = nonNullPlayback.audioConfig?.perceptualLoudnessDb
@@ -3595,6 +3655,7 @@ class MusicService :
             saveQueueToDisk()
         }
         connectivityObserver.unregister()
+        outputRouteTracker.stop()
         abandonAudioFocus()
         releaseLoudnessEnhancer()
         djEngine.release()

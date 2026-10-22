@@ -1,39 +1,42 @@
 {
-  "description": "Napster 1.0.0 — major release: Performance & reliability improvements, UI polish, and repository cleanup.",
+  "description": "Napster 1.0.3 \u2014 Audio Diagnostics, HTTP Streaming Add-ons, Lossless FLAC Export, and Per-Network Quality Preferences.",
   "image": "",
   "changelog": [
     {
-      "title": "Performance & Reliability (Phase 9)",
+      "title": "Truth-First Audio Diagnostics & Route Telemetry",
       "items": [
-        "Removed blocking DataStore reads from ExoPlayer main-thread callbacks. Preferences are now cached reactively.",
-        "Search suggestion debounce (300 ms) reduces InnerTube requests during rapid typing.",
-        "Room play-count writes are now fully atomic using @Transaction; removed all blocking runBlocking calls.",
-        "YouTube fallback latency reduced: terminal errors abort early without exhausting all 12 clients.",
-        "Home feed and Android Auto search queries are now bounded, eliminating full-table memory dumps."
+        "Real-time decoder telemetry monitoring actual Media3 audio input format, codec, sample rate, bit depth, and bitrate.",
+        "Downgrade detection flagging when streams claiming lossless quality are delivered lossy or downsampled.",
+        "Active hardware output route classification (Speaker, Wired Headset, USB DAC, HDMI, Audio Dock).",
+        "Bluetooth A2DP telemetry detecting negotiated codecs (LDAC, aptX HD, aptX Adaptive, AAC, SBC, Samsung Seamless Codec) without unverified bit-perfect claims."
       ]
     },
     {
-      "title": "Smart Discovery & Spotify Integration",
+      "title": "HTTP Streaming Add-ons",
       "items": [
-        "Public Spotify playlist import: paste a Spotify playlist link to resolve tracks via YouTube.",
-        "Dynamic Spotify recommendations seeded by recently played tracks.",
-        "Smooth fallback to related artist and album mixes when primary recommendations are unavailable."
+        "Modular support for external streaming add-on servers using open JSON manifest standards.",
+        "Manifest capability discovery, resource verification, and configurable quality tiers.",
+        "In-flight request deduplication via SharedCalls protecting self-hosted server instances.",
+        "HTTP 429 Retry-After backoff and client-side cooldown timers.",
+        "Silent track mismatch guard strictly rejecting remixes, live performances, and acoustic edits when studio tracks are requested."
       ]
     },
     {
-      "title": "Theme Presets",
+      "title": "Lossless FLAC Export & Metadata Tagging",
       "items": [
-        "One-tap theme presets: Deep Midnight OLED, Cyberpunk Neon, Emerald Frosted Glass, Rose Gold, Sunset Amber, and Dynamic Material You.",
-        "Live gradient preview tiles with instant whole-app theme adaptation.",
-        "Presets export and import as .napsterpreset archives."
+        "Direct export of cached lossless FLAC audio to user-selected storage via Android Storage Access Framework.",
+        "FlacTagger embeds Vorbis comments (Title, Artist, Album), album cover art, and synchronized/word lyrics.",
+        "Raw audio frame streams are preserved byte-for-byte untouched with zero transcoding artifacts.",
+        "Honest format handling: non-FLAC streams are cleanly converted to M4A/AAC rather than falsely disguised as FLAC."
       ]
     },
     {
-      "title": "Audio & Playback Polish",
+      "title": "Per-Network Quality & Storage Controls",
       "items": [
-        "One-tap playback presets: Normal, Sped Up, Nightcore, Slowed, Daycore, and Vaporwave.",
-        "DJ mode with beat-matched transitions and energy profiling.",
-        "Accessible from both the Player Menu and Song Options."
+        "Independent audio quality preferences for Wi-Fi and Cellular networks.",
+        "Seamless handover adaptation dynamically re-evaluating quality upon network changes without unnecessary playback reloads.",
+        "Data Saver mode instantly forces efficient low-bitrate playback across all networks.",
+        "Storage settings featuring granular player and download cache monitoring and one-tap cache eviction."
       ]
     }
   ]

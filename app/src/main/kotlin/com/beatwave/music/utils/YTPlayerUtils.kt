@@ -171,6 +171,9 @@ object YTPlayerUtils {
         val isTidalStream: Boolean = false,
         /** True when the stream is sourced from an 8spine module. */
         val isSpineStream: Boolean = false,
+        /** True when the stream is sourced from an HTTP add-on. */
+        val isAddonStream: Boolean = false,
+        val addonName: String? = null,
     )
     /**
      * Custom player response intended to use for playback.
@@ -689,6 +692,7 @@ object YTPlayerUtils {
         val format = candidates
             .maxByOrNull {
                 it.bitrate * when (audioQuality) {
+                    AudioQuality.LOSSLESS -> 1
                     AudioQuality.AUTO -> if (connectivityManager.isActiveNetworkMetered) -1 else 1
                     AudioQuality.HIGH -> 1
                     AudioQuality.LOW -> -1

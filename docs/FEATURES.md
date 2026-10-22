@@ -59,7 +59,48 @@ This document provides a comprehensive inventory of verified features available 
 
 ---
 
-## 7. Intentionally Excluded Legacy Features
+---
+
+## 7. Advanced Audio Diagnostics and Output Route Telemetry
+
+- **Truth-First Media3 Input Monitoring:** Inspects actual decoder input format parameters directly from Media3 `AnalyticsListener.onAudioInputFormatChanged()`. Reports true codec MIME type, bit depth (16-bit, 24-bit, 32-bit float), sample rate (e.g. 44.1 kHz, 48 kHz, 96 kHz), and bitrate.
+- **Audio Chain Downgrade Detection:** Evaluates provider-claimed stream quality against actual observed input stream parameters. Dynamically flags streams when a source claiming lossless Hi-Fi is downgraded to lossy Opus/AAC or downsampled by the pipe.
+- **Hardware Output Route Classification:** Listens to `AudioDeviceCallback` and identifies active physical audio output sinks (Internal Speaker, 3.5mm Wired Headset/Line-out, USB Audio/DAC, HDMI/eARC, Audio Dock).
+- **Bluetooth A2DP Codec Telemetry:** Authoritative listener for Android Bluetooth A2DP profile state, detecting negotiated Bluetooth codecs (LDAC, aptX HD, aptX Adaptive, AAC, SBC, Samsung Seamless Codec) and reporting sample rate and bit depth.
+- **Technical Limitations:** Telemetry reflects information reported by Android system APIs (`AudioDeviceInfo` and `BluetoothCodecStatus`). Standard Android audio routing resamples audio through the system AudioFlinger/AudioTrack mixer unless exclusive USB host mode is enabled. No promises of "bit-perfect" or hardware bit-exact bypass are made. Route detection runs purely as non-blocking telemetry and never gates playback.
+
+---
+
+## 8. HTTP Streaming Add-on Support
+
+- **Open JSON Streaming Protocol:** Allows connecting modular, user-configured HTTP streaming servers implementing the standard add-on specification (`/manifest.json`, `/search?q=...`, `/stream/{id}`).
+- **Manifest Introspection & Capabilities:** Automatically queries and caches add-on metadata, declared resources (`search`, `stream`), quality tier mappings (`LOSSLESS`, `HIGH`, `LOW`), and download policies.
+- **Resilient Request Deduplication:** In-flight concurrent requests for identical queries are deduplicated via `SharedCalls`, preventing duplicate network queries to self-hosted add-on instances.
+- **Rate Limit & Retry-After Backoff:** Full compliance with HTTP 429 responses and `Retry-After` headers, enforcing client-side cooldown timers without hammering servers.
+- **Silent Replacement Guard:** Multi-tiered scoring via `TrackMatcher` strictly rejects live recordings, acoustic variations, or remixes when the user requested studio album tracks, preventing silent track mismatch.
+- **Direct Stream URL Optimization:** When an add-on search result includes a direct `streamURL`, the resolver uses it directly without a redundant round-trip `/stream/{id}` query.
+
+---
+
+## 9. Lossless FLAC Export and Metadata Tagging
+
+- **Direct Cache-to-Storage Export:** Exports cached lossless audio tracks directly to user-selected locations using Android's Storage Access Framework (`ActivityResultContracts.CreateDocument`).
+- **Vorbis Comment & Artwork Tagging:** Uses `FlacTagger` to embed standard FLAC metadata blocks (TITLE, ARTIST, ALBUM, front cover picture block, synchronized LRC lyrics, and word-timed lyrics) directly into the exported file.
+- **Audio Frame Preservation:** Guarantees that raw audio frame payloads are copied byte-for-byte untouched without re-encoding, transcoding, or data alteration.
+- **Honest Format Handling:** If an audio stream was sourced from a lossy container (YouTube Opus/AAC), the exporter does not disguise or label it as FLAC; it cleanly remuxes/transcodes the track to `.m4a` format.
+- **Block Replacement Without Bloat:** Re-tagging an already-tagged FLAC strips and replaces existing Vorbis comment, picture, and padding blocks rather than duplicating metadata blocks.
+
+---
+
+## 10. Per-Network Quality Preferences & Cache Controls
+
+- **Network-Aware Stream Resolution:** Independent audio quality selectors for Wi-Fi and Cellular networks, with support for `Prefer Lossless`, `High Quality`, `Auto`, and `Data Saver`.
+- **Transport vs Metered Classification:** Uses active `NetworkCapabilities` transport flags (`TRANSPORT_WIFI`, `TRANSPORT_CELLULAR`), safely falling back to `isActiveNetworkMetered` when transport is ambiguous (e.g. metered mobile hotspots).
+- **Dynamic Handover Adaptation:** Listens to `onCapabilitiesChanged` via `NetworkConnectivityObserver` to seamlessly switch quality when transitioning between Wi-Fi and cellular mid-playback without interrupting playback when resolved quality is unchanged.
+- **Data Saver Override:** Enabling Data Saver immediately enforces lowest bitrate (`AudioQuality.LOW`) across all networks.
+- **Storage Management:** Dedicated settings for monitoring player cache and download cache sizes with instant one-tap cache eviction.
+
+## 11. Intentionally Excluded Legacy Features
 
 The following features were present in early upstream projects (BeatWave, CONVX, vivi-music) and have been permanently removed:
 
@@ -72,3 +113,5 @@ The following features were present in early upstream projects (BeatWave, CONVX,
 | **AI Playlist Modification & Translation** | Proprietary remote LLM endpoints with high latency and external dependencies. |
 | **Supabase / Custom Backend Accounts** | Remote account synchronisation eliminated in favour of local-first data ownership. |
 | **Obsolete Account & Story Screens** | Unreferenced user-facing remnants excised in Phase 10. |
+| **Bit-Perfect / Bit-Exact Output Claims** | Unsupported on standard Android audio architectures without proprietary kernel DAC bypass. Audio is routed cleanly through ExoPlayer and Android AudioTrack. |
+| **Wear OS, Android TV, & Desktop Ports** | Scope is strictly focused on high-performance Android mobile and automotive (Android Auto) form factors. |

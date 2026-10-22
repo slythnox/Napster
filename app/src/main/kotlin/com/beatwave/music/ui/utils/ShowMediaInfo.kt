@@ -32,6 +32,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -345,6 +346,49 @@ fun ShowMediaInfo(videoId: String) {
                             else "N/A",
                             modifier = Modifier.weight(1f)
                         )
+                    }
+
+                    if (playerConnection != null) {
+                        val diag by playerConnection.audioDiagnostics.collectAsState()
+                        if (diag.isDowngraded && diag.downgradeReason != null) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f))
+                                    .padding(12.dp)
+                            ) {
+                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Text(
+                                        text = "Audio Downgrade Warning",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.error,
+                                    )
+                                    Text(
+                                        text = diag.downgradeReason.orEmpty(),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onErrorContainer,
+                                    )
+                                }
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            InfoItem(
+                                label = "Active Route",
+                                value = "${diag.outputRoute.routeClassification} (${diag.outputRoute.deviceName})",
+                                modifier = Modifier.weight(1f)
+                            )
+                            InfoItem(
+                                label = "Provider Source",
+                                value = diag.providerClaim.sourceName ?: "YouTube",
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
                     }
                 }
             }

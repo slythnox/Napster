@@ -163,6 +163,9 @@ class PlayerConnection(
     /** BPM, key, tier and transition style, straight from the DJ engine. */
     val djState = service.djState
 
+    /** Truth-first audio format diagnostics and output route tracking. */
+    val audioDiagnostics = service.audioDiagnostics
+
     val queueTitle = MutableStateFlow<String?>(null)
     val queueWindows = MutableStateFlow<List<Timeline.Window>>(emptyList())
     val currentMediaItemIndex = MutableStateFlow(-1)

@@ -58,7 +58,7 @@ fun rememberAudioToolsMenuItems(
 
     var isExporting by remember { mutableStateOf(false) }
     val exportLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument("audio/mp4")
+        ActivityResultContracts.CreateDocument("audio/*")
     ) { destination ->
         if (destination == null) return@rememberLauncherForActivityResult
         isExporting = true
@@ -127,10 +127,12 @@ fun rememberAudioToolsMenuItems(
             },
             onClick = {
                 if (!isExporting) {
+                    val isFlac = SongExporter.isLosslessAvailable(mediaMetadata.id, downloadUtil.playerCache, downloadUtil.downloadCache)
                     exportLauncher.launch(
                         SongExporter.suggestedFileName(
                             title = mediaMetadata.title,
                             artist = mediaMetadata.artists.joinToString { it.name },
+                            isFlac = isFlac,
                         )
                     )
                 }

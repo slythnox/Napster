@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/Licence-GPL--3.0-E50914?style=for-the-badge&labelColor=0E1015" alt="Licence GPL-3.0" /></a>
-  <a href="version.properties"><img src="https://img.shields.io/badge/Version-1.0.2--XO-E50914?style=for-the-badge&labelColor=0E1015" alt="Version 1.0.2" /></a>
+  <a href="version.properties"><img src="https://img.shields.io/badge/Version-1.0.3--XO-E50914?style=for-the-badge&labelColor=0E1015" alt="Version 1.0.3" /></a>
   <a href="docs/BUILD_AND_TEST.md"><img src="https://img.shields.io/badge/Platform-Android%208.0%2B%20(API%2026%E2%80%9336)-E50914?style=for-the-badge&labelColor=0E1015" alt="Android 8.0+" /></a>
   <a href="docs/ARCHITECTURE.md"><img src="https://img.shields.io/badge/Architecture-Clean%20%2F%20MVI%20%2B%20Media3-E50914?style=for-the-badge&labelColor=0E1015" alt="Architecture Clean Media3" /></a>
   <a href="docs/PRIVACY_AND_PERMISSIONS.md"><img src="https://img.shields.io/badge/Telemetry-Zero%20Tracking-E50914?style=for-the-badge&labelColor=0E1015" alt="Zero Telemetry" /></a>
@@ -60,12 +60,17 @@ The client is published with the application identifier `com.napster.music`. Wit
 
 ### Core Audio & Playback
 - **AndroidX Media3 / ExoPlayer Engine:** Built upon ExoPlayer 1.5.1 with customized audio sinks, continuous buffer management, and automatic audio focus handling.
+- **Truth-First Audio Diagnostics:** Real-time telemetry monitoring Media3 decoder inputs (actual codec, bitrate, sample rate, bit depth), detecting audio chain downgrades, and displaying transparent UI badges without unverified bit-perfect claims.
+- **Bluetooth Output-Route Telemetry:** Non-blocking tracking of connected hardware sinks (Wired, USB DAC, HDMI, Internal Speaker) and Bluetooth A2DP transport codecs (LDAC, aptX, AAC, SBC, Samsung Seamless) via Android audio device callbacks.
+- **Per-Network Quality Preferences:** Independent audio quality selectors for Wi-Fi and Cellular connections, respecting Data Saver mode and transitioning smoothly upon network handover.
+- **HTTP Streaming Add-ons:** Modular support for external HTTP streaming add-on servers using an open JSON manifest specification, with search-probe fallbacks, request deduplication, and 429 Retry-After backoff.
+- **Lossless FLAC File Export:** Export cached lossless tracks directly to user-selected storage via Android SAF, embedding Vorbis comment tags, UTF-8 Unicode metadata, album art, and synchronized lyrics without altering raw audio frames (non-FLAC sources exported cleanly as M4A).
 - **Seamless Autoplay & Radio Continuation:** Intelligent queue continuation that automatically fetches and transitions to algorithmic radio recommendations when approaching the end of playlists, with automatic error avoidance and deduplication.
 - **Audio Equalisation & DSP Effects:** Integrated 5-band / 10-band graphic equaliser, bass boost, virtualiser, and system DSP intent forwarding.
 - **DJ Mode & Beat-Matched Transitions:** Gapless playback, configurable crossfade durations, and automated beat-matching energy transitions.
 - **Off-Screen & Background Playback:** Fully decoupled Android Foreground Service (`MusicService`) managing hardware media buttons, lock-screen notifications, and Bluetooth transport controls.
 - **Local Audio Library:** Real-time scanning and merging of on-device audio files stored in device storage alongside cloud streams.
-- **Offline Download Manager:** Background downloading managed by `ExoDownloadService` with parallel queue concurrency, network constraint enforcement (Wi-Fi only toggles), and disk cache deduplication.
+- **Offline Download & Cache Controls:** Background downloading managed by `ExoDownloadService` with granular cache eviction and storage budget management.
 
 ### Interface & Experience
 - **Liquid Glass & Dynamic Blur:** Source-integrated hardware-accelerated backdrop blur (`Kyant0/backdrop`) creating frosted glass aesthetics behind playback bars and navigation headers.
@@ -83,12 +88,14 @@ The client is published with the application identifier `com.napster.music`. Wit
 - **Backup & Portability:** One-click encrypted JSON/SQLite database export and restoration for library entries, custom playlists, and playback settings.
 
 ### Intentionally Absent Features
-To maintain uncompromising privacy and codebase stability, several non-essential legacy modules have been permanently purged:
-- No real-time collaborative rooms or proprietary multi-user sync protocols.
+To maintain uncompromising privacy, codebase stability, and architecture integrity, several non-essential modules and unsupported promises are explicitly excluded:
+- No real-time collaborative rooms or proprietary multi-user sync protocols (Listen Together).
 - No private Spotify user authentication, cookies, or GraphQL account token extractors.
 - No microphone-based ambient audio recognition (Shazam clones).
 - No Discord Rich Presence sockets or external RPC daemons.
 - No analytics SDKs, advertising frameworks, or crash telemetry endpoints.
+- No unsupported promises of "bit-exact" or guaranteed end-to-end hardware bit-perfect reproduction (playback routes through standard Android audio sinks).
+- No Wear OS, Android TV, desktop applications (Windows/macOS/Linux), or browser extensions.
 
 ---
 

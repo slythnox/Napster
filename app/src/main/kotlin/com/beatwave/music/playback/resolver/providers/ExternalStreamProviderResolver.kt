@@ -72,7 +72,7 @@ object ExternalStreamProviderResolver {
             // Circuit breaker: skips both the lossless-capable Spine modules and
             // Tidal below, so a user who picked a specific quality actually gets
             // it instead of a module/Tidal silently upgrading to FLAC.
-            val forceSelectedQuality = context.dataStore.get(ForceSelectedQualityKey, false)
+            val forceSelectedQuality = context.dataStore.get(ForceSelectedQualityKey, false) && audioQuality != AudioQuality.LOSSLESS
 
             var cachedYtMetadata: ExternalYtMetadata? = null
 
@@ -101,6 +101,40 @@ object ExternalStreamProviderResolver {
                 }
                 return ExternalYtMetadata(currentSong, meta, title, artistNames).also {
                     cachedYtMetadata = it
+                }
+            }
+
+            // HTTP streaming add-on intercept
+            val addonSourcesJson = context.dataStore.get(com.beatwave.music.constants.HttpAddonSourcesKey, "[]")
+            if (!forceStandardAudio && addonSourcesJson.isNotBlank() && addonSourcesJson != "[]") {
+                val addonConfigs = runCatching {
+                    com.beatwave.music.playback.resolver.addon.AddonJson.decodeFromString<List<com.beatwave.music.playback.resolver.addon.AddonConfig>>(addonSourcesJson)
+                }.getOrElse { emptyList() }
+                val enabledAddons = addonConfigs.filter { it.enabled }
+                if (enabledAddons.isNotEmpty()) {
+                    val (currentSong, meta, title, artistNames) = getYtMetadata()
+                    if (title.isNotBlank()) {
+                        val target = com.beatwave.music.playback.resolver.addon.TrackMatcher.Target(
+                            title = title,
+                            artist = artistNames.firstOrNull().orEmpty(),
+                            durationSec = currentSong?.duration ?: meta?.videoDetails?.lengthSeconds?.toIntOrNull(),
+                        )
+                        for (addonConfig in enabledAddons) {
+                            val source = com.beatwave.music.playback.resolver.addon.AddonSource(addonConfig)
+                            val playback = runCatching {
+                                source.resolve(
+                                    target = target,
+                                    audioQuality = audioQuality,
+                                    allowLossless = allowLossless,
+                                    outputRouteState = null,
+                                )
+                            }.getOrNull()
+                            if (playback != null) {
+                                Timber.tag(TAG).i("Resolved via HTTP add-on [${addonConfig.name}]: ${playback.format.itag}")
+                                return Result.success(playback)
+                            }
+                        }
+                    }
                 }
             }
 
@@ -376,7 +410,8 @@ object ExternalStreamProviderResolver {
             // â”€â”€ Lossless (TIDAL) intercept â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             // Opt-in FLAC from a public hifi-api instance. Tried BEFORE JioSaavn so
             // lossless wins. Falls through to Saavn/YouTube on ANY failure.
-            if (!forceStandardAudio && !forceSelectedQuality && allowLossless && context.dataStore.get(EnableTidalStreamingKey, false)) {
+            val enableTidal = context.dataStore.get(EnableTidalStreamingKey, false)
+            if (!forceStandardAudio && !forceSelectedQuality && enableTidal && (allowLossless || audioQuality == AudioQuality.LOSSLESS)) {
                 Timber.tag(TAG).d("Lossless enabled â€” trying TIDAL for videoId=$videoId")
                 val tidalResult = runCatching {
                     val (currentSong, meta, title, artistNames) = getYtMetadata()

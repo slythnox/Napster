@@ -13,6 +13,10 @@ This document provides a factual, step-by-step verification checklist required p
 - [ ] **Offline Media Playback:** Download an audio track, activate flight mode, and verify offline playback and notification controls operate without network access.
 - [ ] **Lock Screen and MediaSession Controls:** Validate play, pause, skip, seek, and artwork rendering within the system media notification shade and lock-screen controls.
 - [ ] **Audio Focus Behaviour:** Confirm playback ducks or pauses during phone calls or incoming notifications and resumes reliably upon focus restoration.
+- [ ] **Audio Diagnostics & Route Telemetry:** Confirm decoder format (codec, bitrate, sample rate, bit depth) updates accurately on track change and output sink changes (Speaker, Wired, USB DAC, Bluetooth A2DP) without blocking playback.
+- [ ] **HTTP Streaming Add-ons:** Verify add-on server registration, manifest parsing, query response, and 429 Retry-After backoff.
+- [ ] **Lossless FLAC Export:** Export an offline cached FLAC track via SAF and verify that Vorbis comment tags, cover art, and lyrics are embedded without altering audio frames. Verify non-FLAC streams export cleanly as M4A.
+- [ ] **Per-Network Quality:** Verify that Wi-Fi and Cellular quality settings route correctly and that transitions trigger reloads only when the resolved quality differs.
 
 ---
 

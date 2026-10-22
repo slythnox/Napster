@@ -29,6 +29,10 @@ class NetworkConnectivityObserver(context: Context) {
             _networkStatus.trySend(true)
         }
 
+        override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+            _networkStatus.trySend(true)
+        }
+
         override fun onLost(network: Network) {
             _networkStatus.trySend(false)
         }

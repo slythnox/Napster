@@ -130,7 +130,7 @@ fun SongMenu(
     val downloadUtil = LocalDownloadUtil.current
     var isExporting by remember { mutableStateOf(false) }
     val exportLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument("audio/mp4")
+        ActivityResultContracts.CreateDocument("audio/*")
     ) { destination ->
         if (destination == null) return@rememberLauncherForActivityResult
         isExporting = true
@@ -689,10 +689,12 @@ fun SongMenu(
                             },
                             onClick = {
                                 if (isExporting) return@Material3MenuItemData
+                                val isFlac = SongExporter.isLosslessAvailable(song.id, downloadUtil.playerCache, downloadUtil.downloadCache)
                                 exportLauncher.launch(
                                     SongExporter.suggestedFileName(
                                         title = song.song.title,
                                         artist = song.artists.joinToString { it.name },
+                                        isFlac = isFlac,
                                     )
                                 )
                             }

@@ -58,6 +58,10 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.beatwave.music.LocalPlayerAwareWindowInsets
 import com.beatwave.music.R
+import com.beatwave.music.constants.HttpAddonSourcesKey
+import com.beatwave.music.playback.resolver.addon.AddonClient
+import com.beatwave.music.playback.resolver.addon.AddonConfig
+import com.beatwave.music.playback.resolver.addon.AddonJson
 import com.beatwave.music.constants.EnabledModulesKey
 import com.beatwave.music.constants.FetchedModulesKey
 import com.beatwave.music.constants.ModuleSourcesKey
@@ -105,6 +109,17 @@ fun ModuleSourceScreen(
     val enabledIds = remember(enabledOrder) { enabledOrder.toSet() }
 
     var showAddDialog by remember { mutableStateOf(false) }
+    val (addonSourcesJson, onAddonSourcesJsonChange) = rememberPreference(HttpAddonSourcesKey, defaultValue = "[]")
+    val addonConfigs = remember(addonSourcesJson) {
+        runCatching {
+            AddonJson.decodeFromString<List<AddonConfig>>(addonSourcesJson)
+        }.getOrElse { emptyList() }
+    }
+    var showAddAddonDialog by remember { mutableStateOf(false) }
+
+    fun saveAddonConfigs(list: List<AddonConfig>) {
+        onAddonSourcesJsonChange(AddonJson.encodeToString(list))
+    }
     val (fetchedModulesJson, onFetchedModulesJsonChange) = rememberPreference(FetchedModulesKey, defaultValue = "[]")
     val fetchedModules = remember(fetchedModulesJson) {
         runCatching {
@@ -255,6 +270,102 @@ fun ModuleSourceScreen(
                 }
             }
 
+            item {
+                Text(
+                    text = "HTTP STREAMING ADD-ONS",
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 20.dp, top = 24.dp, bottom = 8.dp)
+                )
+            }
+
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .clip(RoundedCornerShape(AppleTokens.CardCorner))
+                        .background(MaterialTheme.colorScheme.surfaceContainer)
+                ) {
+                    addonConfigs.forEachIndexed { index, addon ->
+                        if (index > 0) {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(start = 64.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                                thickness = 0.5.dp,
+                            )
+                        }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = addon.name,
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                Text(
+                                    text = addon.baseUrl,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                            IconButton(
+                                onClick = {
+                                    saveAddonConfigs(addonConfigs.filter { it.id != addon.id })
+                                },
+                                onLongClick = {
+                                    saveAddonConfigs(addonConfigs.filter { it.id != addon.id })
+                                },
+                            ) {
+                                Icon(
+                                    painterResource(R.drawable.close),
+                                    contentDescription = stringResource(R.string.remove),
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
+                            ModernSwitch(
+                                checked = addon.enabled,
+                                onCheckedChange = { checked ->
+                                    saveAddonConfigs(addonConfigs.map {
+                                        if (it.id == addon.id) it.copy(enabled = checked) else it
+                                    })
+                                },
+                            )
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showAddAddonDialog = true }
+                            .padding(horizontal = 16.dp, vertical = 13.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.add),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp),
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            text = "Add HTTP Streaming Add-on",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+            }
+
             if (sourceUrls.isNotEmpty()) {
                 item {
                     Spacer(Modifier.height(16.dp))
@@ -355,6 +466,93 @@ fun ModuleSourceScreen(
                 Spacer(Modifier.height(80.dp))
             }
         }
+    }
+
+    if (showAddAddonDialog) {
+        var addonUrlInput by remember { mutableStateOf("") }
+        var isProbing by remember { mutableStateOf(false) }
+        var probeError by remember { mutableStateOf<String?>(null) }
+
+        AlertDialog(
+            onDismissRequest = { showAddAddonDialog = false },
+            title = { Text("Add HTTP Streaming Add-on") },
+            text = {
+                Column {
+                    Text(
+                        text = "Enter the base URL of the HTTP add-on server. It will be probed for manifest and search capabilities.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = addonUrlInput,
+                        onValueChange = {
+                            addonUrlInput = it
+                            probeError = null
+                        },
+                        singleLine = true,
+                        label = { Text("Add-on Base URL") },
+                        placeholder = { Text("https://addon.example.com") },
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = probeError != null,
+                    )
+                    if (probeError != null) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = probeError.orEmpty(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val url = addonUrlInput.trim()
+                        if (url.isNotBlank()) {
+                            isProbing = true
+                            probeError = null
+                            scope.launch {
+                                val client = AddonClient(url)
+                                val manifestResult = client.manifest()
+                                manifestResult.fold(
+                                    onSuccess = { manifest ->
+                                        val newConfig = AddonConfig(
+                                            id = manifest.id.ifBlank { url },
+                                            name = manifest.displayName,
+                                            baseUrl = url,
+                                            enabled = true,
+                                            downloadsAllowed = manifest.downloadsAllowed,
+                                            requiresLosslessOutput = manifest.requiresLosslessOutput,
+                                        )
+                                        saveAddonConfigs(addonConfigs.filter { it.id != newConfig.id } + newConfig)
+                                        isProbing = false
+                                        showAddAddonDialog = false
+                                    },
+                                    onFailure = { err ->
+                                        isProbing = false
+                                        probeError = err.message ?: "Failed to probe add-on"
+                                    }
+                                )
+                            }
+                        }
+                    },
+                    enabled = addonUrlInput.isNotBlank() && !isProbing,
+                ) {
+                    if (isProbing) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                    } else {
+                        Text(stringResource(R.string.add_to_an_playlist))
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAddAddonDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
     }
 
     if (showAddDialog) {

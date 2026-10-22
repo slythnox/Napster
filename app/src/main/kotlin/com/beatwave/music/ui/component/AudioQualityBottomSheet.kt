@@ -63,10 +63,16 @@ fun AudioQualityBottomSheet(
     val options = remember {
         listOf(
             QualityOption(
+                quality = AudioQuality.LOSSLESS,
+                title = "Prefer Lossless",
+                badge = "FLAC PREFERRED",
+                description = "Prefers lossless FLAC when supported by source · Does not guarantee lossless source or output"
+            ),
+            QualityOption(
                 quality = AudioQuality.HIGH,
                 title = "High Quality",
-                badge = "UP TO 256 KBPS",
-                description = "Highest bitrate stream · Opus / AAC (Higher data use)"
+                badge = "UP TO 320 KBPS",
+                description = "Highest bitrate stream · 320kbps / Opus / AAC"
             ),
             QualityOption(
                 quality = AudioQuality.AUTO,

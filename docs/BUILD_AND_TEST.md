@@ -112,7 +112,21 @@ If these secrets are not configured, GitHub Actions automatically falls back to 
 .\gradlew.bat --no-daemon :app:lint
 ```
 
-Unit tests live in `app/src/test/`. There are no instrumented (on-device) tests in the current configuration.
+Unit tests live in `app/src/test/` and cover all core architecture components:
+
+| Test Suite | Location | Coverage |
+|---|---|---|
+| `AddonClientTest` | `app/src/test/.../addon/` | Manifest discovery, search queries, 500 error handling, HTTP 429 Retry-After backoff, request deduplication via `SharedCalls`, direct `streamURL` bypass, and remix/live rejection. Uses standard in-process Java `HttpServer`. |
+| `FlacTaggerTest` | `app/src/test/.../download/` | Rejection of non-FLAC byte streams, safe fallback on corrupt/truncated headers, UTF-8 multilingual metadata preservation, synchronized lyrics, word-timed lyrics embedding, and byte-exact audio frame preservation. |
+| `NetworkQualityPreferenceTest` | `app/src/test/.../playback/` | Independent Wi-Fi and mobile resolution, transport precedence over metered Wi-Fi, fallback to global `AudioQualityKey`, Data Saver override, and mid-session transitions. |
+| `AudioDiagnosticsTest` | `app/src/test/.../audio/` | Decoder input monitoring, downgrade detection (claimed lossless vs lossy stream), float carrier normalization, and UI badge formatting. |
+| `TrackMatcherTest` | `app/src/test/.../addon/` | Track scoring, noise stripping (e.g. "- Topic", "Official Video"), and duration delta penalization. |
+| `AddonPolicyTest` | `app/src/test/.../addon/` | Add-on manifest serialization, permissive download defaults, and lossless output requirement gating. |
+
+Run all primary unit tests with:
+```powershell
+.\gradlew.bat --no-daemon :app:testArm64FossDebugUnitTest
+```
 
 ---
 

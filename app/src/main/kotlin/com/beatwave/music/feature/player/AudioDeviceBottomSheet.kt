@@ -784,14 +784,15 @@ fun AudioQualitySelector(context: Context) {
 
         val options = listOf(
             stringResource(R.string.audio_quality_auto),
+            "Prefer Lossless",
             stringResource(R.string.audio_quality_high),
             stringResource(R.string.audio_quality_low)
         )
         val selectedIndex = when (audioQuality) {
             AudioQuality.AUTO -> 0
-            AudioQuality.HIGH -> 1
-            AudioQuality.LOW -> 2
-            else -> 0
+            AudioQuality.LOSSLESS -> 1
+            AudioQuality.HIGH -> 2
+            AudioQuality.LOW -> 3
         }
 
         androidx.compose.foundation.layout.FlowRow(
@@ -808,7 +809,8 @@ fun AudioQualitySelector(context: Context) {
                     onCheckedChange = {
                         val newQuality = when (index) {
                             0 -> AudioQuality.AUTO
-                            1 -> AudioQuality.HIGH
+                            1 -> AudioQuality.LOSSLESS
+                            2 -> AudioQuality.HIGH
                             else -> AudioQuality.LOW
                         }
                         onAudioQualityChange(newQuality)
