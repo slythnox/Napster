@@ -426,7 +426,7 @@ fun CachePlaylistScreen(
                                                 ListQueue(
                                                     title = "Cache Songs",
                                                     items = cachedSongs.map { it.toMediaItem() },
-                                                    startIndex = cachedSongs.indexOfFirst { it.id == song.id }
+                                                    startIndex = cachedSongs.indexOfFirst { it.id == song.id }.takeIf { it >= 0 } ?: index
                                                 )
                                             )
                                         }

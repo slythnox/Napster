@@ -475,7 +475,7 @@ fun AutoPlaylistScreen(
                                                     ListQueue(
                                                         title = playlistName,
                                                         items = songs.map { it.toMediaItem() },
-                                                        startIndex = songs.indexOfFirst { it.id == song.id },
+                                                        startIndex = songs.indexOfFirst { it.id == song.id }.takeIf { it >= 0 } ?: index,
                                                     ),
                                                 )
                                             }

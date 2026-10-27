@@ -24,23 +24,37 @@ interface Queue {
         val mediaItemIndex: Int,
         val position: Long = 0L,
     ) {
-        fun filterExplicit(enabled: Boolean = true) =
-            if (enabled) {
-                copy(
-                    items = items.filterExplicit(),
-                )
-            } else {
-                this
+        fun filterExplicit(enabled: Boolean = true): Status {
+            if (!enabled) return this
+            var targetIndex = mediaItemIndex
+            val filtered = items.filterIndexed { index, item ->
+                val isExplicit = item.metadata?.explicit == true
+                if (isExplicit && index < mediaItemIndex) {
+                    targetIndex--
+                }
+                !isExplicit
             }
+            return copy(
+                items = filtered,
+                mediaItemIndex = targetIndex.coerceIn(0, maxOf(0, filtered.size - 1)),
+            )
+        }
 
-        fun filterVideoSongs(disableVideos: Boolean = false) =
-            if (disableVideos) {
-                copy(
-                    items = items.filterVideoSongs(true),
-                )
-            } else {
-                this
+        fun filterVideoSongs(disableVideos: Boolean = false): Status {
+            if (!disableVideos) return this
+            var targetIndex = mediaItemIndex
+            val filtered = items.filterIndexed { index, item ->
+                val isVideo = item.metadata?.isVideoSong == true
+                if (isVideo && index < mediaItemIndex) {
+                    targetIndex--
+                }
+                !isVideo
             }
+            return copy(
+                items = filtered,
+                mediaItemIndex = targetIndex.coerceIn(0, maxOf(0, filtered.size - 1)),
+            )
+        }
     }
 }
 

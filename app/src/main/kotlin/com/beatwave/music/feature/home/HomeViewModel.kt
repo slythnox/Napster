@@ -164,8 +164,9 @@ class HomeViewModel @Inject constructor(
         combine(
             database.speedDialDao.getAll(),
             keepListening,
-            quickPicks
-        ) { pinned, keepListening, quick ->
+            quickPicks,
+            allYtItems
+        ) { pinned, keepListening, quick, allYt ->
             val pinnedItems = pinned.map { it.toYTItem() }
             val filled = pinnedItems.toMutableList()
             val targetSize = 27
@@ -217,6 +218,14 @@ class HomeViewModel @Inject constructor(
                     }
                     filled.addAll(available.take(needed))
                 }
+            }
+
+            if (filled.size < targetSize) {
+                val needed = targetSize - filled.size
+                val available = allYt.filter { item ->
+                    filled.none { p -> p.id == item.id }
+                }
+                filled.addAll(available.take(needed))
             }
 
             filled.take(targetSize)

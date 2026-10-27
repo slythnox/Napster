@@ -59,7 +59,8 @@
 
     <string name="listen_now">Listen Now</string>
     <string name="your_youtube_playlists">Your YouTube playlists</string>
-    <string name="similar_to">Similar to</string>
+    <string name="similar_to">More from this artist</string>
+    <string name="more_from_this_artist">More from this artist</string>
     <string name="new_release_albums">New release albums</string>
 
     <!-- History -->
@@ -404,6 +405,10 @@
     <string name="audio_quality_low">Low</string>
     <string name="audio_quality_lossless">Lossless</string>
     <string name="queue">Queue</string>
+    <string name="clear_queue">Clear queue</string>
+    <string name="queue_cleared">Queue cleared</string>
+    <string name="autoplay">Autoplay</string>
+    <string name="autoplay_desc">Keep music playing when playlist or queue finishes</string>
     <string name="persistent_queue">Persistent queue</string>
     <string name="persistent_queue_desc">Restore your last queue when the app starts</string>
     <string name="auto_load_more">Auto load more songs</string>

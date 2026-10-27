@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Napster (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
@@ -14,14 +14,17 @@ class ListQueue(
     val items: List<MediaItem>,
     val startIndex: Int = 0,
     val position: Long = 0L,
-    override val preloadItem: MediaMetadata? = items.getOrNull(startIndex)?.metadata,
+    override val preloadItem: MediaMetadata? = null,
 ) : Queue {
 
-    override suspend fun getInitialStatus() = Queue.Status(title, items, startIndex, position)
+    override suspend fun getInitialStatus() = Queue.Status(
+        title = title,
+        items = items,
+        mediaItemIndex = startIndex.coerceIn(0, maxOf(0, items.size - 1)),
+        position = position
+    )
 
     override fun hasNextPage(): Boolean = false
 
     override suspend fun nextPage() = throw UnsupportedOperationException()
 }
-
-

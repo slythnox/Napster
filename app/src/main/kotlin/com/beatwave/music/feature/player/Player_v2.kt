@@ -95,6 +95,8 @@ import com.beatwave.music.feature.player.customize.DiyOrientation
 import com.beatwave.music.feature.player.customize.DiyDesignCanvas
 import com.beatwave.music.LocalPlayerConnection
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 
 enum class PlayerInternalState { COVER, LYRICS, QUEUE }
 
@@ -143,6 +145,18 @@ fun PlayerV2(
     
     androidx.activity.compose.BackHandler(enabled = playerState != PlayerInternalState.COVER) {
         playerState = PlayerInternalState.COVER
+    }
+
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.flow.merge(
+            playerConnection.requestShowQueue,
+            playerConnection.showQueueEvent.map { true }
+        ).collect { requested ->
+            if (requested) {
+                playerState = PlayerInternalState.QUEUE
+                playerConnection.requestShowQueue.value = false
+            }
+        }
     }
     
     var controlsVisible by remember { mutableStateOf(true) }

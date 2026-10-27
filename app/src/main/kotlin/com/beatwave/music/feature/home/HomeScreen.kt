@@ -252,10 +252,11 @@ sealed class HomeSection(val id: String, val baseWeight: Int) {
     /** The "star of the day" card. Always first, never shuffled. */
     data object Hero : HomeSection("hero", 110)
     data object SpeedDial : HomeSection("speed_dial", 100)
-    data object QuickPicks : HomeSection("quick_picks", 90)
-    data object LastPlayedRecommendation : HomeSection("last_played_recommendation", 85)
-    data object DailyDiscover : HomeSection("daily_discover", 80)
-    data object KeepListening : HomeSection("keep_listening", 50)
+    data object QuickPicks : HomeSection("quick_picks", 95)
+    data object KeepListening : HomeSection("keep_listening", 90)
+    data object NewReleases : HomeSection("new_releases", 85)
+    data object LastPlayedRecommendation : HomeSection("last_played_recommendation", 80)
+    data object DailyDiscover : HomeSection("daily_discover", 70)
     data object AccountPlaylists : HomeSection("account_playlists", 40)
     data object ForgottenFavorites : HomeSection("forgotten_favorites", 30)
     data object FromTheCommunity : HomeSection("from_the_community", 20)
@@ -1091,6 +1092,7 @@ fun HomeScreen(
         similarRecommendations,
         lastPlayedRecommendation,
         homePage?.sections,
+        explorePage?.newReleaseAlbums,
         explorePage?.moodAndGenres
     ) {
         val hidden = hiddenSectionIds.lineSequence()
@@ -1100,14 +1102,13 @@ fun HomeScreen(
         val list = mutableListOf<HomeSection>()
 
         if (heroCardEnabled && quickPicks?.isNotEmpty() == true) list.add(HomeSection.Hero)
-        // Speed Dial section commented out per request -- gated out here rather than
-        // deleting the section's rendering code, so it is one line to bring back.
-        // if (speedDialItems.isNotEmpty()) list.add(HomeSection.SpeedDial)
+        if (speedDialItems.isNotEmpty()) list.add(HomeSection.SpeedDial)
         if (quickPicks?.isNotEmpty() == true) list.add(HomeSection.QuickPicks)
+        if (keepListening?.isNotEmpty() == true) list.add(HomeSection.KeepListening)
+        if (explorePage?.newReleaseAlbums?.isNotEmpty() == true) list.add(HomeSection.NewReleases)
         if (lastPlayedRecommendation != null) list.add(HomeSection.LastPlayedRecommendation)
         if (communityPlaylists?.isNotEmpty() == true) list.add(HomeSection.FromTheCommunity)
         if (dailyDiscover?.isNotEmpty() == true) list.add(HomeSection.DailyDiscover)
-        if (keepListening?.isNotEmpty() == true) list.add(HomeSection.KeepListening)
         if (accountPlaylists?.isNotEmpty() == true) list.add(HomeSection.AccountPlaylists)
         if (forgottenFavorites?.isNotEmpty() == true) list.add(HomeSection.ForgottenFavorites)
 
@@ -1168,6 +1169,8 @@ fun HomeScreen(
 
                     HomeSection.SpeedDial,
                     HomeSection.QuickPicks,
+                    HomeSection.KeepListening,
+                    HomeSection.NewReleases,
                     HomeSection.DailyDiscover -> 500 // Top tier starts equal
 
                     HomeSection.KeepListening,
@@ -1183,6 +1186,8 @@ fun HomeScreen(
                     // Range: [500-200, 500+400] = [300, 900]
                     HomeSection.SpeedDial,
                     HomeSection.QuickPicks,
+                    HomeSection.KeepListening,
+                    HomeSection.NewReleases,
                     HomeSection.DailyDiscover -> sectionRandom.nextInt(-200, 400)
 
                     // Middle tier: Can jump up to challenge top tier, or drop lower
@@ -1205,9 +1210,10 @@ fun HomeScreen(
             // tiles buried everything else.
             val defaultOrder = mapOf(
                 HomeSection.Hero to 110,
-                HomeSection.KeepListening to 100,
-                HomeSection.QuickPicks to 90,
-                HomeSection.SpeedDial to 80,
+                HomeSection.SpeedDial to 100,
+                HomeSection.QuickPicks to 95,
+                HomeSection.KeepListening to 90,
+                HomeSection.NewReleases to 85,
                 HomeSection.FromTheCommunity to 70,
                 HomeSection.DailyDiscover to 60,
                 HomeSection.AccountPlaylists to 50,
@@ -1706,6 +1712,7 @@ private fun LazyListScope.homeSectionsContent(
                 randomizeJob = randomizeJob,
             )
             HomeSection.QuickPicks -> quickPicksSection(deps, quickPicks, mediaMetadata, isPlaying, quickPicksSongMap)
+            HomeSection.NewReleases -> newReleasesSection(deps, explorePage)
             HomeSection.LastPlayedRecommendation -> lastPlayedRecommendationSection(deps, lastPlayedRecommendation)
             HomeSection.FromTheCommunity -> communityPlaylistsSection(deps, communityPlaylists)
             HomeSection.DailyDiscover -> dailyDiscoverSection(deps, dailyDiscover)
@@ -2073,7 +2080,7 @@ private fun LazyListScope.speedDialSection(
             // Tab view's side rail leaves a typical tablet at 4-5 columns, one short of
             // the >=6 threshold below â€” that forced a second, cramped row where the width
             // was already there for one wide one. Lower the bar once the rail is showing.
-            val rows = if (columns >= 6 || (LocalTabView.current && columns >= 4)) 1 else if (columns >= 4) 2 else 3
+            val rows = if (columns >= 6 || (LocalTabView.current && columns >= 4)) 1 else 2
             val itemsPerPage = columns * rows
             val itemWidth = availableWidth / columns
             // Decode/upload only what the tile actually needs â€” 544 (the
@@ -2561,15 +2568,16 @@ private fun LazyListScope.keepListeningSection(
         val spotlightItems = keepListening.drop(heroCount)
         if (spotlightItems.isNotEmpty()) {
             item(key = "keep_listening_spotlight", contentType = "spotlight_row") {
-                // See the local shelf above: a pager spends the whole fling on one page,
-                // so this row felt inert next to the vertical list it sits in.
+                val cardArtworkSize = 130.dp
+                val cardInfoHeight = 50.dp
+                val cardTotalHeight = cardArtworkSize + cardInfoHeight
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = AppleTokens.Gutter)
                         .plusStart(deps.sideInset),
-                    horizontalArrangement = Arrangement.spacedBy(SpotlightCardSpacing),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(SpotlightCardHeight)
+                        .height(cardTotalHeight)
                         .animateItem()
                         .bleedStart(deps.sideInset),
                 ) {
@@ -2583,6 +2591,8 @@ private fun LazyListScope.keepListeningSection(
                             title = localItem.title,
                             subtitle = localItem.spotlightSubtitle(),
                             onClick = { deps.onLocalItemClick(localItem) },
+                            artworkSize = cardArtworkSize,
+                            infoHeight = cardInfoHeight,
                         )
                     }
                 }
@@ -2828,7 +2838,7 @@ private fun LazyListScope.similarRecommendationsSection(
     recommendation?.let {
         item(key = "similar_to_title_${section.index}", contentType = "section_title") {
             NavigationTitle(
-                label = stringResource(R.string.similar_to),
+                label = stringResource(R.string.more_from_this_artist),
                 title = recommendation.title.title,
                 thumbnail = recommendation.title.thumbnailUrl?.let { thumbnailUrl ->
                     {
@@ -3016,6 +3026,40 @@ private fun LazyListScope.homePageSection(
                     items(items = sectionData.items, key = { it.id }) { item ->
                         deps.ytGridItem(item)
                     }
+                }
+            }
+        }
+    }
+}
+
+private fun LazyListScope.newReleasesSection(
+    deps: HomeSectionDeps,
+    explorePage: ExplorePage?,
+) {
+    explorePage?.newReleaseAlbums?.takeIf { it.isNotEmpty() }?.let { newReleases ->
+        item(key = "new_releases_title", contentType = "section_title") {
+            NavigationTitle(
+                title = stringResource(R.string.new_release_albums),
+                onClick = {
+                    deps.navController.navigate("new_release")
+                },
+                modifier = Modifier.animateItem(),
+            )
+        }
+
+        item(key = "new_releases_list", contentType = "carousel") {
+            val distinctNewReleases = remember(newReleases) { newReleases.distinctBy { it.id } }
+            LazyRow(
+                contentPadding = WindowInsets.systemBars
+                    .only(WindowInsetsSides.Horizontal)
+                    .asPaddingValues().plusStart(deps.sideInset),
+                modifier = Modifier.animateItem().bleedStart(deps.sideInset)
+            ) {
+                items(
+                    items = distinctNewReleases,
+                    key = { it.id },
+                ) { album ->
+                    deps.ytGridItem(album)
                 }
             }
         }

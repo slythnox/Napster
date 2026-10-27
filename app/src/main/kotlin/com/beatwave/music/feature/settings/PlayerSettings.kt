@@ -282,43 +282,15 @@ fun PlayerSettings(
     var showAudioQualityDialog by remember {
         mutableStateOf(false)
     }
-    var showWifiQualityDialog by remember {
-        mutableStateOf(false)
-    }
-    var showMobileQualityDialog by remember {
-        mutableStateOf(false)
-    }
 
     if (showAudioQualityDialog) {
         AudioQualityBottomSheet(
-            currentQuality = audioQuality,
-            onQualitySelected = { selected ->
-                onAudioQualityChange(selected)
-            },
+            wifiQuality = wifiAudioQuality,
+            mobileQuality = mobileAudioQuality,
+            onWifiQualitySelected = onWifiAudioQualityChange,
+            onMobileQualitySelected = onMobileAudioQualityChange,
             onDismissRequest = {
                 showAudioQualityDialog = false
-            }
-        )
-    }
-    if (showWifiQualityDialog) {
-        AudioQualityBottomSheet(
-            currentQuality = wifiAudioQuality,
-            onQualitySelected = { selected ->
-                onWifiAudioQualityChange(selected)
-            },
-            onDismissRequest = {
-                showWifiQualityDialog = false
-            }
-        )
-    }
-    if (showMobileQualityDialog) {
-        AudioQualityBottomSheet(
-            currentQuality = mobileAudioQuality,
-            onQualitySelected = { selected ->
-                onMobileAudioQualityChange(selected)
-            },
-            onDismissRequest = {
-                showMobileQualityDialog = false
             }
         )
     }
@@ -373,46 +345,21 @@ fun PlayerSettings(
                     icon = painterResource(R.drawable.graphic_eq),
                     title = { Text(stringResource(R.string.audio_quality)) },
                     description = {
-                        Text(
-                            when (audioQuality) {
-                                AudioQuality.LOSSLESS -> "Prefer Lossless • FLAC where available"
-                                AudioQuality.AUTO -> "Auto • Adapts to connection"
-                                AudioQuality.HIGH -> "High Quality • Best sound"
-                                AudioQuality.LOW -> "Data Saver • Minimal data"
-                            }
-                        )
+                        val wifiLabel = when (wifiAudioQuality) {
+                            AudioQuality.LOSSLESS -> "Lossless"
+                            AudioQuality.AUTO -> "Auto"
+                            AudioQuality.HIGH -> "High"
+                            AudioQuality.LOW -> "Data Saver"
+                        }
+                        val mobileLabel = when (mobileAudioQuality) {
+                            AudioQuality.LOSSLESS -> "Lossless"
+                            AudioQuality.AUTO -> "Auto"
+                            AudioQuality.HIGH -> "High"
+                            AudioQuality.LOW -> "Data Saver"
+                        }
+                        Text("Wi-Fi: $wifiLabel • Phone Data: $mobileLabel")
                     },
                     onClick = { showAudioQualityDialog = true }
-                ))
-                add(Material3SettingsItem(
-                    icon = painterResource(R.drawable.wifi_proxy),
-                    title = { Text("Wi-Fi Audio Quality") },
-                    description = {
-                        Text(
-                            when (wifiAudioQuality) {
-                                AudioQuality.LOSSLESS -> "Prefer Lossless • FLAC where available"
-                                AudioQuality.AUTO -> "Auto • Inherit global setting"
-                                AudioQuality.HIGH -> "High Quality • Best sound"
-                                AudioQuality.LOW -> "Data Saver • Minimal data"
-                            }
-                        )
-                    },
-                    onClick = { showWifiQualityDialog = true }
-                ))
-                add(Material3SettingsItem(
-                    icon = painterResource(R.drawable.network_update),
-                    title = { Text("Cellular Audio Quality") },
-                    description = {
-                        Text(
-                            when (mobileAudioQuality) {
-                                AudioQuality.LOSSLESS -> "Prefer Lossless • FLAC where available"
-                                AudioQuality.AUTO -> "Auto • Inherit global setting"
-                                AudioQuality.HIGH -> "High Quality • Best sound"
-                                AudioQuality.LOW -> "Data Saver • Minimal data"
-                            }
-                        )
-                    },
-                    onClick = { showMobileQualityDialog = true }
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.linear_scale),
@@ -879,9 +826,9 @@ fun PlayerSettings(
                     onClick = { onPersistentQueueChange(!persistentQueue) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.playlist_add),
-                    title = { Text(stringResource(R.string.auto_load_more)) },
-                    description = { Text(stringResource(R.string.auto_load_more_desc)) },
+                    icon = painterResource(R.drawable.auto_play),
+                    title = { Text(stringResource(R.string.autoplay)) },
+                    description = { Text(stringResource(R.string.autoplay_desc)) },
                     trailingContent = {
                         Switch(
                             checked = autoLoadMore,

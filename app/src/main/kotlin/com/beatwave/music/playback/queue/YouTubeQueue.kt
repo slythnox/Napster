@@ -32,6 +32,25 @@ class YouTubeQueue(
                     endpoint = nextResult.endpoint
                     continuation = nextResult.continuation
                     retryCount = 0
+
+                    if (nextResult.items.size <= 1 && continuation == null && endpoint.videoId != null && endpoint.playlistId == null) {
+                        val radioEndpoint = WatchEndpoint(
+                            videoId = endpoint.videoId,
+                            playlistId = "RDAMVM${endpoint.videoId}"
+                        )
+                        val radioResult = YouTube.next(radioEndpoint, null).getOrNull()
+                        if (radioResult != null && radioResult.items.isNotEmpty()) {
+                            endpoint = radioResult.endpoint
+                            continuation = radioResult.continuation
+                            val combinedItems = (nextResult.items + radioResult.items).distinctBy { it.id }
+                            return@withContext Queue.Status(
+                                title = radioResult.title ?: nextResult.title,
+                                items = combinedItems.map { it.toMediaItem() },
+                                mediaItemIndex = nextResult.currentIndex ?: 0,
+                            )
+                        }
+                    }
+
                     return@withContext Queue.Status(
                         title = nextResult.title,
                         items = nextResult.items.map { it.toMediaItem() },
@@ -84,7 +103,10 @@ class YouTubeQueue(
          */
         fun radio(song: MediaMetadata): YouTubeQueue {
             return YouTubeQueue(
-                WatchEndpoint(videoId = song.id),
+                WatchEndpoint(
+                    videoId = song.id,
+                    playlistId = "RDAMVM${song.id}"
+                ),
                 song
             )
         }

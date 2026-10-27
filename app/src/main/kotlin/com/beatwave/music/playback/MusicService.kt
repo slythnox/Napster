@@ -1605,6 +1605,21 @@ class MusicService :
         }
     }
 
+    fun clearQueue() {
+        if (!playerInitialized.value) return
+        val currentIdx = player.currentMediaItemIndex
+        val total = player.mediaItemCount
+        if (total <= 0) return
+
+        if (total > currentIdx + 1) {
+            player.removeMediaItems(currentIdx + 1, total)
+        }
+        if (currentIdx > 0) {
+            player.removeMediaItems(0, currentIdx)
+        }
+        currentQueue = com.beatwave.music.playback.queue.EmptyQueue
+    }
+
     fun playQueue(
         queue: Queue,
         playWhenReady: Boolean = true,
@@ -1642,39 +1657,21 @@ class MusicService :
                         .filterExplicit(dataStore.get(HideExplicitKey, false))
                         .filterVideoSongs(dataStore.get(HideVideoSongsKey, false) || dataStore.get(DataSaverEnabledKey, false))
                 }
-            if (queue.preloadItem != null && player.playbackState == STATE_IDLE) return@launch
             if (initialStatus.title != null) {
                 queueTitle = initialStatus.title
             }
             if (initialStatus.items.isEmpty()) return@launch
             // Track original queue size for shuffle playlist first feature
             originalQueueSize = initialStatus.items.size
-            if (queue.preloadItem != null) {
-                player.addMediaItems(
-                    0,
-                    initialStatus.items.subList(0, initialStatus.mediaItemIndex)
-                )
-                player.addMediaItems(
-                    initialStatus.items.subList(
-                        initialStatus.mediaItemIndex + 1,
-                        initialStatus.items.size
-                    )
-                )
-            } else {
-                player.setMediaItems(
-                    initialStatus.items,
-                    if (initialStatus.mediaItemIndex >
-                        0
-                    ) {
-                        initialStatus.mediaItemIndex
-                    } else {
-                        0
-                    },
-                    initialStatus.position,
-                )
-                player.prepare()
-                player.playWhenReady = playWhenReady
-            }
+            val safeStartIndex = initialStatus.mediaItemIndex.coerceIn(0, initialStatus.items.lastIndex)
+
+            player.setMediaItems(
+                initialStatus.items,
+                safeStartIndex,
+                initialStatus.position,
+            )
+            player.prepare()
+            player.playWhenReady = playWhenReady
 
             // Rebuild shuffle order if shuffle is enabled
             if (player.shuffleModeEnabled) {
@@ -1685,23 +1682,69 @@ class MusicService :
         }
     }
 
+    private var automixJob: Job? = null
+
+    fun refreshAutomixForCurrentSong() {
+        if (!dataStore.get(SimilarContent, true)) return
+        val currentMetadata = player.currentMetadata ?: return
+        val currentId = currentMetadata.id
+
+        automixJob?.cancel()
+        automixJob = scope.launch(SilentHandler) {
+            try {
+                val endpoint = WatchEndpoint(
+                    videoId = currentId,
+                    playlistId = "RDAMVM$currentId"
+                )
+                val result = withContext(Dispatchers.IO) {
+                    YouTube.next(endpoint).getOrNull()
+                }
+                val existingIds = (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId }.toSet()
+                val recommendations = result?.items
+                    ?.filter { it.id != currentId && it.id !in existingIds && it.id !in recentlyFailedSongs }
+                    ?.map { it.toMediaItem() }
+                    ?.filterExplicit(dataStore.get(HideExplicitKey, false))
+                    ?.filterVideoSongs(dataStore.get(HideVideoSongsKey, false) || dataStore.get(DataSaverEnabledKey, false))
+
+                if (!recommendations.isNullOrEmpty()) {
+                    automixItems.value = recommendations
+                } else {
+                    result?.relatedEndpoint?.let { relatedEndpoint ->
+                        val related = withContext(Dispatchers.IO) {
+                            YouTube.related(relatedEndpoint).getOrNull()
+                        }
+                        val relatedItems = related?.songs
+                            ?.filter { it.id != currentId && it.id !in existingIds && it.id !in recentlyFailedSongs }
+                            ?.map { it.toMediaItem() }
+                            ?.filterExplicit(dataStore.get(HideExplicitKey, false))
+                            ?.filterVideoSongs(dataStore.get(HideVideoSongsKey, false) || dataStore.get(DataSaverEnabledKey, false))
+
+                        if (!relatedItems.isNullOrEmpty()) {
+                            automixItems.value = relatedItems
+                        }
+                    }
+                }
+            } catch (_: Exception) {
+                // Silent fail
+            }
+        }
+    }
+
     fun startRadioSeamlessly() {
-        // Safety Check: Ensure Player is initilized
+        // Safety Check: Ensure Player is initialized
         if (!playerInitialized.value) {
             Timber.tag(TAG).w("startRadioSeamlessly called before player initialization")
             return
         }
 
         val currentMediaMetadata = player.currentMetadata ?: return
-
-        val currentIndex = player.currentMediaItemIndex
         val currentMediaId = currentMediaMetadata.id
 
         scope.launch(SilentHandler) {
-            // Use simple videoId to let YouTube personalize recommendations
             val radioQueue = YouTubeQueue(
                 endpoint = WatchEndpoint(
-                    videoId = currentMediaId
+                    videoId = currentMediaId,
+                    playlistId = "RDAMVM$currentMediaId"
                 )
             )
 
@@ -1717,23 +1760,17 @@ class MusicService :
                 }
 
                 val existingIds = (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId }.toSet()
-                // Filter radio items to exclude current media item, existing queue tracks, and recently failed songs
                 val radioItems = initialStatus.items.filter { item ->
                     item.mediaId != currentMediaId && item.mediaId !in existingIds && item.mediaId !in recentlyFailedSongs
                 }
 
                 if (radioItems.isNotEmpty()) {
-                    val itemCount = player.mediaItemCount
-
-                    if (itemCount > currentIndex + 1) {
-                        player.removeMediaItems(currentIndex + 1, itemCount)
-                    }
-
-                    player.addMediaItems(currentIndex + 1, radioItems)
+                    player.addMediaItems(radioItems)
                     if (player.shuffleModeEnabled) {
                         val shufflePlaylistFirst = dataStore.get(ShufflePlaylistFirstKey, false)
                         applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, shufflePlaylistFirst)
                     }
+                    automixItems.value = radioItems
                 }
 
                 currentQueue = radioQueue
@@ -1756,15 +1793,12 @@ class MusicService :
                                 .filterVideoSongs(dataStore.get(HideVideoSongsKey, false) || dataStore.get(DataSaverEnabledKey, false))
 
                             if (radioItems.isNotEmpty()) {
-                                val itemCount = player.mediaItemCount
-                                if (itemCount > currentIndex + 1) {
-                                    player.removeMediaItems(currentIndex + 1, itemCount)
-                                }
-                                player.addMediaItems(currentIndex + 1, radioItems)
+                                player.addMediaItems(radioItems)
                                 if (player.shuffleModeEnabled) {
                                     val shufflePlaylistFirst = dataStore.get(ShufflePlaylistFirstKey, false)
                                     applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, shufflePlaylistFirst)
                                 }
+                                automixItems.value = radioItems
                             }
                         }
                     }
@@ -2253,6 +2287,7 @@ class MusicService :
             saveQueueToDisk()
         }
         prefetchUpcomingTracks()
+        refreshAutomixForCurrentSong()
     }
 
     override fun onPlaybackStateChanged(

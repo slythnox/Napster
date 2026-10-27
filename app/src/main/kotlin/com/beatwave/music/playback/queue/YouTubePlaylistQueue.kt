@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Napster (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
@@ -20,7 +20,7 @@ class YouTubePlaylistQueue(
     private val initialSongs: List<SongItem> = emptyList(),
     private val initialContinuation: String? = null,
     private val startIndex: Int = 0,
-    override val preloadItem: MediaMetadata? = initialSongs.getOrNull(startIndex)?.toMediaMetadata(),
+    override val preloadItem: MediaMetadata? = null,
 ) : Queue {
     private var continuation: String? = initialContinuation
     private var retryCount = 0
@@ -32,7 +32,7 @@ class YouTubePlaylistQueue(
                 Queue.Status(
                     title = playlistTitle,
                     items = initialSongs.map { it.toMediaItem() },
-                    mediaItemIndex = startIndex,
+                    mediaItemIndex = startIndex.coerceIn(0, maxOf(0, initialSongs.size - 1)),
                 )
             } else {
                 val playlistPage = YouTube.playlist(playlistId).getOrThrow()
@@ -40,7 +40,7 @@ class YouTubePlaylistQueue(
                 Queue.Status(
                     title = playlistPage.playlist.title,
                     items = playlistPage.songs.map { it.toMediaItem() },
-                    mediaItemIndex = startIndex,
+                    mediaItemIndex = startIndex.coerceIn(0, maxOf(0, playlistPage.songs.size - 1)),
                 )
             }
         }
@@ -71,5 +71,3 @@ class YouTubePlaylistQueue(
         }
     }
 }
-
-

@@ -263,6 +263,8 @@ import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -1085,7 +1087,10 @@ fun BottomSheetPlayer(
         }
     }
     LaunchedEffect(Unit) {
-        playerConnection.requestShowQueue.collect { requested ->
+        kotlinx.coroutines.flow.merge(
+            playerConnection.requestShowQueue,
+            playerConnection.showQueueEvent.map { true }
+        ).collect { requested ->
             if (requested) {
                 showInlineLyrics = false
                 // Queue's own visibility below is gated on !isFullScreen, same as

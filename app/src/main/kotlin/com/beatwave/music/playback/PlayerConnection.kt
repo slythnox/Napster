@@ -28,6 +28,7 @@ import com.beatwave.music.playback.queue.Queue
 import com.beatwave.music.utils.reportException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -182,6 +183,20 @@ class PlayerConnection(
      *  showing lyrics/queue. Player.kt observes these and resets them. */
     val requestShowLyrics = MutableStateFlow(false)
     val requestShowQueue = MutableStateFlow(false)
+    val showQueueEvent = MutableSharedFlow<Unit>(extraBufferCapacity = 64)
+
+    fun openQueue() {
+        requestShowQueue.value = true
+        showQueueEvent.tryEmit(Unit)
+    }
+
+    fun clearQueue() {
+        try {
+            service.clearQueue()
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Error clearing queue")
+        }
+    }
 
     val error = MutableStateFlow<PlaybackException?>(null)
     val isMuted = service.isMuted

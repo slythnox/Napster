@@ -1294,16 +1294,7 @@ object YouTube {
 
         fun addItem(item: YTItem, renderer: MusicResponsiveListItemRenderer?) {
             when (item) {
-                is SongItem -> {
-                    val isAudioTrack = renderer?.overlay
-                        ?.musicItemThumbnailOverlayRenderer?.content
-                        ?.musicPlayButtonRenderer?.playNavigationEndpoint
-                        ?.watchEndpoint?.watchEndpointMusicSupportedConfigs
-                        ?.watchEndpointMusicConfig?.musicVideoType == MUSIC_VIDEO_TYPE_ATV
-                    if (isAudioTrack) {
-                        songs.add(item)
-                    }
-                }
+                is SongItem -> songs.add(item)
                 is AlbumItem -> albums.add(item)
                 is ArtistItem -> artists.add(item)
                 is PlaylistItem -> playlists.add(item)

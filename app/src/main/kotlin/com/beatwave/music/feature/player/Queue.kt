@@ -344,8 +344,10 @@ fun Queue(
 
                     PlayerQueueButton(
                         icon = R.drawable.queue_music,
-                        onClick = { state.expandSoft() },
-                        isActive = false,
+                        onClick = {
+                            if (state.isExpanded) state.collapseSoft() else state.expandSoft()
+                        },
+                        isActive = state.isExpanded,
                         shape = queueShape,
                         modifier = Modifier.size(buttonSize),
                         textButtonColor = textButtonColor,
@@ -488,7 +490,9 @@ fun Queue(
                     // as the middle pair reading visibly off-center.
                     Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
                     TextButton(
-                        onClick = { state.expandSoft() },
+                        onClick = {
+                            if (state.isExpanded) state.collapseSoft() else state.expandSoft()
+                        },
                         modifier = Modifier.wrapContentWidth()
                     ) {
                         Row(
@@ -864,6 +868,26 @@ fun Queue(
                         }
                     }
 
+                    val clearQueueDesc = stringResource(R.string.clear_queue)
+                    TooltipBox(
+                        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+                        tooltip = { PlainTooltip { Text(clearQueueDesc) } },
+                        state = rememberTooltipState(),
+                    ) {
+                        FilledTonalIconButton(
+                            onClick = {
+                                playerConnection.clearQueue()
+                                Toast.makeText(context, context.getString(R.string.queue_cleared), Toast.LENGTH_SHORT).show()
+                            },
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.clear_all),
+                                contentDescription = clearQueueDesc,
+                            )
+                        }
+                    }
+
                     val moreDescription = stringResource(R.string.more_options)
                     TooltipBox(
                         positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
@@ -1035,6 +1059,26 @@ fun Queue(
                             color = TextBackgroundColor.copy(alpha = 0.7f)
                         )
                     }
+
+                    var autoLoadMore by rememberPreference(com.beatwave.music.constants.AutoLoadMoreKey, defaultValue = true)
+                    androidx.compose.material3.FilterChip(
+                        selected = autoLoadMore,
+                        onClick = { autoLoadMore = !autoLoadMore },
+                        label = {
+                            Text(
+                                text = stringResource(R.string.autoplay),
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(R.drawable.auto_play),
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        },
+                        modifier = Modifier.padding(end = 12.dp)
+                    )
 
                     Column(
                         horizontalAlignment = Alignment.End,

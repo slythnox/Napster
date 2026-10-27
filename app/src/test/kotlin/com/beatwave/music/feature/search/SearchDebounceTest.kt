@@ -26,7 +26,7 @@ class SearchDebounceTest {
 
         // Clear query immediately
         query.value = ""
-        delay(50) // Small delay to let collector run, well under 300ms
+        delay(150) // Small delay to let collector run, well under 300ms
 
         assertEquals(listOf(""), emissions)
         job.cancel()

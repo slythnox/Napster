@@ -1,42 +1,37 @@
 {
-  "description": "Napster 1.0.3 \u2014 Audio Diagnostics, HTTP Streaming Add-ons, Lossless FLAC Export, and Per-Network Quality Preferences.",
+  "description": "Napster 1.0.4 \u2014 Consolidated Audio Quality, Speed Dial & Quick Picks, Next Song Recommendations, and Queue Enhancements.",
   "image": "",
   "changelog": [
     {
-      "title": "Truth-First Audio Diagnostics & Route Telemetry",
+      "title": "Home Screen: Speed Dial, Quick Picks & New Releases",
       "items": [
-        "Real-time decoder telemetry monitoring actual Media3 audio input format, codec, sample rate, bit depth, and bitrate.",
-        "Downgrade detection flagging when streams claiming lossless quality are delivered lossy or downsampled.",
-        "Active hardware output route classification (Speaker, Wired Headset, USB DAC, HDMI, Audio Dock).",
-        "Bluetooth A2DP telemetry detecting negotiated codecs (LDAC, aptX HD, aptX Adaptive, AAC, SBC, Samsung Seamless Codec) without unverified bit-perfect claims."
+        "Enabled Speed Dial and Quick Picks in the primary top tier of Home for immediate one-tap access to favorites.",
+        "Intelligent fallback populates Speed Dial from pinned favorites, heavy rotation, and discovery streams.",
+        "Added a dedicated New Release Albums horizontal carousel directly beneath Quick Picks for rapid browsing of fresh music."
       ]
     },
     {
-      "title": "HTTP Streaming Add-ons",
+      "title": "Next Songs Recommendations & Algorithmic Auto-mix",
       "items": [
-        "Modular support for external streaming add-on servers using open JSON manifest standards.",
-        "Manifest capability discovery, resource verification, and configurable quality tiers.",
-        "In-flight request deduplication via SharedCalls protecting self-hosted server instances.",
-        "HTTP 429 Retry-After backoff and client-side cooldown timers.",
-        "Silent track mismatch guard strictly rejecting remixes, live performances, and acoustic edits when studio tracks are requested."
+        "Restored related track discovery and auto-mix recommendations by eliminating restrictive video-type filters.",
+        "Connected official YouTube radio stations (RDAMVM) ensuring continuous algorithmic recommendations and rich Similar Content queues.",
+        "Seamless automix refreshes dynamically on track transitions without interrupting playback."
       ]
     },
     {
-      "title": "Lossless FLAC Export & Metadata Tagging",
+      "title": "Consolidated Audio Quality Controls",
       "items": [
-        "Direct export of cached lossless FLAC audio to user-selected storage via Android Storage Access Framework.",
-        "FlacTagger embeds Vorbis comments (Title, Artist, Album), album cover art, and synchronized/word lyrics.",
-        "Raw audio frame streams are preserved byte-for-byte untouched with zero transcoding artifacts.",
-        "Honest format handling: non-FLAC streams are cleanly converted to M4A/AAC rather than falsely disguised as FLAC."
+        "Unified audio quality settings into a clean, 2-tab bottom sheet with dedicated Wi-Fi and Phone Data preferences.",
+        "Streamlined quality options across Player, Settings, and Queue into a single coherent preference hierarchy.",
+        "Eliminated misleading terminology, clearly distinguishing user preferences from active stream and route telemetry."
       ]
     },
     {
-      "title": "Per-Network Quality & Storage Controls",
+      "title": "Queue & Playlist Playback Enhancements",
       "items": [
-        "Independent audio quality preferences for Wi-Fi and Cellular networks.",
-        "Seamless handover adaptation dynamically re-evaluating quality upon network changes without unnecessary playback reloads.",
-        "Data Saver mode instantly forces efficient low-bitrate playback across all networks.",
-        "Storage settings featuring granular player and download cache monitoring and one-tap cache eviction."
+        "Fixed playlist playback to ensure true sequential playback starting from any randomly selected track.",
+        "Added one-tap Clear Queue action button directly in the Queue header with responsive feedback.",
+        "Integrated an accessible Autoplay toggle chip right into the Queue header row."
       ]
     }
   ]

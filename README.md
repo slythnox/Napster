@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/Licence-GPL--3.0-E50914?style=for-the-badge&labelColor=0E1015" alt="Licence GPL-3.0" /></a>
-  <a href="version.properties"><img src="https://img.shields.io/badge/Version-1.0.3--XO-E50914?style=for-the-badge&labelColor=0E1015" alt="Version 1.0.3" /></a>
+  <a href="version.properties"><img src="https://img.shields.io/badge/Version-1.0.4--XO-E50914?style=for-the-badge&labelColor=0E1015" alt="Version 1.0.4" /></a>
   <a href="docs/BUILD_AND_TEST.md"><img src="https://img.shields.io/badge/Platform-Android%208.0%2B%20(API%2026%E2%80%9336)-E50914?style=for-the-badge&labelColor=0E1015" alt="Android 8.0+" /></a>
   <a href="docs/ARCHITECTURE.md"><img src="https://img.shields.io/badge/Architecture-Clean%20%2F%20MVI%20%2B%20Media3-E50914?style=for-the-badge&labelColor=0E1015" alt="Architecture Clean Media3" /></a>
   <a href="docs/PRIVACY_AND_PERMISSIONS.md"><img src="https://img.shields.io/badge/Telemetry-Zero%20Tracking-E50914?style=for-the-badge&labelColor=0E1015" alt="Zero Telemetry" /></a>

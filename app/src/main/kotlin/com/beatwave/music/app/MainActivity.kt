@@ -386,7 +386,8 @@ private class TopBarChromeVisibility {
             val dy = available.y
             if (dy > ScrollSlopPx) {
                 visible = true
-            } else if (dy < -ScrollSlopPx && !atTop) {
+            } else if (dy < -ScrollSlopPx) {
+                atTop = false
                 visible = false
             }
             return Offset.Zero
@@ -1523,8 +1524,17 @@ class MainActivity : ComponentActivity() {
                                 exit = fadeOut(animationSpec = tween(durationMillis = 200))
                             ) {
                                 Row {
+                                        val chromeAlpha by animateFloatAsState(
+                                            targetValue = if (topBarChrome.visible) 1f else 0f,
+                                            animationSpec = tween(
+                                                durationMillis = if (topBarChrome.visible) 90 else 200
+                                            ),
+                                            label = "topBarChromeAlpha",
+                                        )
                                     Box(
-                                        modifier = Modifier.fillMaxWidth()
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .graphicsLayer { alpha = chromeAlpha }
                                     ) {
                                         // Scrim only Ã¢â‚¬â€ no backdrop capture. This was a blurred
                                         // capture of the screen behind it (once two stacked
@@ -1546,13 +1556,6 @@ class MainActivity : ComponentActivity() {
                                         // The fade is asymmetric on purpose: coming back has
                                         // to feel immediate, because it trails the scroll
                                         // that asked for it. Going away can be lazy.
-                                        val chromeAlpha by animateFloatAsState(
-                                            targetValue = if (topBarChrome.visible) 1f else 0f,
-                                            animationSpec = tween(
-                                                durationMillis = if (topBarChrome.visible) 90 else 200
-                                            ),
-                                            label = "topBarChromeAlpha",
-                                        )
                                         // The scrim is the screen's OWN background faded
                                         // out, not a fixed black: hardcoded black read as
                                         // a dark band across the top of every light-theme
@@ -1579,10 +1582,10 @@ class MainActivity : ComponentActivity() {
                                                     .graphicsLayer { alpha = chromeAlpha }
                                                     .background(
                                                         Brush.verticalGradient(
-                                                            0f to scrimColor.copy(alpha = 0.82f),
-                                                            0.42f to scrimColor.copy(alpha = 0.70f),
-                                                            0.68f to scrimColor.copy(alpha = 0.38f),
-                                                            0.86f to scrimColor.copy(alpha = 0.14f),
+                                                            0f to scrimColor.copy(alpha = 0.95f),
+                                                            0.42f to scrimColor.copy(alpha = 0.85f),
+                                                            0.68f to scrimColor.copy(alpha = 0.50f),
+                                                            0.86f to scrimColor.copy(alpha = 0.20f),
                                                             1f to Color.Transparent,
                                                         )
                                                     )
@@ -1825,7 +1828,7 @@ class MainActivity : ComponentActivity() {
                                         },
                                         onAccessoryQueueClick = {
                                             playerBottomSheetState.expandSoft()
-                                            playerConnection?.requestShowQueue?.value = true
+                                            playerConnection?.openQueue()
                                         },
                                         // tabPosition omitted (defaults to null): there is no
                                         // pager to follow now that the tabs are real NavHost
@@ -2304,7 +2307,7 @@ class MainActivity : ComponentActivity() {
                                                     },
                                                     onQueueClick = {
                                                         playerBottomSheetState.expandSoft()
-                                                        playerConnection?.requestShowQueue?.value = true
+                                                        playerConnection?.openQueue()
                                                     },
                                                     pureBlack = pureBlack,
                                                 )
